@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" class="on-work">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ridges · Diorama</title>
+    <meta name="description" content="Diorama puts three.js effects on ordinary HTML: one attribute on any element." />
+    <link rel="icon" href="data:," />
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      /* Critical CSS for the first paint. */
+      @font-face {
+        font-family: Archivo;
+        src: url("/fonts/archivo.woff2") format("woff2");
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+        font-weight: 100 800;
+        font-display: swap;
+      }
+      :root {
+        --wall: #4b1519;
+        --cream: #f3e9d8;
+        --edge: clamp(20px, 6vw, 96px);
+        background: var(--wall);
+        color: var(--cream);
+        font: 400 17px / 1.55 Archivo, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+      }
+      .top {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 24px var(--edge);
+      }
+      .mark {
+        font-weight: 800;
+        font-stretch: 125%;
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: inherit;
+        text-decoration: none;
+      }
+      .on-work {
+        color: var(--wall);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet" aria-hidden="true"></div>
+    <div id="page">
+      <header class="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a class="mark" href="/" data-back>Diorama</a>
+          <span class="crumb" aria-current="page">Ridges</span>
+        </nav>
+        <div class="top-end">
+          <button class="flat" type="button" aria-pressed="false" title="Turn the 3D off and see the plain HTML under it">
+            <span class="flat-label">3D</span><span class="flat-switch" aria-hidden="true"></span>
+          </button>
+          <a class="close" href="/" data-back>Close <span class="close-x" aria-hidden="true"></span></a>
+        </div>
+      </header>
+
+      <main class="case">
+        <header class="case-head">
+          <p class="kicker">01 — Shadow box</p>
+          <h1 class="case-title">Ridges</h1>
+          <p class="case-lede">
+            A shadow box: the picture cut into seven sheets of paper that stand apart in depth behind a
+            mat. Move the pointer over it to look inside.
+          </p>
+        </header>
+        <figure class="cover">
+          <img src="/media/ridges.jpg" width="1800" height="1200" alt="Mountain ridges fading into the haze one behind another" data-dio="shadowbox" data-dio-key="ridges" />
+        </figure>
+        <section class="how" aria-labelledby="how">
+          <h2 id="how" class="how-title">How it got here</h2>
+          <ol class="how-steps">
+            <li>
+              <span class="how-n">01</span>
+              <h3>One key on both pages</h3>
+              <p>The card in the landscape and this cover carry the same <code>data-dio-key</code>.</p>
+            </li>
+            <li>
+              <span class="how-n">02</span>
+              <h3>The 3D lives on</h3>
+              <p>The canvas is not torn down when the page changes. Nothing reloads, nothing blinks.</p>
+            </li>
+            <li>
+              <span class="how-n">03</span>
+              <h3>The picture flies</h3>
+              <p>
+                Its own mesh and texture travel from the card's box to this one, recropped on the way.
+                Not a screenshot.
+              </p>
+            </li>
+          </ol>
+          <pre class="case-code"><code><span class="note">&lt;!-- in the landscape: the card --&gt;</span>
+&lt;a href="/work/ridges/"&gt;
+  &lt;img src="ridges.jpg" data-dio="shadowbox" <mark>data-dio-key="ridges"</mark>&gt;
+&lt;/a&gt;
+
+<span class="note">&lt;!-- on this page: the cover --&gt;</span>
+&lt;img src="ridges.jpg" data-dio="shadowbox" <mark>data-dio-key="ridges"</mark>&gt;</code></pre>
+          <a class="case-back" href="/" data-back><span aria-hidden="true">←</span> Fly it back to the landscape</a>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <p>Diorama is MIT.</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

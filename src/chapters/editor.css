@@ -1,0 +1,567 @@
+/* 06 Editor. The ink effect's source next to the picture, rebuilt as you type. */
+.ed {
+  --paper: #f3e9d8;
+  --ink: #1a0608;
+  --rose: #e2a18c;
+  --sun: #ffcf98;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+.ed {
+  /* Card width follows the height the screen leaves for it, the code takes the rest. */
+  --card: min(40vw, calc((100vh - 360px) * 0.8), 560px);
+  display: grid;
+  grid-template-columns: var(--card) minmax(0, 1fr);
+  grid-template-areas:
+    "head head"
+    "card code";
+  gap: 30px clamp(32px, 4vw, 60px);
+  align-items: stretch;
+  max-width: 1500px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 84px var(--edge) 36px;
+  /* Keeps the animated sky of the next chapter off screen, so the meter can show an idle page. */
+  margin-bottom: 30vh;
+}
+.ed .ed-head {
+  grid-area: head;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 27em);
+  gap: 14px 6vw;
+  align-items: end;
+}
+.ed .ed-kicker {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: 500 12px var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+/* Same layered paper as the other titles. */
+.ed .ed-title {
+  margin: 0;
+  font-size: var(--chapter-title);
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.035em;
+  line-height: 0.94;
+}
+.ed .editor:focus-within {
+  border-color: rgb(226 161 140 / 0.45);
+}
+.ed .ed-kicker b {
+  font-weight: 500;
+  color: #e2a18c;
+}
+.ed .ed-lede {
+  margin: 0;
+  max-width: 27em;
+  font-size: 16.5px;
+  line-height: 1.55;
+  color: rgb(243 233 216 / 0.86);
+  text-wrap: pretty;
+}
+.ed .ed-lede code,
+.ed .ed-foot code {
+  font: 400 0.88em var(--mono);
+  color: var(--cream);
+}
+
+.ed .ed-card {
+  grid-area: card;
+  margin: 0;
+}
+.ed .ed-sheet {
+  position: relative;
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow:
+    0 30px 60px -22px rgb(16 3 5 / 0.7),
+    0 6px 14px rgb(16 3 5 / 0.3);
+}
+.ed .ed-sheet img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 3px;
+  /* Touch inks with a tap or a sideways stroke, vertical swipes still scroll. */
+  touch-action: pan-y;
+  cursor: crosshair;
+  /* Bare paper until the ink effect draws. With the 3D off the plain photo comes back. */
+  filter: opacity(0);
+  transition: filter 0.6s;
+}
+.ed .ed-sheet img:is([data-dio-state="failed"], [data-dio-state="off"]) {
+  filter: none;
+  transition-delay: 0.5s;
+}
+.ed .ed-card figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  font: 400 12px var(--mono);
+  color: rgb(243 233 216 / 0.62);
+}
+.ed .hint::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--rose);
+  vertical-align: 1px;
+}
+.ed .again {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgb(243 233 216 / 0.22);
+  border-radius: 999px;
+  background: none;
+  color: var(--cream);
+  font: 500 12px var(--mono);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.ed .again:hover {
+  border-color: rgb(243 233 216 / 0.55);
+  background: rgb(243 233 216 / 0.05);
+}
+.ed .again svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Code panel */
+.ed .editor {
+  grid-area: code;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid rgb(243 233 216 / 0.09);
+  border-radius: 10px;
+  background: linear-gradient(to bottom, #1d1330, #150d26);
+  box-shadow:
+    0 40px 80px -30px rgb(10 2 3 / 0.8),
+    inset 0 1px 0 rgb(243 233 216 / 0.05);
+  overflow: hidden;
+}
+.ed .ed-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 42px;
+  padding: 0 8px 0 18px;
+  border-bottom: 1px solid rgb(243 233 216 / 0.07);
+  font: 400 12px var(--mono);
+}
+.ed .ed-file {
+  color: rgb(243 233 216 / 0.5);
+  white-space: nowrap;
+}
+.ed .ed-file b {
+  font-weight: 500;
+  color: var(--cream);
+}
+.ed .tip {
+  color: rgb(243 233 216 / 0.34);
+  white-space: nowrap;
+}
+.ed .tip::before {
+  content: "·";
+  margin-right: 14px;
+}
+@media (max-width: 1180px) {
+  .ed .tip {
+    display: none;
+  }
+}
+.ed .ed-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-left: auto;
+  color: rgb(243 233 216 / 0.66);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ed .ed-state i {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 0 3px rgb(255 207 152 / 0.12);
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
+}
+.ed .ed-state[data-state="editing"] i,
+.ed .ed-state[data-state="building"] i {
+  background: rgb(243 233 216 / 0.45);
+  box-shadow: 0 0 0 3px rgb(243 233 216 / 0.06);
+}
+.ed .ed-state[data-state="error"] i {
+  background: #ff9a84;
+  box-shadow: 0 0 0 3px rgb(255 154 132 / 0.16);
+}
+.ed .state-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ed .reset {
+  flex: none;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 6px;
+  background: rgb(243 233 216 / 0.07);
+  color: var(--cream);
+  font: 500 12px var(--mono);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ed .reset:hover {
+  background: rgb(243 233 216 / 0.13);
+}
+.ed .reset[hidden] {
+  display: none;
+}
+
+.ed .ed-code {
+  position: relative;
+  display: flex;
+  overflow: auto;
+  overscroll-behavior-x: contain;
+  flex: 1;
+  font: 400 12.5px / 19px var(--mono);
+  font-variant-ligatures: none;
+  tab-size: 2;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(243 233 216 / 0.2) transparent;
+}
+.ed .gutter {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  flex: none;
+  width: 52px;
+  padding: 14px 0 16px;
+  background: #170f2a;
+  color: rgb(243 233 216 / 0.24);
+  text-align: right;
+  user-select: none;
+}
+.ed .gutter > div {
+  position: relative;
+  height: 19px;
+  padding-right: 14px;
+}
+.ed .gutter .bad {
+  color: #ff9a84;
+}
+.ed .gutter .bad::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  background: #ff9a84;
+}
+/* Swatch in the gutter next to each colour literal. */
+.ed .ed-swatch {
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgb(243 233 216 / 0.5),
+    0 0 0 4px rgb(243 233 216 / 0.06);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.ed .ed-swatch:hover,
+.ed .ed-swatch:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--cream),
+    0 0 0 4px rgb(243 233 216 / 0.16);
+}
+.ed .ed-swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.ed .field {
+  position: relative;
+  flex: 1 0 auto;
+}
+.ed .paint,
+.ed .field textarea {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px 28px 16px 16px;
+  border: 0;
+  font: inherit;
+  letter-spacing: 0;
+  white-space: pre;
+  overflow: hidden;
+  tab-size: inherit;
+}
+.ed .paint code {
+  font: inherit;
+}
+.ed .paint {
+  pointer-events: none;
+  color: rgb(243 233 216 / 0.84);
+}
+.ed .field textarea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--sun);
+  overflow-wrap: normal;
+}
+.ed .field textarea::selection {
+  background: rgb(255 207 152 / 0.22);
+  color: transparent;
+}
+.ed .field textarea.scrub {
+  cursor: ew-resize;
+}
+.ed .problem-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 19px;
+  background: rgb(255 154 132 / 0.08);
+  pointer-events: none;
+}
+.ed .t-c {
+  color: rgb(201 138 128 / 0.82);
+}
+.ed .t-s {
+  color: var(--sun);
+}
+.ed .t-n {
+  color: #f7b49a;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ed .t-n {
+    text-decoration: underline dotted rgb(247 180 154 / 0.5);
+    text-underline-offset: 4px;
+  }
+}
+.ed .t-k {
+  color: var(--rose);
+}
+.ed .t-f {
+  color: #f6dcc0;
+}
+.ed .t-p {
+  color: rgb(226 192 170 / 0.9);
+}
+.ed .t-o {
+  color: rgb(243 233 216 / 0.45);
+}
+
+/* Error bar laid over the bottom of the code so it doesn't shift layout and trigger a redraw. */
+.ed .lower {
+  position: relative;
+}
+.ed .problem {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  z-index: 3;
+  margin: 0;
+  padding: 11px 18px 12px;
+  border-top: 1px solid rgb(255 154 132 / 0.2);
+  background: #1d1432;
+  box-shadow: 0 -18px 24px -12px rgb(16 3 5 / 0.6);
+  color: #ffc2b2;
+  font: 400 12px / 1.55 var(--mono);
+  opacity: 0;
+  translate: 0 8px;
+  visibility: hidden;
+  transition:
+    opacity 0.3s,
+    translate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0s 0.45s;
+}
+.ed .problem.shown {
+  opacity: 1;
+  translate: 0 0;
+  visibility: visible;
+  transition:
+    opacity 0.3s,
+    translate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ed .problem b {
+  font-weight: 600;
+  color: #ff9a84;
+}
+
+/* Frame meter */
+.ed .meter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 22px;
+  padding: 14px 18px 15px;
+  border-top: 1px solid rgb(243 233 216 / 0.07);
+  font: 400 11px var(--mono);
+  color: rgb(243 233 216 / 0.55);
+}
+.ed .fps {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+.ed .fps-n {
+  min-width: 2ch;
+  font: 500 30px / 0.9 var(--mono);
+  letter-spacing: -0.04em;
+  color: var(--cream);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ed .spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 30px;
+  min-width: 0;
+  overflow: hidden;
+}
+.ed .spark i {
+  flex: 1 0 2px;
+  max-width: 4px;
+  min-height: 1px;
+  border-radius: 1px 1px 0 0;
+  background: rgb(243 233 216 / 0.16);
+}
+.ed .spark i.on {
+  background: rgb(255 207 152 / 0.6);
+}
+.ed .spark i:last-child.on {
+  background: var(--sun);
+}
+.ed .counts {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  white-space: nowrap;
+}
+.ed .counts div {
+  display: grid;
+  gap: 3px;
+  text-align: right;
+}
+.ed .counts dt {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.ed .counts dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+}
+.ed .ed-foot {
+  margin: 0;
+  padding: 0 18px 16px;
+  font: 400 11px / 1.5 var(--mono);
+  color: rgb(243 233 216 / 0.42);
+}
+
+@media (max-width: 900px) {
+  .ed {
+    --card: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "card" "code";
+    gap: 28px;
+    padding-top: 92px;
+  }
+  .ed .ed-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ed .ed-title {
+    font-size: clamp(2.6rem, 12vw, 4rem);
+  }
+  .ed .ed-lede {
+    font-size: 16px;
+  }
+  .ed .ed-card {
+    max-width: 520px;
+  }
+  .ed .ed-code {
+    font-size: 12px;
+    line-height: 20px;
+  }
+  .ed .gutter {
+    width: 44px;
+  }
+  .ed .gutter > div,
+  .ed .problem-line {
+    height: 20px;
+  }
+  .ed .ed-swatch {
+    left: 4px;
+    top: 3px;
+  }
+  .ed .meter {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .ed .counts {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+  .ed .counts div {
+    text-align: left;
+  }
+}
+@media (max-width: 480px) {
+  .ed .ed-card figcaption {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed *,
+  .ed *::before {
+    transition: none;
+  }
+}
+.flat-on .ed .ed-sheet img {
+  filter: none;
+}

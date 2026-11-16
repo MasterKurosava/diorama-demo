@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diorama · WebGL effects for plain HTML</title>
+    <meta name="description" content="Diorama puts three.js effects on ordinary HTML: one attribute on any element." />
+    <link rel="icon" href="data:," />
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      /* Critical CSS for the first paint. */
+      @font-face {
+        font-family: Archivo;
+        src: url("/fonts/archivo.woff2") format("woff2");
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+        font-weight: 100 800;
+        font-display: swap;
+      }
+      :root {
+        --wall: #4b1519;
+        --cream: #f3e9d8;
+        --edge: clamp(20px, 6vw, 96px);
+        background: var(--wall);
+        color: var(--cream);
+        font: 400 17px / 1.55 Archivo, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+      }
+      .top {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 24px var(--edge);
+      }
+      .mark {
+        font-weight: 800;
+        font-stretch: 125%;
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: inherit;
+        text-decoration: none;
+      }
+      /* Loader. The sun rises behind paper ridges to where the scene's sun will be. The scene is
+         built while the sun slows down, which hides the hitch. Once everything is drawn the ridges
+         sink and the night clears. */
+      .loader {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        overflow: hidden;
+      }
+      .loader > *,
+      .loader-sun > * {
+        position: absolute;
+      }
+      .loader-sky,
+      .loader-dawn {
+        inset: 0;
+      }
+      .loader-sky {
+        background: linear-gradient(to bottom, #16050a 0%, #2c0b10 46%, #4b1519 72%, #3a0f12 100%);
+        transition: opacity 0.75s 0.45s;
+      }
+      .loader-dawn {
+        position: absolute;
+        background:
+          radial-gradient(ellipse 46% 34% at 83.5% 30%, rgb(255 222 180 / 0.5), transparent 70%),
+          linear-gradient(to bottom, #4b1519 0%, #7a3330 34%, #e39a76 52%, #a85c58 60%, #6d282b 72%, #4b1519 100%);
+        animation: loader-light 2.4s cubic-bezier(0.3, 0.4, 0.3, 1) 0.1s both;
+      }
+      .loader-sun {
+        left: 83.5%;
+        top: 29.8%;
+        animation: loader-rise 2.4s cubic-bezier(0.25, 0.6, 0.2, 1) 0.1s both;
+        transition: opacity 0.7s 0.9s;
+      }
+      .loader-disc,
+      .loader-rays {
+        aspect-ratio: 1;
+        translate: -50% -50%;
+      }
+      .loader-disc {
+        width: 10.5vh;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fff6e6 0 58%, #ffe2bd 74%, #ffcf98 100%);
+        box-shadow:
+          0 0 4vh 1vh rgb(255 214 170 / 0.55),
+          0 0 18vh 7vh rgb(255 190 140 / 0.3);
+      }
+      .loader-rays {
+        width: 120vh;
+        background: repeating-conic-gradient(rgb(255 226 190 / 0.25) 0 2deg, transparent 2deg 9deg);
+        mask: radial-gradient(circle, #000 4%, transparent 50%);
+        animation:
+          loader-light 1.8s 0.5s both,
+          loader-turn 80s linear infinite;
+      }
+      @keyframes loader-rise {
+        from {
+          transform: translateY(40vh);
+        }
+      }
+      @keyframes loader-light {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes loader-turn {
+        to {
+          rotate: 1turn;
+        }
+      }
+      .loader-ridges {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .loader-ridges path {
+        transition: transform 0.85s cubic-bezier(0.6, 0, 0.4, 1);
+        filter: drop-shadow(0 -6px 14px rgb(20 4 5 / 0.35));
+      }
+      .loader .top {
+        color: var(--cream);
+        transition: opacity 0.5s 0.7s;
+      }
+      .loader.out {
+        pointer-events: none;
+      }
+      .loader.out .loader-sky,
+      .loader.out .loader-sun,
+      .loader.out .top {
+        opacity: 0;
+      }
+      .loader.out path {
+        transform: translateY(62%);
+      }
+      .loader.out path:nth-child(3) {
+        transition-delay: 0.06s;
+      }
+      .loader.out path:nth-child(2) {
+        transition-delay: 0.12s;
+      }
+      .loader.out path:nth-child(1) {
+        transition-delay: 0.18s;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader-sun,
+        .loader-dawn,
+        .loader-rays {
+          animation: none;
+        }
+        .loader.out > *,
+        .loader.out path {
+          transform: none;
+          opacity: 0;
+          transition: opacity 0.5s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loader" aria-hidden="true">
+      <div class="loader-sky"><div class="loader-dawn"></div></div>
+      <div class="loader-sun"><i class="loader-rays"></i><i class="loader-disc"></i></div>
+      <svg class="loader-ridges" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true">
+        <path fill="#a85c58" d="M0 1000L0 605.8C13.3 604.3 53.3 599.6 80 596.8C106.7 594.1 133.3 590.8 160 589.2C186.7 587.6 213.3 587 240 587.2C266.7 587.3 293.3 589.1 320 590C346.7 591 373.3 593 400 593C426.7 593 453.3 592.6 480 590.2C506.7 587.7 533.3 583.5 560 578.3C586.7 573.1 613.3 565.6 640 559.1C666.7 552.5 693.3 544.5 720 538.9C746.7 533.3 773.3 527.9 800 525.4C826.7 523 853.3 522.5 880 524C906.7 525.5 933.3 530 960 534.6C986.7 539.2 1013.3 546.3 1040 551.8C1066.7 557.3 1093.3 563.7 1120 567.7C1146.7 571.7 1173.3 574.7 1200 575.7C1226.7 576.8 1253.3 575.7 1280 574C1306.7 572.3 1333.3 568.5 1360 565.6C1386.7 562.8 1426.7 558.3 1440 556.8L1440 1000Z" />
+        <path fill="#86393b" d="M0 1000L0 642C13.3 638.2 53.3 625.3 80 619.6C106.7 613.9 133.3 609.5 160 608C186.7 606.5 213.3 607.8 240 610.5C266.7 613.2 293.3 619.1 320 624.4C346.7 629.6 373.3 637 400 642.2C426.7 647.4 453.3 652.7 480 655.7C506.7 658.6 533.3 659.9 560 659.8C586.7 659.8 613.3 657.4 640 655.3C666.7 653.2 693.3 649.4 720 647.3C746.7 645.1 773.3 642.9 800 642.3C826.7 641.8 853.3 642.7 880 644.3C906.7 645.8 933.3 649.3 960 651.8C986.7 654.2 1013.3 657.8 1040 659C1066.7 660.3 1093.3 661 1120 659.1C1146.7 657.3 1173.3 653.3 1200 648C1226.7 642.7 1253.3 634.6 1280 627.2C1306.7 619.8 1333.3 610.4 1360 603.5C1386.7 596.6 1426.7 588.8 1440 585.9L1440 1000Z" />
+        <path fill="#5a1b1f" d="M0 1000L0 761.8C13.3 763.6 53.3 769 80 772.7C106.7 776.4 133.3 781.2 160 784C186.7 786.8 213.3 789.3 240 789.6C266.7 789.8 293.3 788.3 320 785.4C346.7 782.5 373.3 777.2 400 772.2C426.7 767.1 453.3 760.1 480 755C506.7 749.8 533.3 744.3 560 741.3C586.7 738.3 613.3 736.6 640 737C666.7 737.4 693.3 740.2 720 743.7C746.7 747.3 773.3 753.1 800 758.2C826.7 763.2 853.3 769.4 880 774C906.7 778.6 933.3 782.8 960 785.6C986.7 788.3 1013.3 789.7 1040 790.6C1066.7 791.6 1093.3 791.1 1120 791.5C1146.7 791.9 1173.3 791.6 1200 793.1C1226.7 794.5 1253.3 796.6 1280 800C1306.7 803.4 1333.3 808.4 1360 813.4C1386.7 818.3 1426.7 827 1440 829.7L1440 1000Z" />
+        <path fill="#3d1014" d="M0 1000L0 913.2C13.3 912.8 53.3 912.6 80 910.9C106.7 909.2 133.3 906.6 160 903.1C186.7 899.7 213.3 894.9 240 890.4C266.7 886 293.3 880.5 320 876.4C346.7 872.2 373.3 868.1 400 865.8C426.7 863.5 453.3 862.3 480 862.5C506.7 862.7 533.3 864.7 560 867.1C586.7 869.4 613.3 873.4 640 876.7C666.7 879.9 693.3 883.9 720 886.5C746.7 889.1 773.3 891.3 800 892.2C826.7 893.2 853.3 892.9 880 892.1C906.7 891.3 933.3 889.2 960 887.6C986.7 886 1013.3 883.7 1040 882.5C1066.7 881.2 1093.3 880.2 1120 880C1146.7 879.9 1173.3 880.7 1200 881.6C1226.7 882.5 1253.3 884.4 1280 885.3C1306.7 886.2 1333.3 887.5 1360 887.3C1386.7 887 1426.7 884.5 1440 883.9L1440 1000Z" />
+      </svg>
+      <div class="top"><span class="mark">Diorama</span></div>
+    </div>
+    <div class="sheet" aria-hidden="true"></div>
+    <div id="page">
+      <header class="top">
+        <a class="mark" href="/">Diorama</a>
+        <nav aria-label="Main">
+          <a href="https://github.com/MasterKurosava/diorama/blob/main/docs/guides/start.md">Docs</a>
+          <a href="https://github.com/MasterKurosava/diorama">GitHub</a>
+          <button class="flat" type="button" aria-pressed="false" title="Turn the 3D off and see the plain HTML under it">
+            <span class="flat-label">3D</span><span class="flat-switch" aria-hidden="true"></span>
+          </button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="title">
+          <div class="dusk" aria-hidden="true"></div>
+          <div class="hero-pin" data-dio="scene">
+            <div class="hero-copy">
+              <h1 id="title" class="hero-title" data-dio="title">
+                <span class="line">WebGL effects</span>
+                <span class="line">for plain</span>
+                <span class="line deep">HTML.</span>
+              </h1>
+              <div class="hero-words">
+                <p class="hero-lede">One attribute on any element.<span class="lede-more"> Built on three.js, drawn with WebGPU.</span></p>
+                <p class="hero-actions">
+                  <a class="button solid" href="https://github.com/MasterKurosava/diorama/blob/main/docs/guides/start.md">Get started</a>
+                  <button class="install" type="button" data-copy="npm i diorama three" title="Copy">
+                    <code>npm i diorama three</code><span class="install-done" aria-live="polite"></span>
+                  </button>
+                </p>
+              </div>
+            </div>
+
+            <figure class="piece piece-photo">
+              <img src="/media/ridges.jpg" width="1800" height="1200" alt="Mountain ridges fading into the haze one behind another" data-dio="image photo" />
+              <figcaption class="whisper">data-dio="image photo"</figcaption>
+            </figure>
+            <figure class="piece piece-portrait">
+              <img src="/media/watcher.jpg" width="900" height="1200" alt="A woman on a hill watching the city at dusk" data-dio="grains" />
+              <figcaption class="whisper">data-dio="grains"</figcaption>
+            </figure>
+            <figure class="piece piece-metal">
+              <div class="metal" data-dio="metal" role="img" aria-label="A drop of liquid metal"></div>
+              <figcaption class="whisper">data-dio="metal"</figcaption>
+            </figure>
+
+            <div class="chapter" inert>
+              <a class="landing" href="/work/ridges/" tabindex="-1" aria-hidden="true" aria-label="Ridges">
+                <img src="/media/ridges.jpg" width="1800" height="1200" alt="" data-dio="shadowbox" data-dio-key="ridges" />
+              </a>
+              <div class="label">
+                <p class="label-kicker">Page transitions</p>
+                <h2 class="label-title">The picture flies to&nbsp;its&nbsp;page.</h2>
+                <p class="label-text">
+                  One <code>data-dio-key</code> on both pages: the picture itself flies to the next one.
+                </p>
+                <a class="label-go" href="/work/ridges/">Follow the picture <span aria-hidden="true">→</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+      <section class="room why" id="why" data-sky="#4b1519" aria-labelledby="why-title">
+        <p class="ch-kicker"><b>01</b> HTML first</p>
+        <h2 id="why-title" class="why-text" data-dio="fold"><span class="strip">WebGL on a site is a canvas glued over your page. Diorama puts your page inside the scene.</span></h2>
+        <p class="why-proof">
+          <code>data-dio="fold"</code>
+          <span>These strips are still the page's own text: select them, find them, or <button class="flat-link" type="button"><span class="flat-off">turn the 3D off</span><span class="flat-on-text">turn it back on</span></button>.</span>
+        </p>
+      </section>
+
+      <section class="room atlas" id="map" data-sky="#3f1217" aria-labelledby="map-title">
+        <div class="atlas-copy">
+          <p class="ch-kicker"><b>02</b> Real links, real HTML</p>
+          <h2 id="map-title" class="atlas-title">The page is the&nbsp;map.</h2>
+          <p class="atlas-lede">Every summit is a link: hover it, tab to it, let a screen reader read it. The relief is drawn from the markup.</p>
+          <button class="atlas-button" type="button" data-layout>Rearrange <span class="atlas-state">Massif</span></button>
+        </div>
+        <nav class="topo" data-dio="topo" aria-label="Chapters">
+          <a class="peak" href="#layout" style="--h: 0.86"><span class="peak-label"><span class="peak-name"><span class="peak-n">03</span>Layout</span><span class="peak-alt"></span></span></a>
+          <a class="peak" href="#night" style="--h: 0.62"><span class="peak-label"><span class="peak-name"><span class="peak-n">04</span>Night</span><span class="peak-alt"></span></span></a>
+          <a class="peak" href="#lantern" style="--h: 0.97"><span class="peak-label"><span class="peak-name"><span class="peak-n">05</span>Lantern</span><span class="peak-alt"></span></span></a>
+          <a class="peak" href="#editor" style="--h: 0.5"><span class="peak-label"><span class="peak-name"><span class="peak-n">06</span>Your effect</span><span class="peak-alt"></span></span></a>
+          <a class="peak" href="#dawn" style="--h: 0.72"><span class="peak-label"><span class="peak-name"><span class="peak-n">07</span>Dawn</span><span class="peak-alt"></span></span></a>
+        </nav>
+        <p class="atlas-legend" aria-hidden="true"><b></b>40 m &nbsp;&nbsp;<b class="index"></b>200 m</p>
+      </section>
+
+      <section class="room layout" id="layout" data-sky="#1d1428" aria-labelledby="layout-title">
+        <div class="layout-copy">
+          <p class="ch-kicker"><b>03</b> CSS is the source of truth</p>
+          <h2 id="layout-title" class="layout-title">CSS moves the&nbsp;layout. <em>The&nbsp;3D follows.</em></h2>
+          <fieldset class="modes" aria-label="Layout of the cards">
+            <button type="button" data-mode="grid" aria-pressed="false">Grid</button>
+            <button type="button" data-mode="row" aria-pressed="false">Row</button>
+            <button type="button" data-mode="stack" aria-pressed="true">Stack</button>
+            <button type="button" data-mode="fan" aria-pressed="false">Fan</button>
+          </fieldset>
+          <p class="layout-note">Tween the DOM with CSS, GSAP or Motion, scroll it with Lenis: the 3D follows. <button class="layout-tween" type="button">Tween the width</button></p>
+          <pre class="css"><code></code></pre>
+        </div>
+        <section class="stage" aria-label="The deck">
+            <div class="deck is-stack" data-dio="deck">
+              <article class="card" data-motif="sunset" style="--i: 0; --r: -3">
+                <span class="card-n" data-ink>01</span><span class="card-hour" data-ink>19:40</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Sunset</p>
+              </article>
+              <article class="card" data-motif="ridges" style="--i: 1; --r: 2">
+                <span class="card-n" data-ink>02</span><span class="card-hour" data-ink>20:15</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Ridges</p>
+              </article>
+              <article class="card" data-motif="swifts" style="--i: 2; --r: -1">
+                <span class="card-n" data-ink>03</span><span class="card-hour" data-ink>20:50</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Swifts</p>
+              </article>
+              <article class="card" data-motif="lantern" style="--i: 3; --r: 3">
+                <span class="card-n" data-ink>04</span><span class="card-hour" data-ink>22:30</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Lantern</p>
+              </article>
+              <article class="card" data-motif="moon" style="--i: 4; --r: -2">
+                <span class="card-n" data-ink>05</span><span class="card-hour" data-ink>00:10</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Moon</p>
+              </article>
+              <article class="card" data-motif="tide" style="--i: 5; --r: 1">
+                <span class="card-n" data-ink>06</span><span class="card-hour" data-ink>02:40</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Tide</p>
+              </article>
+              <article class="card" data-motif="pines" style="--i: 6; --r: -2.5">
+                <span class="card-n" data-ink>07</span><span class="card-hour" data-ink>05:05</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Pines</p>
+              </article>
+              <article class="card" data-motif="dawn" style="--i: 7; --r: 1.5">
+                <span class="card-n" data-ink>08</span><span class="card-hour" data-ink>06:20</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Dawn</p>
+              </article>
+              <div class="deck-ruler" aria-hidden="true"><output>760px</output></div>
+              <button
+                class="deck-handle"
+                type="button"
+                role="slider"
+                aria-label="Width of the container"
+                aria-valuemin="280"
+                aria-valuemax="900"
+                aria-valuenow="760"
+              ></button>
+            </div>
+            <p class="deck-hint">drag the edge · <span class="pointer">hover</span><span class="touch">touch</span> a card</p>
+          </section>
+      </section>
+
+      <section class="room night" id="night" data-sky="#060719" aria-labelledby="night-title">
+        <div class="sky" data-dio="aurora" aria-hidden="true"></div>
+        <div class="ice" data-dio="ice" role="img" aria-label="A thick slab of ice with frost on it, the aurora behind"></div>
+        <div class="night-lead">
+          <p class="ch-kicker"><b>04</b> One scene · your shaders</p>
+          <h2 id="night-title" class="night-title">Breathe on the ice. <em>The sky is behind&nbsp;it.</em></h2>
+        </div>
+        <div class="night-foot">
+          <p class="night-lede">
+            The sky is <strong>a .frag file</strong> dropped into the effects folder. The ice is another
+            effect in the same scene, so it <strong>bends the light the sky draws</strong>. CSS
+            <code>backdrop-filter</code> can only blur.
+          </p>
+          <div class="night-hint">
+            <span class="pill"><i></i><span class="mouse">Your pointer is warm: move over the ice</span><span class="touch">Swipe across the ice to melt the frost</span></span>
+            <details class="frag">
+              <summary><span>src/effects/aurora.frag</span><span class="frag-lines"></span></summary>
+              <pre><code class="glsl"></code></pre>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="room lantern" id="lantern" data-sky="#0b0a20" aria-labelledby="lantern-title">
+        <a class="lantern-cell" href="/work/lantern/" aria-label="Open the lantern's page">
+          <div class="lantern-model" data-dio="model" data-dio-src="/media/lantern.glb" data-dio-tint="#e2a18c" data-dio-key="lantern" role="img" aria-label="A paper lantern, lit from inside"></div>
+          <span class="tack" aria-hidden="true"></span>
+          <span class="lantern-foot"><span class="no">No. 01</span><span class="name">Paper lantern</span><span class="go" aria-hidden="true">Open →</span></span>
+        </a>
+        <div class="lantern-copy">
+          <p class="ch-kicker"><b>05</b> Models are elements</p>
+          <h2 id="lantern-title" class="lantern-title">A model is an element&nbsp;too.</h2>
+          <pre class="lantern-code"><code><span class="t">&lt;div</span> <span class="a">data-dio</span>=<span class="v">"model"</span>
+     <span class="a">data-dio-src</span>=<span class="v">"/media/lantern.glb"</span>
+     <span class="a">data-dio-tint</span>=<span class="v">"<span class="tint-value">#e2a18c</span>"</span>
+     <span class="a">data-dio-key</span>=<span class="v">"lantern"</span><span class="t">&gt;</span></code></pre>
+          <div class="lantern-tint">
+            <fieldset class="swatches" aria-label="Paper colour"></fieldset>
+            <p class="lantern-load"><span class="mono">lantern.glb</span> loaded once through <span class="mono">app.assets</span>, shared by both pages</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="room ed" id="editor" data-sky="#1a1030" aria-labelledby="ed-title">
+        <div class="ed-head">
+          <p class="ed-kicker"><b>06</b> Live code · ink</p>
+          <h2 id="ed-title" class="ed-title">An effect is<br />a short file.</h2>
+          <p class="ed-lede">
+            This is the whole effect, running on the picture. Edit a number or the colour: it swaps in
+            live, no reload. When nothing moves, nothing is drawn.
+          </p>
+        </div>
+
+        <figure class="ed-card">
+          <div class="ed-sheet">
+            <img src="/media/watcher.jpg" width="900" height="1200" alt="A woman on a hill watching the city at dusk, drawn in ink" data-dio="ink" />
+          </div>
+          <figcaption>
+            <span class="hint" data-touch="Tap or stroke the paper sideways">Move across the paper</span>
+            <button class="again" type="button">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" /></svg>
+              Wet it again
+            </button>
+          </figcaption>
+        </figure>
+
+        <div class="editor">
+          <div class="ed-bar">
+            <span class="ed-file">src/effects/<b>ink.ts</b></span>
+            <span class="tip" hidden>drag a number · click the swatch</span>
+            <span class="ed-state" data-state="file" aria-live="polite"><i aria-hidden="true"></i><span class="state-text">Running the file as saved</span></span>
+            <button class="reset" type="button" hidden>Undo edits</button>
+          </div>
+          <div class="ed-code">
+            <div class="gutter" aria-hidden="true"></div>
+            <div class="field">
+              <pre class="paint" aria-hidden="true"><code></code></pre>
+              <textarea spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="The source of the ink effect, editable: changes apply as you type"></textarea>
+            </div>
+          </div>
+          <div class="lower">
+            <p class="problem" role="alert"><span></span></p>
+            <div class="meter">
+              <div class="fps" title="Scenes three.js rendered in the last second"><span class="fps-n">0</span><span>frames drawn / s</span></div>
+              <div class="spark" aria-hidden="true"></div>
+              <dl class="counts">
+                <div title="Elements with a GL copy"><dt>Layers</dt><dd data-count="layers">0</dd></div>
+                <div title="Pictures the runtime holds as textures"><dt>Textures</dt><dd data-count="textures">0</dd></div>
+                <div title="New versions drawn without a reload"><dt>Rebuilds</dt><dd data-count="rebuilds">0</dd></div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="room dawn" id="dawn" data-sky="#3a1424" aria-labelledby="dawn-title">
+        <div class="dawn-sky" data-dio="scene" data-dio-fly="false" data-dio-hour="0.5" aria-hidden="true"></div>
+        <div class="dawn-content">
+          <h2 id="dawn-title" class="dawn-title" data-dio="fold" data-dio-by="word" data-dio-folds="12" data-dio-pad="0.12 0.04" data-dio-paper="#f6dcc0" data-dio-ink="#3d1014"><span class="strip">Start</span> <span class="strip">in</span> <span class="strip">one</span> <span class="strip">line.</span></h2>
+          <div class="dawn-start">
+            <button class="install" type="button" data-copy="npm i diorama three" title="Copy">
+              <code>npm i diorama three</code><span class="install-done" aria-live="polite"></span>
+            </button>
+            <pre class="dawn-code"><code><span class="k">import</span> { start } <span class="k">from</span> <span class="s">'diorama'</span>
+start()</code></pre>
+          </div>
+          <p class="dawn-works">three.js · WebGPU, WebGL 2 fallback · Vite · Astro · Next · Nuxt · plain&nbsp;HTML</p>
+          <p class="dawn-actions">
+            <a class="button solid" href="https://github.com/MasterKurosava/diorama/blob/main/docs/guides/start.md">Read the guide</a>
+            <a class="button" href="https://github.com/MasterKurosava/diorama">GitHub</a>
+          </p>
+        </div>
+        <div class="dawn-birds" data-dio="birds" aria-hidden="true"></div>
+      </section>
+      </main>
+
+      <footer class="foot">
+        <p>Diorama is MIT.</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

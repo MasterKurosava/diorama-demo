@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" class="on-work night-page">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lantern · Diorama</title>
+    <meta name="description" content="Diorama puts three.js effects on ordinary HTML: one attribute on any element." />
+    <link rel="icon" href="data:," />
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      /* Critical CSS for the first paint. */
+      @font-face {
+        font-family: Archivo;
+        src: url("/fonts/archivo.woff2") format("woff2");
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+        font-weight: 100 800;
+        font-display: swap;
+      }
+      :root {
+        --wall: #4b1519;
+        --cream: #f3e9d8;
+        --edge: clamp(20px, 6vw, 96px);
+        background: var(--wall);
+        color: var(--cream);
+        font: 400 17px / 1.55 Archivo, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+      }
+      .top {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 24px var(--edge);
+      }
+      .mark {
+        font-weight: 800;
+        font-stretch: 125%;
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: inherit;
+        text-decoration: none;
+      }
+      .on-work {
+        color: var(--wall);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet" aria-hidden="true"></div>
+    <div id="page">
+      <header class="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a class="mark" href="/" data-back>Diorama</a>
+          <span class="crumb" aria-current="page">Lantern</span>
+        </nav>
+        <div class="top-end">
+          <button class="flat" type="button" aria-pressed="false" title="Turn the 3D off and see the plain HTML under it">
+            <span class="flat-label">3D</span><span class="flat-switch" aria-hidden="true"></span>
+          </button>
+          <a class="close" href="/" data-back>Close <span class="close-x" aria-hidden="true"></span></a>
+        </div>
+      </header>
+
+      <main class="case lantern-page">
+        <section class="lantern-stage" aria-labelledby="lantern-name">
+          <div class="lantern-big" data-dio="model" data-dio-src="/media/lantern.glb" data-dio-tint="#e2a18c" data-dio-key="lantern" role="img" aria-label="A paper lantern, lit from inside, hanging from the top of the page"></div>
+          <div class="lantern-story">
+            <p class="kicker">02 — A product page</p>
+            <h1 id="lantern-name" class="case-title">Lantern</h1>
+            <p class="case-lede">
+              Washi on twelve bamboo hoops, lacquered caps and a silk tassel: one glTF, loaded once. It
+              came here from the landscape, the same lantern in the same swing.
+            </p>
+            <dl class="specs">
+              <dt>File</dt>
+              <dd class="mono">lantern.glb</dd>
+              <dt>Loaded</dt>
+              <dd>through <code>app.assets</code>, once</dd>
+              <dt>Dye</dt>
+              <dd><fieldset class="swatches" aria-label="Paper colour"></fieldset></dd>
+            </dl>
+            <div class="prints">
+              <p class="kicker">Also lit tonight</p>
+              <div class="print-row">
+                <img src="/media/prints/dusk.jpg" width="1000" height="1250" alt="A low sun between cut-paper ridges" data-dio="burn" />
+                <img src="/media/prints/lanterns.jpg" width="1000" height="1250" alt="Paper lanterns rising over a dark valley" data-dio="burn" />
+                <img src="/media/prints/night.jpg" width="1500" height="1000" alt="A crescent over indigo paper hills" data-dio="burn" />
+              </div>
+              <p class="print-note">Leave the page: the lantern flies, and what has no place on the next page burns away. <code>data-dio="burn"</code></p>
+            </div>
+            <a class="case-back" href="/" data-back><span aria-hidden="true">←</span> Fly it back to the landscape</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <p>Diorama is MIT.</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+/* Shared chapter styles. The canvas sits over the page. Only text that overlaps the scene's
+   pictures is lifted above it, never a chapter background, which would hide the scene. */
+.room {
+  position: relative;
+}
+.over {
+  position: relative;
+  z-index: 2;
+}
+:root {
+  --chapter-title: clamp(2.4rem, 4vw, 3.9rem);
+}
+fieldset.swatches,
+fieldset.modes {
+  min-width: 0;
+  margin-inline: 0;
+  border: 0;
+  padding-block: 0;
+}
+fieldset.swatches {
+  padding-inline: 0;
+}
+.ch-kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 22px;
+  font:
+    500 11.5px "JetBrains Mono",
+    monospace;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(243 233 216 / 0.62);
+}
+.ch-kicker b {
+  font-weight: 500;
+  color: #e2a18c;
+}

@@ -1,0 +1,64 @@
+/* 01 HTML first. The claim, printed on paper strips that unfold as it scrolls in. */
+.why {
+  padding: 22vh var(--edge) 26vh;
+}
+.why-text {
+  max-width: 15em;
+  margin: 0;
+  font-size: clamp(2.05rem, 5.1vw, 5.2rem);
+  font-weight: 760;
+  /* Keyword stretch values only, the strips' canvas can't draw anything else. */
+  font-stretch: 112.5%;
+  line-height: 1.3;
+  letter-spacing: -0.022em;
+}
+/* Fallback strips in plain CSS, exactly where the flat paper lies. */
+.strip {
+  padding: 0.06em 0.32em;
+  background: var(--cream);
+  color: var(--wall);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.why-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 15ch) minmax(0, 36ch);
+  gap: 20px clamp(24px, 5vw, 72px);
+  align-items: baseline;
+  margin: clamp(40px, 7vh, 72px) 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgb(243 233 216 / 0.7);
+}
+.why-proof code {
+  font:
+    500 12px "JetBrains Mono",
+    monospace;
+  color: #e2a18c;
+  white-space: nowrap;
+}
+.flat-link {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(243 233 216 / 0.5);
+  background: none;
+  color: var(--cream);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+.flat-on-text,
+.flat-on .flat-off {
+  display: none;
+}
+.flat-on .flat-on-text {
+  display: inline;
+}
+.flat-link:hover {
+  border-color: var(--cream);
+}
+@media (max-width: 760px) {
+  .why-proof {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
