@@ -1,0 +1,43 @@
+---
+code: EFFECT_UNKNOWN
+level: warning
+message: 'unknown effect "{name}"; known: {names}'
+summary: Markup or code names an effect that is not registered, so the element stays plain DOM.
+---
+
+## Why it happens
+
+- The name in `data-dio` has a typo. The warning lists every registered name after `known:`.
+- The effect file is missing from the effects folder (`src/effects/` with the build plugin), or the effect lives elsewhere and is not passed to `start({ effects })`.
+- The token is not a valid effect name. Names are kebab-case and cannot be a reserved attribute name such as `key` or `load`. The message then reads `"{token}" is not an effect name`, and the token is ignored.
+
+An unknown name prints once per name, after the engine has loaded, because the name can still arrive later. Until then the element waits without `data-dio-state`, and it picks up the effect as soon as an entry with that name is registered.
+
+## How to fix
+
+Check the token against the list in the message:
+
+```html nocheck
+<img src="/img/cover.avif" data-dio="rippel" />
+```
+
+```html
+<img src="/img/cover.avif" data-dio="ripple" />
+```
+
+For an effect outside the effects folder, register it by name:
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({
+  effects: { brighten: () => import('./brighten') },
+})
+```
+
+## Related
+
+- `EFFECT_LOAD`
+- `data-dio`
+- `start()`
+- `app.effects.register()`

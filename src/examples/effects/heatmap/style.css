@@ -1,0 +1,22 @@
+.hm-frame {
+  height: 100%;
+  padding: 20px 24px;
+  box-sizing: border-box;
+  background: #fbfaf7;
+  color: #2b2f38;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.hm-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 24px;
+}
+/* A table grows to fit its rows: as a block it keeps the height, and scrolls without WebGL. */
+.hm-table {
+  display: block;
+  height: calc(100% - 32px);
+  margin: 0;
+  overflow: auto;
+  border-collapse: collapse;
+}

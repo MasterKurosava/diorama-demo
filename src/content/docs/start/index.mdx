@@ -1,0 +1,29 @@
+---
+title: Pick your setup
+label: Overview
+description: Install Diorama with Vite, Astro, Nuxt or Next.js, or add one script tag to a page without a build.
+section: start
+order: 0
+---
+
+Diorama is one package, `dioramajs`, plus three.js as a peer. Most sites need only the `start()` call and the `data-dio` attribute in their markup. three.js 0.187 is required.
+
+## Choose a path
+
+| Your site | Page | What you add |
+| --- | --- | --- |
+| Vite, with or without a framework | [Install with Vite](/docs/start/vite) | A Vite plugin and `start()` |
+| Astro | [Install with Astro](/docs/start/astro) | An integration and `start()` in the layout |
+| Nuxt | [Install with Nuxt](/docs/start/nuxt) | A module and a client plugin |
+| Next.js | [Install with Next.js](/docs/start/next) | `withDiorama` and a client component |
+| Plain HTML, Webflow, Tilda | [Use without a build step](/docs/start/html) | One script tag |
+
+Every path ends with the same result: images with `data-dio` draw through the engine, and elements with the same `data-dio-key` fly from one page to the next.
+
+## What comes with start()
+
+`start()` registers the image effects `image`, `ripple` and `bend`, page transitions and asset loading. With a build plugin it also registers every effect file in your effects folder. It returns the app at once and finishes starting in the background. A second call returns the same app.
+
+## Next steps
+
+After the install, [write your first effect](/docs/start/first-effect) and [add a page transition](/docs/start/first-transition).

@@ -1,0 +1,122 @@
+---
+title: Your first page transition
+label: First transition
+description: Give two elements on two pages the same data-dio-key and the first one flies into the second on navigation.
+section: start
+order: 7
+---
+
+A flight moves the layer of an element from one page to the element with the same key on the next page. The canvas stays alive between pages, so the same picture moves, resizes and recrops on its way.
+
+## Give both elements a key
+
+Put the same `data-dio-key` on the thumbnail in the list and on the cover of the project page.
+
+```html title="work.html"
+<a href="/work/aurora">
+  <img
+    src="/img/aurora-thumb.avif"
+    data-dio="image"
+    data-dio-key="aurora"
+  />
+</a>
+```
+
+```html title="work/aurora.html"
+<img
+  src="/img/aurora-cover.avif"
+  data-dio="image ripple"
+  data-dio-key="aurora"
+/>
+```
+
+## Navigate without a reload
+
+A flight needs the app to survive navigation, so the page must change without a full reload.
+
+<Tabs sync="framework">
+<Tab label="Vite" value="vite">
+
+Wrap your own swap of the page in `transition()`. It takes a snapshot of the keyed elements, runs the swap and flies them to their partners.
+
+```ts title="src/main.ts" twoslash
+import { start, transition } from 'dioramajs'
+
+export const app = start()
+
+async function go(url: string): Promise<void> {
+  const html = await (await fetch(url)).text()
+  const next = new DOMParser().parseFromString(html, 'text/html')
+  await transition(app, () => {
+    document
+      .querySelector('main')
+      ?.replaceWith(next.querySelector('main') ?? '')
+    history.pushState(null, '', url)
+  })
+}
+
+document.addEventListener('click', (event) => {
+  const link = (event.target as Element).closest('a')
+  if (!link || link.origin !== location.origin) return
+  event.preventDefault()
+  void go(link.href)
+})
+```
+
+</Tab>
+<Tab label="Astro" value="astro">
+
+Add `<ClientRouter />` to the layout. Astro swaps the page in place and the keyed elements fly without more code.
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ClientRouter } from 'astro:transitions'
+---
+
+<html lang="en">
+  <head>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+</Tab>
+<Tab label="Nuxt" value="nuxt">
+
+`<NuxtPage>` without a page transition swaps pages in one render. The keyed elements fly without more code.
+
+</Tab>
+<Tab label="Next.js" value="next">
+
+The App Router removes the old page and inserts the new one in one commit. The keyed elements fly without more code. With `loading.tsx` the cover arrives later and the thumbnail waits for it, invisible, for up to 1 second.
+
+</Tab>
+<Tab label="HTML" value="html">
+
+The CDN build exports `transition()` too. Wrap your own swap of the page in it, the same way as with Vite. Turbo Drive swaps the page itself, and keyed elements fly without code.
+
+</Tab>
+</Tabs>
+
+## Tune the flight
+
+A flight takes 0.8 seconds with a cubic in-out ease. Change the defaults for every transition in `start()`.
+
+```ts title="src/main.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start({ transitions: { duration: 0.9 } })
+```
+
+While a thumbnail flies, the DOM of its target is hidden with `data-dio-state="entering"`. Use it to hold back a caption until the landing.
+
+```css
+figure:has([data-dio-state="entering"]) figcaption {
+  opacity: 0;
+}
+```
+
+Pass `transitions: false` to `start()` to turn page transitions off.

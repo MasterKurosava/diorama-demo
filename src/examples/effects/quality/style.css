@@ -1,0 +1,13 @@
+.q-stage {
+  display: grid;
+  place-items: end center;
+  padding-bottom: 8%;
+  box-sizing: border-box;
+  background: radial-gradient(90% 80% at 50% 100%, #24304a 0%, #0c111d 70%);
+}
+.q-stage .q-cannon {
+  width: 72px;
+  height: 18px;
+  border-radius: 9px;
+  background: #3a4a6b;
+}

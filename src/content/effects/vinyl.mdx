@@ -1,0 +1,48 @@
+---
+effect: vinyl
+example:
+  description: An album cover of a sunset over the sea; under the pointer a black record slides out of it to the right and spins, its label showing the middle of the cover.
+  aspect: 16 / 9
+  caption: Move the pointer over the cover, or focus it and press Enter to keep the record out. Try the styles and the triggers.
+  controls: [out, rpm, tilt, shadow]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A record that spins while its track plays
+
+`trigger="play"` links the record to a player on the page: it comes out and spins while the player plays, and goes back when it pauses. A click or Enter on the cover plays and pauses it. Name the player with `for`, or put it next to the image. The player keeps its own controls, so the page works without the effect.
+
+<Example id="effects/vinyl/play" description="A dark release card: the cover on the left, a track title and an audio player on the right; while the track plays a record with a mustard label spins out of the cover." aspect="16 / 9" show={['html']} controls={['out', 'rpm']} variants={[]} />
+
+### Colored vinyl and a CD
+
+`style="color"` presses the record in `color`, for a limited edition; `style="picture"` prints the cover or the `label` image over the whole disc; `style="cd"` shows a silver compact disc with the rainbow of its tracks. `label` takes the center label as an image or a color.
+
+<Example id="effects/vinyl/editions" description="Two copies of the same cover: from the first a red record with a mustard label slides out, from the second a silver CD." aspect="16 / 9" show={['html']} controls={['out', 'tilt']} variants={[]} />
+
+### A record that comes out in view
+
+`trigger="view"` slides the record out once the cover is well inside the viewport, and it stays out, spinning while it is in view. It suits a release page with one big cover.
+
+```html
+<img
+  src="/releases/tidelines.webp"
+  width="800"
+  height="800"
+  data-dio="vinyl"
+  data-dio-trigger="view"
+/>
+```
+
+## Notes
+
+At rest the sleeve is drawn exactly where the cover is, so nothing jumps when the engine takes over. The record comes out to the right by `out` of its diameter: leave room for it there, or it covers what sits next to the cover.
+
+A record that only spins draws 30 frames a second; while it slides it draws at the full rate, and at rest nothing. Under reduced motion it comes out and goes back at once and never spins.
+
+`style`, `trigger`, `for` and `label` rebuild the effect; `color`, `out`, `rpm`, `tilt` and `shadow` change live.

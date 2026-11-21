@@ -5,7 +5,7 @@
 // Two layers. The spreading one holds arrival time and depth inside a bloom, the dry one holds
 // depth inside the dried wash. Once every drop has dried, the spreading layer is folded into the
 // dry one, so new drops never disturb old edges.
-import type { EffectContext } from 'diorama'
+import type { EffectContext } from 'dioramajs'
 import { color, exp, float, max, mix, smoothstep, step, texture, uniform } from 'three/tsl'
 import type { Node } from 'three/webgpu'
 import {

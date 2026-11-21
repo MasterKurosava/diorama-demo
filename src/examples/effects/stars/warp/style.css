@@ -1,0 +1,5 @@
+/* The look without WebGL: the dark sky alone. */
+.st-warp {
+  border-radius: var(--radius-panel);
+  background: #03040b;
+}

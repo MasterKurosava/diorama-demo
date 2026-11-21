@@ -1,0 +1,41 @@
+.plan-note {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 4% 12%;
+}
+.plan-note p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.plan-note figure {
+  margin: 0;
+}
+.plan-note a {
+  display: block;
+}
+.plan-note img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.plan-note figcaption {
+  margin-top: 6px;
+  font: 400 0.8rem var(--font-mono);
+  color: var(--text-muted);
+}
+@media (max-width: 720px) {
+  .plan-note {
+    gap: 6px;
+    padding: 3% 6%;
+  }
+  .plan-note p {
+    font-size: 0.78rem;
+  }
+  .plan-note figcaption {
+    margin-top: 2px;
+    font-size: 0.7rem;
+  }
+}

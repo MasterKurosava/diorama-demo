@@ -1,0 +1,20 @@
+---
+import { keyLabel } from '../lib/commands.ts'
+
+interface Props {
+  /** Keys joined by '+': 'mod+shift+p'. 'mod' renders ⌘ on Apple platforms and Ctrl elsewhere. */
+  readonly keys: string
+}
+const parts = Astro.props.keys.split('+').filter(Boolean)
+---
+
+<span class="kbd-combo">
+  {
+    parts.map((key, i) => (
+      <Fragment>
+        {i > 0 && <span aria-hidden="true">+</span>}
+        {key.toLowerCase() === 'mod' ? <kbd data-kbd-mod>Ctrl</kbd> : <kbd>{keyLabel(key)}</kbd>}
+      </Fragment>
+    ))
+  }
+</span>

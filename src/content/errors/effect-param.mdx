@@ -1,0 +1,47 @@
+---
+code: EFFECT_PARAM
+level: warning
+message: '"{effect}" rejects {key} = {value}'
+summary: A param value or param attribute was rejected, so the effect keeps the value from the layer below it.
+---
+
+A param value comes from a cascade: the default, then `app.attach()` params, then `data-dio-*` attributes, then runtime writes. A rejected value never stops the effect, and each warning prints once per element and key.
+
+## Why it happens
+
+- An attribute does not parse as the param type, such as `data-dio-strength="strong"` for a number. The key in the message is then `data-dio strength`.
+- A runtime write through `params` or `set()`, or a param passed to `app.attach()`, has the wrong type: `NaN`, a string that is not a number, or a tuple of the wrong length. Once the definition has loaded, a param the effect does not declare is rejected the same way.
+- A short attribute matches two effects on one element, such as `data-dio-strength` with `data-dio="ripple bend"`. It applies to neither, and the message reads `data-dio-strength matches ripple and bend; use data-dio-ripple-strength`.
+- A token repeats in `data-dio`: `"{effect}" is repeated in data-dio`.
+- In development, a param listed in `rebuild` changes more than 3 times a second. Each change runs `setup` again, so the message reads `do not tween rebuild params`.
+- A source passed to `app.effects.pin()` throws. The layer falls back to its built-in pin value.
+
+## How to fix
+
+Write a value of the param type, and address the param to its effect when two effects share a param name:
+
+```html nocheck
+<img
+  src="/img/cover.avif"
+  data-dio="ripple bend"
+  data-dio-strength="strong"
+/>
+```
+
+```html
+<img
+  src="/img/cover.avif"
+  data-dio="ripple bend"
+  data-dio-ripple-strength="0.6"
+  data-dio-bend-strength="1.2"
+/>
+```
+
+Tween params that update in place, not params listed in `rebuild`. For a pin source, return a finite number from 0 to 1, and call the function that `app.effects.pin()` returns before you kill the ScrollTrigger behind it.
+
+## Related
+
+- `EFFECT_DEFINITION`
+- `data-dio`
+- `app.attach()`
+- `app.effects.pin()`

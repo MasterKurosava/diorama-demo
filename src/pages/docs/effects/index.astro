@@ -1,0 +1,16 @@
+---
+import EffectsGallery from '../../../docs/components/EffectsGallery.astro'
+import Article from '../../../docs/layouts/Article.astro'
+import { GALLERY } from '../../../docs/lib/effects.ts'
+---
+
+<Article
+  title={GALLERY.title}
+  description={GALLERY.description}
+  url="/docs/effects"
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'Effects' }]}
+  kind="effect"
+  wide
+>
+  <EffectsGallery />
+</Article>

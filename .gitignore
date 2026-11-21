@@ -2,6 +2,7 @@ node_modules/
 dist/
 coverage/
 .vite/
+.astro/
 *.tsbuildinfo
 *.log
 
@@ -11,3 +12,6 @@ coverage/
 
 .DS_Store
 Thumbs.db
+
+src/generated/
+.astro/

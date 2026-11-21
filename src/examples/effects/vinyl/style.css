@@ -1,0 +1,12 @@
+.ex-root:has(> img.sleeve) {
+  display: grid;
+  place-items: center;
+  background: #efe9dd;
+}
+.ex-root > img.sleeve {
+  width: min(40%, 300px);
+  height: auto;
+  aspect-ratio: 1;
+  /* Room on the right for the record to come out. */
+  margin-right: 18%;
+}

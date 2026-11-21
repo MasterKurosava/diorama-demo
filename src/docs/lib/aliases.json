@@ -1,0 +1,15 @@
+{
+  "names": {
+    "effect": "/docs/api/diorama/effect",
+    "start": "/docs/api/diorama/start"
+  },
+  "services": {
+    "effects": "EffectsApi",
+    "attach": "Attach",
+    "transition": "TransitionApi",
+    "assets": "AssetsApi",
+    "render": "RenderApi",
+    "lenis": "LenisApi",
+    "gsap": "GsapApi"
+  }
+}

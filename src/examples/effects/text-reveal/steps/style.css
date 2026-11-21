@@ -1,0 +1,43 @@
+.tr-steps {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(12px, 3vw, 28px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: #f7efe2;
+  color: #2c1810;
+}
+.tr-steps .tr-steps-title {
+  margin: 0;
+  font: 800 clamp(1.6rem, 7cqi, 3.8rem) / 1 var(--font-text);
+  font-stretch: 75%;
+  letter-spacing: -0.02em;
+}
+.tr-steps ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.tr-steps li {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 2px solid #c8743c;
+  font: 400 clamp(0.85rem, 2.2cqi, 1.05rem) / 1.35 var(--font-text);
+  counter-increment: step;
+}
+.tr-steps li + li {
+  margin: 0;
+}
+.tr-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  display: block;
+  margin-bottom: 4px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  color: #c8743c;
+}

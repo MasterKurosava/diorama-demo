@@ -1,0 +1,24 @@
+.sm-drop {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2cqi;
+  background: #eceef3;
+  color: #191b22;
+  text-align: center;
+}
+.sm-drop .sm-date {
+  margin: 0;
+  font: 500 max(11px, 1.6cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5b6070;
+}
+.sm-drop .sm-name {
+  margin: 0;
+  font: 900 11cqi / 0.95 var(--font-text);
+  font-stretch: 110%;
+  letter-spacing: -0.02em;
+  color: #191b22;
+}

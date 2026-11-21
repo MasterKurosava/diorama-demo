@@ -1,0 +1,40 @@
+.sm-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: end;
+  gap: clamp(10px, 2.2vw, 20px);
+  padding: 0 7% 7%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(70% 60% at 20% 0%, #23262b 0%, transparent 70%),
+    linear-gradient(#0e1013, #08090b);
+  color: #f1ede6;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+.sm-hero:has([data-dio-style="mist"]),
+.sm-hero:has([data-dio-style="ink"]) {
+  background: linear-gradient(#f4f1ea, #e9e4d9);
+  color: #1d2a3a;
+}
+.sm-hero .sm-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.sm-hero .sm-headline {
+  margin: 0;
+  max-width: 13ch;
+  font: 800 clamp(1.8rem, 8.4cqi, 5.2rem) / 0.98 var(--font-text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.sm-hero .sm-lede {
+  margin: 0;
+  max-width: 44ch;
+  font: 400 clamp(0.9rem, 2.2cqi, 1.15rem) / 1.45 var(--font-text);
+  opacity: 0.75;
+}

@@ -1,0 +1,52 @@
+---
+code: EFFECT_CORS
+level: error
+message: '{url} is cross-origin without CORS headers: serve it with Access-Control-Allow-Origin'
+summary: The image of an effect comes from another origin whose server sends no CORS headers, so its pixels cannot be read.
+---
+
+## Why it happens
+
+- The `img` or `video` loads from another origin, and the server of that origin sends no `Access-Control-Allow-Origin`. The browser marks its pixels as tainted, and WebGL 2 and WebGPU refuse tainted pixels as a texture.
+- A same-origin URL redirects to another origin, or a `srcset` candidate or a later `src` points to a CDN.
+
+Diorama checks the pixels, not the URL: it draws them into a 1x1 canvas and reads them back. That catches every case above. Without this check a tainted texture throws inside every render, and after 10 failed frames the kernel disables rendering for all effects.
+
+An `img` without the `crossorigin` attribute gets one more try: Diorama requests the same image again in CORS mode, off the page. If the server sends CORS headers, the effect runs and you never see this error. It comes only when the server refuses CORS, or for a `video`, or for an element that already has `crossorigin`.
+
+The instance becomes `failed` and the element stays plain DOM. No texture is created.
+
+## How to fix
+
+<Steps>
+
+1. Add `crossorigin="anonymous"` to the element. In React the prop is `crossOrigin="anonymous"`.
+2. Make the server of the image send `Access-Control-Allow-Origin` with your origin or `*`. Without it, an image with `crossorigin` fails to load and the error becomes `EFFECT_MEDIA`.
+
+</Steps>
+
+```html
+<img
+  src="https://cdn.example.com/cover.avif"
+  crossorigin="anonymous"
+  data-dio="ripple"
+/>
+```
+
+A change of the `crossorigin` attribute or of the source retries the instance without a reload.
+
+Preload these images in the same CORS mode, since it is part of the cache key. Put `crossorigin` on the link with `data-dio-preload`, or pass `crossOrigin: 'anonymous'` to `app.assets.preload()`. Otherwise the cache misses and the image loads and decodes twice.
+
+```html
+<a
+  href="/work/aurora"
+  data-dio-preload="https://cdn.example.com/aurora.avif"
+  crossorigin
+>Aurora</a>
+```
+
+## Related
+
+- `EFFECT_MEDIA`
+- `data-dio-preload`
+- `app.assets.preload()`

@@ -1,0 +1,48 @@
+---
+import Article from '../../../docs/layouts/Article.astro'
+import { api } from '../../../docs/lib/api.ts'
+import { moduleSummary } from '../../../docs/lib/modules.ts'
+import { docPages } from '../../../docs/lib/pages.ts'
+
+const pages = (await docPages()).filter((p) => p.section === 'api')
+const modules = api().modules.filter((m) => m.symbols.length)
+const high = modules.filter((m) => !m.lowLevel)
+const low = modules.filter((m) => m.lowLevel)
+const headings = [
+  { depth: 2, slug: 'markup-and-tools', text: 'Markup and tools' },
+  { depth: 2, slug: 'modules', text: 'Modules' },
+  { depth: 2, slug: 'low-level', text: 'Low level' },
+]
+---
+
+<Article
+  title="API reference"
+  description="Every attribute, input and export of Diorama, generated from the library sources."
+  url="/docs/api"
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'API' }]}
+  headings={headings}
+  kind="api"
+>
+  <p>Most sites import from <code>diorama</code> only. The other packages are listed for full control and for plugin authors.</p>
+  <h2 id="markup-and-tools">Markup and tools</h2>
+  <ul>
+    {pages.map((p) => <li><a href={p.url}>{p.title}</a>: {p.description}</li>)}
+  </ul>
+  <h2 id="modules">Modules</h2>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        {high.map((m) => <tr><td><a class="code-link" href={`/docs/api/${m.slug}`}><code>{m.specifier}</code></a></td><td>{moduleSummary(m.slug, m.specifier)}</td></tr>)}
+      </tbody>
+    </table>
+  </div>
+  <h2 id="low-level">Low level</h2>
+  <p>The packages that <code>start()</code> wires together. Use them to build an app by hand with <code>createApp</code>.</p>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        {low.map((m) => <tr><td><a class="code-link" href={`/docs/api/${m.slug}`}><code>{m.specifier}</code></a></td><td>{moduleSummary(m.slug, m.specifier)}</td></tr>)}
+      </tbody>
+    </table>
+  </div>
+</Article>

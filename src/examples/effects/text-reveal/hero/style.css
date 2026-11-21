@@ -1,0 +1,23 @@
+.tr-launch {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.4vw, 22px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: #10241f;
+  color: #f1f5ea;
+}
+.tr-launch .tr-launch-title {
+  margin: 0;
+  max-width: 14ch;
+  font: 700 clamp(1.6rem, 7.6cqi, 4.2rem) / 1 var(--font-text);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.tr-launch .tr-launch-sub {
+  margin: 0;
+  max-width: 38ch;
+  font: 400 clamp(0.95rem, 2.5cqi, 1.3rem) / 1.45 var(--font-text);
+  color: #b9cbbf;
+}

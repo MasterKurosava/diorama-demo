@@ -1,0 +1,45 @@
+/* A dark changelog hero: the copy on the left, the dot grid as the art on the right. Nothing sits
+   over the grid, because the docs canvas is above the page. */
+.dt-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #0b0d12;
+  color: #e9ecf3;
+  font: 400 15px / 1.5 var(--font-text);
+}
+.dt-copy {
+  align-self: center;
+  padding: 0 9%;
+}
+.dt-kicker {
+  margin: 0 0 12px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fa2ff;
+}
+.dt-copy h2 {
+  margin: 0 0 12px;
+  font: 600 clamp(18px, 2.2vw, 26px) / 1.15 var(--font-display, var(--font-text));
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.dt-copy p:last-child {
+  margin: 0;
+  color: #a7aec0;
+}
+/* The look without WebGL: the same grid as a CSS pattern. */
+.dt-grid {
+  background: radial-gradient(circle, #4a5366 1px, transparent 1.5px) 0 0 / 24px 24px;
+}
+@media (max-width: 640px) {
+  .dt-hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .dt-copy {
+    padding: 24px 24px 8px;
+  }
+}

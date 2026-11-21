@@ -1,0 +1,4 @@
+.cl-night {
+  border-radius: var(--radius-panel);
+  background: linear-gradient(0deg, #1e2e54, #101b38 45%, #050a19);
+}

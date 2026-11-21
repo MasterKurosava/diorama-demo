@@ -1,0 +1,14 @@
+---
+interface Props {
+  readonly kind: 'note' | 'warning' | 'performance'
+  /** Replaces the label text 'Note', 'Warning', 'Performance'. */
+  readonly title?: string
+}
+const { kind, title } = Astro.props
+const label = title ?? { note: 'Note', warning: 'Warning', performance: 'Performance' }[kind]
+---
+
+<aside class:list={['callout', kind]} aria-label={label}>
+  <span class="callout-label">{label}</span>
+  <slot />
+</aside>

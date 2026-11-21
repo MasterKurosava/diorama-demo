@@ -1,0 +1,90 @@
+---
+title: Put an effect on an image
+label: 1. Put an effect on an image
+description: Put the built-in ripple effect on an image with one attribute, tune it with another and stack a second effect.
+section: learn
+order: 1
+---
+
+In this step you put the built-in `ripple` effect on an image, change its params from markup and add a second effect to the same image. The seven steps of Learn build on each other: by the end you have written three effects, driven a param from code, flown an image between pages and checked the page with reduced motion and on a touch device.
+
+The steps use the setup from [Install with Vite](/docs/start/vite): `src/main.ts` calls `start()`, and effect files live in `src/effects/`. Astro and Next.js use the same folder; Nuxt uses `app/effects/`.
+
+To write one complete effect in a single sitting instead, start with [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes): a light that follows the pointer over a product photo, from an empty file to touch and reduced motion.
+
+## Start the app
+
+Call `start()` once in the module every page loads. It registers the image effects `image`, `ripple` and `bend` and returns the app at once.
+
+```ts title="src/main.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start()
+```
+
+## Add the attribute
+
+Put `data-dio="ripple"` on an image. Give the image its size in `width` and `height`, as you would without Diorama: the effect draws over the box the image takes in the layout.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="ripple"
+/>
+```
+
+<Example id="learn-ripple" description="A photo of paper ridges with the ripple effect: rings spread from the pointer while it is over the image." aspect="16 / 9" controls={[]} />
+
+Move the pointer over the image. Rings spread from the pointer and settle when it leaves. Scroll the page: the picture stays on its place in the layout.
+
+## Change a param
+
+Each param of an effect is an attribute: `data-dio-` plus the param name. `ripple` has three params: `strength` (default 1), `frequency` (40) and `speed` (6).
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="ripple"
+  data-dio-strength="2"
+  data-dio-frequency="60"
+/>
+```
+
+<Example id="learn-ripple-params" description="The same photo with ripple at strength 2 and frequency 60, with sliders for strength, frequency and speed." aspect="16 / 9" />
+
+The rings are now twice as deep and closer together. Change the attribute in the browser's DevTools and the image follows on the next frame: Diorama watches the attributes of every element with `data-dio`.
+
+## Stack a second effect
+
+`data-dio` takes several names separated by spaces. Add `bend`, which curves the image and splits its colors while the page scrolls.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="ripple bend"
+  data-dio-ripple-strength="2"
+  data-dio-split="0.5"
+/>
+```
+
+<Example id="learn-ripple-bend" description="The photo with ripple and bend: rings under the pointer, a curve and a color split while the page scrolls fast." aspect="16 / 9" controls={[]} caption="Hover for the rings, then scroll the page fast for the bend and the color split." />
+
+Both `ripple` and `bend` have a `strength` param, so the short `data-dio-strength` would be ambiguous and Diorama ignores it with a warning in development. Name the effect in the attribute instead: `data-dio-ripple-strength`. `split` belongs to `bend` only, so its short form works.
+
+## Why it works
+
+`start()` puts one canvas over the page. An element with `data-dio` gets a layer on that canvas: a copy of its picture that follows the element's box on every drawn frame. Once the copy is drawn, Diorama hides the `<img>` itself, so you see one image, now drawn by the engine. Until then, and wherever the engine is unavailable, the page shows the plain image.
+
+The engine is three.js and the effect code. Diorama downloads them in idle time after the page loads and starts them when the first element with `data-dio` comes within one viewport of the screen.
+
+## Related
+
+- [Markup](/docs/api/markup): every `data-dio` attribute.
+- [How a layer follows scroll](/docs/concepts/scroll)
+- [Loading and preloading](/docs/guides/loading)

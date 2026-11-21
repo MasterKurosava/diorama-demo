@@ -1,0 +1,46 @@
+---
+effect: extrude
+example:
+  description: A type festival headline in heavy ivory letters that stand out of a dark page as a beveled 3D block and turn toward the pointer.
+  caption: Move the pointer over the page, or switch the style. With by scroll, scroll the page instead.
+  aspect: 16 / 8
+  controls: [depth, tilt, light]
+  variants: [style, by]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Paper layers in brand colors
+
+`style="layers"` stacks copies of the letters behind the face like paper cutouts, each one a little farther back and shaded by the layer in front of it. `colors` lists the layers from front to back and repeats when there are more layers than colors; without it the layers are darker shades of the text color. A playful palette suits a summer camp, a festival or a kids' brand.
+
+<Example id="effects/extrude/layers" description="A summer camp name in coral letters stacked over yellow, teal and navy paper layers on a cream page." aspect="16 / 7" show={['html']} controls={['depth', 'layers']} variants={[]} />
+
+### A flat long shadow on a colored band
+
+`style="shadow"` draws the classic flat long shadow: a trail at 45 degrees that fades out at five times `depth`. Its color is the band behind the heading, darkened, and the trail is cut at the edge of that band. It does not turn, so it costs nothing after the first frame.
+
+<Example id="effects/extrude/shadow" description="A coffee menu item in white capitals with a long teal shadow on a teal band." aspect="16 / 6" show={['html']} controls={['depth', 'light']} variants={[]} />
+
+### A block that turns with the scroll
+
+With `by="scroll"` the block faces the middle of the viewport, so it tips one way as it enters at the bottom and the other way as it leaves at the top. A deeper block and a larger `tilt` make the turn read from far away.
+
+```html
+<h2 data-dio="extrude" data-dio-by="scroll" data-dio-depth="40" data-dio-tilt="18">Since 1998</h2>
+```
+
+## Notes
+
+The solid style is lit like an object: the face has a rounded bevel that catches the light, the walls are shaded by the way they face and darken toward the back, and the block casts a soft shadow on the page behind it. `light` sets where the light comes from, and the depth falls away from it. The depth recedes in perspective, so letters far from the middle of the heading show more of their sides. As the block turns, the light slides across the bevels.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the block is drawn a CSS filter hides the DOM text without removing it. A background or border on the heading itself is hidden with it, so put them on a wrapper.
+
+The depth and the shadows are drawn on the canvas over the page, so leave room around the heading in the direction they fall: text right below a long shadow is covered by it.
+
+Use a large, heavy font: the depth and the bevel need thick strokes. The depth grows in once when the heading first comes into view. After that nothing is drawn at rest; frames come only while the pointer moves, while the block settles, and while the page scrolls. On touch screens `by="pointer"` turns the block with the scroll instead. Under reduced motion the block is drawn at full depth and does not turn.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `text-shadow`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `by`, `color` and `colors` rebuild the effect when they change.

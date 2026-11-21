@@ -1,0 +1,75 @@
+---
+effect: sequence
+example:
+  description: A gold pocket watch whose crystal and bow lift away frame by frame while the frame stays pinned and you scroll.
+  caption: Scroll the page. The frame holds still while the watch comes apart, and scrolling up puts it back together.
+  scroll: 150vh
+related:
+  - concepts/scroll
+  - guides/performance
+  - guides/gsap-lenis
+---
+
+## Recipes
+
+### Take a product apart on scroll
+
+The usual page is a tall section with a sticky stage the height of the screen. `sequence` plays over the pin of that section, so 400vh gives the frames three screens of scroll. An `end` below 1 shows the last frame early and holds it while the reader takes in the heading.
+
+```html
+<section
+  class="explode"
+  data-dio-section
+  style="height: 400vh"
+>
+  <div
+    class="stage"
+    style="position: sticky; top: 0; height: 100vh"
+  >
+    <img
+      src="/seq/watch/01.avif"
+      data-dio="sequence"
+      data-dio-frames="/seq/watch/{01..72}.avif"
+      data-dio-end="0.85"
+    />
+    <h2
+      data-dio="text-reveal"
+      data-dio-trigger="scroll"
+    >Eleven parts, one hand.</h2>
+  </div>
+</section>
+```
+
+The `<img>` is the poster: it shows before the first frame decodes, without WebGL and with reduced motion. Make it the frame that tells the story on its own.
+
+### Pack a short sequence into an atlas
+
+Eighteen frames in two pages of 3 × 3 cost two requests instead of eighteen. A sparse set like this steps from frame to frame, and `blend` mixes neighbors by the fraction of the index, so it still moves smoothly. Here `progress` drives it, with no sticky stage: the watch opens while the frame crosses the middle of the viewport.
+
+<Example id="effects/sequence/atlas" description="The pocket watch from an atlas of eighteen frames, blended, opening as the frame crosses the middle of the viewport." show={['html']} controls={['start', 'end', 'blend']} variants={[]} caption="Scroll the frame through the viewport. Turn blend off to see the eighteen steps." />
+
+Atlas pages can be `.ktx2` too. Compressed pages take 4 to 8 times less GPU memory than `.avif` or `.webp`, which matters for long sequences on phones.
+
+### Drive the frame from a tween
+
+With `by` set to `manual` the scroll leaves it alone and `frame` picks the frame. Tween it with GSAP, tie it to a range input, or play it on a button.
+
+```ts
+const watch = app.effects.get(
+  document.querySelector('.watch'),
+  'sequence',
+)
+gsap.to(watch.params, {
+  frame: 35,
+  duration: 2.4,
+  ease: 'power2.inOut',
+})
+```
+
+## Notes
+
+Each frame decodes off the main thread and only a window of `cache` frames stays decoded around the current one, two of them ahead in the scroll direction. A fast fling skips frames rather than stalling, and the nearest decoded frame shows meanwhile. On the `low` tier it loads every second frame, and under Save-Data or on 2G a quarter of them at up to 960 px.
+
+Without `data-dio-section`, the section is the parent of the closest sticky ancestor. Add the attribute when the markup differs, for example when ScrollTrigger pins the stage, and on the section of any sticky stage whose copies should hold still while it is pinned. A pinned stage holds the canvas still during native scroll only when it fills half the viewport or more.
+
+The sequence is decoration over a poster, so it needs no controls of its own. Put what the frames show into the `alt` of the `<img>` or into the text next to it: a screen reader reads that, never the frames.

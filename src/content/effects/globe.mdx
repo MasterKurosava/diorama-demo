@@ -1,0 +1,84 @@
+---
+effect: globe
+example:
+  description: A dark globe of land dots with nine furniture showrooms as markers and arcs drawn from the Copenhagen workshop.
+  aspect: 4 / 3
+  caption: Drag the globe or let it turn. Switch motion to flow for deliveries that keep running, and style to solid for a filled map.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A store locator with a list beside it
+
+Keep the places in a visible list next to the globe and point `markers` at its items. Hovering an item lights its marker, focusing its link turns the globe to the place, and a click on a marker follows the link. The globe itself is `aria-hidden`: the list already says everything it shows.
+
+<Example id="effects/globe/locator" description="A globe turned to Europe beside a list of six showrooms; hovering or focusing a city lights its marker and turns the globe to it." aspect="16 / 9" show={['html']} controls={['lat', 'lng', 'markerSize']} variants={[]} />
+
+`dio:marker` fires on the globe each time a marker lights up or goes dark, with the element of the place in `detail.marker`. Use it for a tooltip or to show the hours of the showroom under the pointer.
+
+```ts
+document.querySelector('.earth').addEventListener('dio:marker', (e) => {
+  tip.textContent =
+    e.detail.marker?.querySelector('a')?.textContent ?? ''
+})
+```
+
+### Routes from a JSON file
+
+Hundreds of places do not belong in the markup. `data` loads `{ markers, arcs }` and adds them to any places in the page, and arcs may join places from both. `flow` runs a dash along each arc again and again, from the place that names the arc to the other, which reads as freight, flights or traffic.
+
+```html
+<div
+  class="routes"
+  data-dio="globe"
+  data-dio-data="/data/routes.json"
+  data-dio-motion="flow"
+  data-dio-style="solid"
+  data-dio-spin="1.8"
+></div>
+```
+
+```json
+{
+  "markers": [
+    { "id": "rtm", "lat": 51.95, "lng": 4.14 },
+    { "id": "sin", "lat": 1.26, "lng": 103.84 },
+    { "id": "lax", "lat": 33.74, "lng": -118.27 }
+  ],
+  "arcs": [
+    { "from": "rtm", "to": "sin" },
+    { "from": "sin", "to": "lax" }
+  ]
+}
+```
+
+### Brand colors
+
+Every color is a param: the ocean in `color`, the land, markers, arcs and the glow along the rim. A light globe on a light page needs a darker `marker` and a stronger `glow` to keep its edge.
+
+```html
+<div
+  class="globe"
+  data-dio="globe"
+  data-dio-color="#d3d7cf"
+  data-dio-land="#6f766f"
+  data-dio-marker="#1f2224"
+  data-dio-arc="#1f2224"
+  data-dio-atmosphere="#ffffff"
+  data-dio-glow="0.5"
+  data-dio-marker-size="9"
+></div>
+```
+
+## Notes
+
+It draws only while something moves: spin or flowing arcs at most `fps` frames a second, and a drag, a turn to a place or a marker lighting up at full rate. Set `spin` to 0 and keep `draw` for a globe that costs no frames at rest. The `low` tier draws 4000 dots and spins at 20 frames a second.
+
+Land dots take about 12 bytes each, 40 KB at the default 12000 dots over the sphere. `solid` keeps a 260 KB land mask texture on the GPU instead. The land data is Natural Earth, in the public domain.
+
+A finger turns the globe only with `touch-action: pan-y` or `none` on the element; otherwise it scrolls the page. Nothing hovers on touch screens, so a tap on a marker works as a click.
+
+Under reduced motion the globe does not spin or coast, arcs appear whole without a flowing dash, and turns to a place happen in one step. Places inside the globe are hidden with it but keep their focus, so the keyboard reaches each marker through its button or link.

@@ -1,0 +1,7 @@
+---
+const html = await Astro.slots.render('default')
+const list = html.replace(/^\s*<ol>/, '<ol class="steps">')
+if (list === html) throw new Error('Steps: the children must be one ordered list')
+---
+
+<Fragment set:html={list} />

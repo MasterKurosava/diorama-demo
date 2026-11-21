@@ -1,0 +1,27 @@
+.pieces {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 14px;
+  margin: 0;
+  padding: 20px;
+  list-style: none;
+  background: #111;
+}
+.pieces li,
+.pieces li + li {
+  margin: 0;
+}
+.pieces img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 4;
+  object-fit: cover;
+}
+@media (max-width: 560px) {
+  .pieces {
+    gap: 8px;
+    padding: 10px;
+  }
+}

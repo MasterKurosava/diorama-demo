@@ -1,0 +1,60 @@
+---
+import { render } from 'astro:content'
+import { components } from '../../../docs/components/mdx.ts'
+import ApiModule from '../../../docs/layouts/ApiModule.astro'
+import ApiSymbol from '../../../docs/layouts/ApiSymbol.astro'
+import Article from '../../../docs/layouts/Article.astro'
+import {
+  api,
+  type ApiModule as Module,
+  type ApiSymbol as SymbolData,
+} from '../../../docs/lib/api.ts'
+import { type DocPage, docPages } from '../../../docs/lib/pages.ts'
+
+type Props =
+  | { readonly type: 'page'; readonly page: DocPage }
+  | { readonly type: 'module'; readonly module: Module }
+  | { readonly type: 'symbol'; readonly symbol: SymbolData }
+
+export async function getStaticPaths() {
+  const pages = (await docPages()).filter((p) => p.section === 'api')
+  const data = api()
+  return [
+    ...pages.map((page) => ({
+      params: { path: page.url.slice('/docs/api/'.length) },
+      props: { type: 'page', page },
+    })),
+    ...data.modules.map((module) => ({
+      params: { path: module.slug },
+      props: { type: 'module', module },
+    })),
+    ...data.symbols.map((symbol) => ({
+      params: { path: symbol.url.slice('/docs/api/'.length) },
+      props: { type: 'symbol', symbol },
+    })),
+  ]
+}
+
+const props = Astro.props as Props
+const rendered = props.type === 'page' ? await render(props.page.entry) : undefined
+const Content = rendered?.Content
+---
+
+{
+  props.type === 'page' && Content ? (
+    <Article
+      title={props.page.title}
+      description={props.page.description}
+      url={props.page.url}
+      crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'API', href: '/docs/api' }, { label: props.page.label }]}
+      headings={rendered.headings}
+      kind="api"
+    >
+      <Content components={components} />
+    </Article>
+  ) : props.type === 'module' ? (
+    <ApiModule module={props.module} />
+  ) : props.type === 'symbol' ? (
+    <ApiSymbol symbol={props.symbol} />
+  ) : null
+}

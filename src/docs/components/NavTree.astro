@@ -1,0 +1,61 @@
+---
+import type { NavGroup } from '../lib/pages.ts'
+
+interface Props {
+  readonly groups: readonly NavGroup[]
+  readonly current: string
+  readonly nested?: boolean
+}
+const { groups, current, nested } = Astro.props
+const here = (href: string) => (href === current ? 'page' : undefined)
+---
+
+{
+  groups.map((g) => (
+    <details class={nested ? 'ds-sub' : undefined} open={g.open} data-nav={g.id}>
+      <summary>{g.label}</summary>
+      <ul>
+        {g.href && (
+          <li>
+            <a href={g.href} aria-current={here(g.href)}>
+              Overview
+            </a>
+          </li>
+        )}
+        {g.links.map((l) => (
+          <li>
+            <a href={l.href} aria-current={here(l.href)} data-framework-link={l.framework} class={l.code ? 'ds-code' : undefined}>
+              {l.label}
+            </a>
+          </li>
+        ))}
+        {g.parts?.map((p) => (
+          <li>
+            <p class="ds-kind">{p.label}</p>
+            <ul>
+              {p.links.map((l) => (
+                <li>
+                  <a href={l.href} aria-current={here(l.href)}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+        {g.groups && (
+          <li>
+            <Astro.self groups={g.groups} current={current} nested />
+          </li>
+        )}
+        {g.tail?.map((l) => (
+          <li>
+            <a href={l.href} aria-current={here(l.href)}>
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
+  ))
+}

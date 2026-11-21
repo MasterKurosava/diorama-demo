@@ -1,0 +1,34 @@
+---
+interface Props {
+  /** The work page's name. Without it, the landscape's header. */
+  crumb?: string
+}
+
+const { crumb } = Astro.props
+---
+
+{crumb ? (
+      <header class="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a class="mark" href="/" data-back>Diorama</a>
+          <span class="crumb" aria-current="page">{crumb}</span>
+        </nav>
+        <div class="top-end">
+          <button class="flat" type="button" aria-pressed="false" title="Turn the 3D off and see the plain HTML under it">
+            <span class="flat-label">3D</span><span class="flat-switch" aria-hidden="true"></span>
+          </button>
+          <a class="close" href="/" data-back>Close <span class="close-x" aria-hidden="true"></span></a>
+        </div>
+      </header>
+) : (
+      <header class="top">
+        <a class="mark" href="/">Diorama</a>
+        <nav aria-label="Main">
+          <a href="/docs">Docs</a>
+          <a href="https://github.com/MasterKurosava/diorama">GitHub</a>
+          <button class="flat" type="button" aria-pressed="false" title="Turn the 3D off and see the plain HTML under it">
+            <span class="flat-label">3D</span><span class="flat-switch" aria-hidden="true"></span>
+          </button>
+        </nav>
+      </header>
+)}

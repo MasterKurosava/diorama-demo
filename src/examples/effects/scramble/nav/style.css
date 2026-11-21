@@ -1,0 +1,21 @@
+.sc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 5vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #0d1117;
+}
+.sc-nav a {
+  font: 500 clamp(0.85rem, 1.8vw, 1rem) / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #e6edf3;
+}
+.sc-nav a:hover,
+.sc-nav a:focus-visible {
+  color: #3fb950;
+}

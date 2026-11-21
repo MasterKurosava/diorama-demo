@@ -1,0 +1,44 @@
+---
+effect: tilt
+example:
+  description: A dark green gift card with gold lines that tilts toward the pointer, lifts and catches a glare, with gold foil on its lines when foil is raised.
+  caption: Move the pointer over the card. Raise foil to see the holographic sheen on the gold lines, which the mask allows.
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A festival pass with foil
+
+Foil needs a mask: a grayscale image of the card, white where the foil is. Here the mask covers the title, the rings and the stripe, so the rest of the pass stays matte. The pass is a link to the tickets page, and its focus ring stays on the link in the page.
+
+<Example id="effects/tilt/pass" description="A blue weekend pass whose title, rings and stripe shift through rainbow colors as it tilts." aspect="16 / 10" show={['html']} controls={['foil', 'tilt', 'glare']} variants={[]} />
+
+### Covers in a grid
+
+Album, book and episode covers are pictures with the text already in them, so they tilt as one piece. Lower `tilt`, `lift` and `glare` for a grid, where several covers sit side by side and a strong tilt would cover the neighbors.
+
+<Example id="effects/tilt/covers" description="Three square podcast covers in a row, each leaning slightly toward the pointer." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### Foil that follows the phone
+
+A phone has no pointer to hover, so turn on `gyro`: tilting the phone leans the card and moves the foil. The card follows the change from the angle you hold the phone at and settles flat after a few seconds of holding still. iOS asks for permission on the first tap on the page.
+
+```html
+<img
+  src="/cards/0427.png"
+  data-dio="tilt"
+  data-dio-foil="0.8"
+  data-dio-mask="/cards/0427-foil.png"
+  data-dio-gyro="true"
+/>
+```
+
+## Notes
+
+The engine draws pictures, not HTML: a card whose title and price are HTML over the image stays flat while the image tilts under it. Render the card as one image, as tickets, covers and collectible cards already are, and keep live text next to it.
+
+A tilted card rises above the copies of its neighbors and goes back to their level when it settles.
+
+The link or button around the card keeps its own focus ring. On keyboard focus the card lifts without tilting.

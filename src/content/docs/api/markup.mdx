@@ -1,0 +1,109 @@
+---
+title: Markup
+description: Every data-dio attribute Diorama reads or writes, and how params map to attributes.
+section: api
+order: 1
+---
+
+Markup is the set of `data-dio*` attributes. Diorama reads them on elements as they enter the document and reacts when they change, so elements added later by templates, sliders or `innerHTML` work without code.
+
+## data-dio
+
+Effect names, separated by spaces: `data-dio="brighten ripple"`. Removing a name removes that effect from the element; removing the attribute removes them all. An instance created from markup cannot be removed from code.
+
+```html
+<img src="/cover.jpg" data-dio="image ripple" />
+```
+
+## Params
+
+A param is set with `data-dio-` plus its name in kebab case: the param `colorA` is `data-dio-color-a`.
+
+- The short form `data-dio-<param>` applies only when exactly one effect of the element has that param.
+- The addressed form `data-dio-<effect>-<param>` names the effect and wins over the short form.
+- When two effects share a param name, as `strength` of `ripple` and `bend` does, the short form applies to neither and development builds print a warning.
+
+```html
+<img
+  src="/cover.jpg"
+  data-dio="ripple bend"
+  data-dio-ripple-strength="2"
+  data-dio-split="0.5"
+/>
+```
+
+## Reserved attributes
+
+These names are never params or effect names.
+
+### data-dio-key
+
+The key of a flight. An element with a key flies to the element with the same key on the next page. See [your first page transition](/docs/start/first-transition).
+
+### data-dio-load
+
+`eager` starts loading the engine for the element at once instead of when it nears the viewport.
+
+### data-dio-track
+
+How the layer follows the element. `layout` caches the position and subtracts scroll, which suits hundreds of still images. `frame` keeps checking the box every frame while the element is visible, for long tweens that move it without events.
+
+### data-dio-section
+
+On a tall scroll section that holds a sticky stage: every effect inside reads the section's `progress` and `pin` instead of its own box, which stands still while the stage is pinned. The value is not read; the closest section wins. Effects such as `sequence`, `expand` and `compare` find the section on their own when the stage is `position: sticky`; the attribute is for other layouts, and for `text-reveal`, `reveal` or `image` inside a pinned stage. While a pinned stage fills the view, its copies stay put during native scroll.
+
+```html
+<section class="story" data-dio-section>
+  <div class="stage">
+    <img
+      src="/seq/0001.webp"
+      data-dio="sequence"
+      data-dio-frames="/seq/{0001..0096}.webp"
+    />
+  </div>
+</section>
+```
+
+### data-dio-state
+
+Written by Diorama, never by your site: `loading`, `live`, `drawn`, `entering`, `failed` or `off`. Use it in CSS, for example to hide a caption while a flight lands with `entering`. Do not render it on the server.
+
+`off` means none of the element's effects runs and the element stays plain HTML. The reasons:
+
+- the effect's `when` query does not match, such as `'hover'` on a touch device;
+- the visitor prefers reduced motion and the effect has `reducedMotion: 'off'`;
+- the effect is turned off with `app.effects.disable()`;
+- the device's quality tier is below the effect's `quality.min`;
+- the app is off, under Save-Data or with `enabled: false`, or the browser has neither WebGPU nor WebGL 2 (with `enabled: true` too), or the GPU device was lost.
+
+An element whose effects all failed gets `failed` instead.
+
+### data-dio-preload
+
+On a link: asset URLs, separated by spaces, that go into the cache when the visitor shows intent to follow it, by hovering for 65 ms, focusing or touching. Under Save-Data and on 2g nothing is preloaded.
+
+```html
+<a
+  href="/work/aurora"
+  data-dio-preload="/img/aurora-cover.avif /models/aurora.glb"
+>Aurora</a>
+```
+
+### data-dio-progress
+
+The element gets the CSS variable `--dio-progress`, from 0 to 1, while the page loads, on the first visit and on each page change. A preloader without JavaScript can use it.
+
+```html
+<div
+  data-dio-progress
+  style="transform: scaleX(var(--dio-progress, 0))"
+></div>
+```
+
+### data-dio-vt
+
+Written by Diorama on the canvas: the number of the app on the page, used in the name of its view transition group.
+
+### data-dio-transition
+
+Written by Diorama on `<html>` during a page transition: `swapping` or `flying`. Use it in CSS, for example to turn off pointer events during a flight.

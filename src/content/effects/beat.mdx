@@ -1,0 +1,63 @@
+---
+effect: beat
+example:
+  description: An album cover next to a player that swells and glows on every kick of the track.
+  aspect: 16 / 8
+  caption: Kite Frequency is a sundown warm-up generated with Web Audio for the Blue Signal demo. Nothing moves until you press play.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A play button that sends out rings
+
+The `ring` style sends a thin ring out from the element's edge on each beat, which suits a round play button or an avatar. The button stays a real button: focus, keyboard and its own label keep working.
+
+<Example id="effects/beat/ring" description="A round play button that sends out a ring on every beat while the music plays." aspect="16 / 9" show={['html']} controls={['zoom', 'spread', 'sensitivity']} variants={[]} />
+
+### A podcast cover that breathes
+
+Speech has no beat. `by="level"` follows the loudness instead, so the cover swells a little with the voice and rests in the pauses. Keep `zoom` close to 1 for long listening.
+
+```html
+<figure class="episode">
+  <img
+    src="/img/ep42.jpg"
+    data-dio="beat"
+    data-dio-by="level"
+    data-dio-zoom="1.02"
+    data-dio-glow="0.5"
+  >
+  <audio src="/audio/ep42.mp3" controls preload="none"></audio>
+</figure>
+```
+
+### A card that jolts, without any light
+
+`glow="0"` draws nothing and leaves only the motion of the element itself; `shake` jolts it a few pixels in a new direction on each beat. A ticket or a line-up card on a festival page reacts to the set that plays.
+
+```html
+<article
+  class="act"
+  data-dio="beat"
+  data-dio-for="#set"
+  data-dio-glow="0"
+  data-dio-shake="4"
+  data-dio-zoom="1.02"
+>
+  <h3>Tonight, 21:00</h3>
+  <p>Live from the main stage.</p>
+</article>
+```
+
+## Notes
+
+The effect never starts the sound: it waits for the page's own player, and it draws nothing and takes no frames while that player is paused. With `for` left empty it takes the first `<audio>` or `<video>` of the closest container that holds one, so a cover and its player can sit in one card without an id.
+
+The element stays live DOM. Its growth and jolt are the CSS `scale` and `translate` properties, written only while a pulse shows and put back after, so a link or a button keeps working and its text stays sharp. When another effect draws the element, such as an image effect on the cover, the pulse moves that picture instead. The halo and the rings draw around the element's rounded shape, never over it.
+
+Beats are rises in the bass above its recent average, at most three a second whatever the tempo, under the flash threshold of WCAG 2.3.1. Faster music pulses on every other beat. Like the [`visualizer`](/docs/effects/visualizer), it reads the sound through Web Audio, so a file from another origin needs `crossorigin="anonymous"` and an `Access-Control-Allow-Origin` header, or the effect fails with [`EFFECT_CORS`](/docs/errors/effect-cors) and the sound plays on untouched.
+
+Under reduced motion nothing scales, shakes or travels, and the sound is not analyzed: while the music plays the halo holds a steady soft light.

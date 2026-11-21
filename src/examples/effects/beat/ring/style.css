@@ -1,0 +1,30 @@
+.bt-radio {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 28px;
+  height: 100%;
+  background: #0d0b18;
+  color: #f4ecff;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.bt-play {
+  width: 96px;
+  height: 96px;
+  border: 0;
+  border-radius: 50%;
+  background: #7fd3ff;
+  color: #0d0b18;
+  font: 600 16px var(--font-text);
+  cursor: pointer;
+}
+.bt-now {
+  display: grid;
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+}
+.bt-now span {
+  font-weight: 400;
+  color: #b9a9d4;
+}

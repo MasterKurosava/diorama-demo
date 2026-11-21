@@ -1,0 +1,32 @@
+.if-shop {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 8%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(60% 70% at 85% 20%, #fff4c9 0%, transparent 70%),
+    linear-gradient(160deg, #ffe6f0 0%, #ffd9e8 100%);
+  color: #3b1830;
+}
+.if-shop .if-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b23c76;
+}
+.if-shop .if-title {
+  justify-self: start;
+  margin: 0.05em 0;
+  font: 900 clamp(2.8rem, 15cqi, 9rem) / 1 var(--font-text);
+  letter-spacing: -0.01em;
+  color: #ff4f9a;
+}
+.if-shop .if-line {
+  max-width: 42ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #6d3a58;
+}

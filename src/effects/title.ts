@@ -1,4 +1,4 @@
-import { effect } from 'diorama'
+import { effect } from 'dioramajs'
 import { texture, uniform, uv, vec3, vec4 } from 'three/tsl'
 import type { Node, Texture } from 'three/webgpu'
 import {

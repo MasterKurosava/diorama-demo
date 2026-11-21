@@ -1,0 +1,31 @@
+---
+code: EFFECT_UPDATE
+level: error
+message: '{message}'
+summary: The update function of an effect threw during a frame, so that instance failed at once.
+---
+
+The message is the message of the error the update function threw, and that error is the `cause`.
+
+## Why it happens
+
+- The function that `setup` returned throws. The instance fails on the first throw: a broken frame is visible, so effects do not wait for the 10 failures after which the kernel disables a system. Other instances keep updating, each in its own `try`.
+- The update writes to the DOM of an element that left the page. During a page transition `ctx.element` of a leaving copy is a detached node, and its update keeps running while the copy flies or fades.
+
+When the update of a leaving copy throws, only that copy is released. In development this prints as an `EFFECT_TARGET` warning that starts with `a ghost failed and was released`.
+
+## How to fix
+
+<Steps>
+
+1. Expand the reported error in the console and read the stack of the `cause`.
+2. Keep DOM reads and writes out of update. Read layout through `ctx.input` and the inputs on `ctx.u`, which Diorama measures for you.
+3. Start the instance again after the fix: remove its token from `data-dio` and add it back, or reload. In development, HMR replaces the definition and the instance retries.
+
+</Steps>
+
+## Related
+
+- `EFFECT_SETUP`
+- `EFFECT_TARGET`
+- `data-dio-state`

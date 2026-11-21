@@ -1,0 +1,162 @@
+---
+title: Server rendering
+description: Render effect markup on the server, start Diorama in the browser after hydration, and keep the server free of app state.
+section: guides
+order: 9
+related: [guides/components, start/next, start/nuxt, start/astro]
+---
+
+Effects are attributes, so a server renders them like any other HTML. The app lives in the browser only: it measures the DOM, draws on a canvas and loads three.js there. This page covers what runs where with Next.js, Nuxt, SvelteKit, Astro and other server renderers, static generation included.
+
+## Render the markup on the server
+
+`data-dio` and its params are plain attributes. A server component, a Nuxt page or an Astro template writes them without any Diorama code on the server.
+
+```tsx title="src/app/page.tsx"
+export default function Page() {
+  return (
+    <img
+      src="/cover.jpg"
+      width={800}
+      height={450}
+      data-dio="ripple"
+    />
+  )
+}
+```
+
+Until the app starts, the element is ordinary HTML, so the page reads and lays out the same before the engine arrives and on devices that never load it. When the canvas copy is ready, it takes the element's exact box, and the DOM picture is hidden only from that frame on.
+
+Do not render `data-dio-state` on the server or set it in templates. The runtime writes it and fixes values it did not write, such as one copied from a cached page.
+
+## Start in the browser
+
+Start the app in code that runs only in the browser, after hydration.
+
+| Framework | Where to call `start()`                                       |
+| --------- | ------------------------------------------------------------- |
+| Next.js   | `useEffect` of a client component rendered by the root layout |
+| Nuxt      | `onNuxtReady` in a client plugin, `app/plugins/diorama.client.ts` |
+| SvelteKit | `onMount` in the root `+layout.svelte`                        |
+| Astro     | A `<script>` in the shared layout                             |
+
+Importing `dioramajs` on the server is safe: it reads no `window` or `document` at import and starts no timers, and effect modules load in the browser only. Calling `start()` is what to keep out of server code. In Node the app is inert, but the module keeps it for the life of the server process, and server code has nothing to draw.
+
+Starting before hydration has a visible cost in React: the runtime may write `data-dio-state` on a server-rendered element first, and React 19 prints a hydration mismatch warning in development. The node is kept, but `useEffect` runs after hydration and avoids the warning.
+
+## Share the app with components
+
+A module that calls `start()` at its top level runs on the server as soon as a server-rendered component imports it. Export a function instead, and call it from browser code only: effects, event handlers, client plugins. `start()` returns the same app on every call, so every caller gets one app with the same options.
+
+```ts title="src/lib/diorama.ts" twoslash
+import { start } from 'dioramajs'
+
+/** The page's app. Call it from browser code only. */
+export const getApp = () => start({ background: '#08080b' })
+```
+
+<Tabs label="Framework">
+<Tab label="Next.js">
+
+```tsx title="src/app/diorama.tsx"
+'use client'
+import { useEffect } from 'react'
+import { getApp } from '@/lib/diorama'
+
+export function Diorama() {
+  useEffect(() => void getApp(), [])
+  return null
+}
+```
+
+```tsx title="src/app/hero.tsx"
+'use client'
+import { useEffect, useRef } from 'react'
+import { getApp } from '@/lib/diorama'
+
+export function Hero() {
+  const ref = useRef<HTMLImageElement>(null)
+  useEffect(
+    () => getApp().attach(ref.current!, 'brighten', { strength: 2 }),
+    [],
+  )
+  return <img ref={ref} src="/cover.jpg" />
+}
+```
+
+Render `<Diorama />` once in the root layout. Effects of child components run before the effect of the layout, so `Hero` may be the first to call `getApp()`; with the options in one place, that makes no difference.
+
+</Tab>
+<Tab label="Nuxt">
+
+```ts title="app/plugins/diorama.client.ts"
+import { getApp } from '~/lib/diorama'
+
+export default defineNuxtPlugin(() => {
+  onNuxtReady(() => {
+    getApp()
+  })
+})
+```
+
+`.client.ts` plugins run in the browser only, and `onNuxtReady` waits for hydration. In components, call `getApp().attach(...)` in `onMounted`.
+
+</Tab>
+<Tab label="Astro">
+
+```astro title="src/layouts/Layout.astro"
+<script>
+  import { getApp } from '../lib/diorama'
+  getApp()
+</script>
+```
+
+Astro bundles the script and runs it once in the browser, and the app lives across `ClientRouter` navigations. Islands are React, Vue or Svelte components and follow the other tabs. Markup with `data-dio` in `.astro` files needs no island.
+
+</Tab>
+<Tab label="SvelteKit">
+
+Call `getApp()` in `onMount` of the root `+layout.svelte`, and in `onMount` or an attachment of each component.
+
+```svelte title="src/routes/+layout.svelte"
+<script lang="ts">
+  import { onMount } from 'svelte'
+  import { getApp } from '$lib/diorama'
+
+  let { children } = $props()
+  onMount(() => {
+    getApp()
+  })
+</script>
+
+{@render children()}
+```
+
+</Tab>
+</Tabs>
+
+A handle from `attach()` works at once. Until the app runs, it records params written to it and hands them over.
+
+## Know what runs where
+
+| Code                                   | On the server                                      | In the browser                                 |
+| -------------------------------------- | -------------------------------------------------- | ---------------------------------------------- |
+| `data-dio` and `data-dio-*` attributes | Rendered as HTML                                   | Read when the app starts and on every change   |
+| `import { start } from 'dioramajs'`      | No side effects                                    | No side effects                                |
+| `start()`                              | Keep it out: an inert app the process holds on to   | Starts the app; later calls return it          |
+| `transition(app, swap)`                | Calls `swap` and returns a skipped transition      | Flies keyed elements to their partners         |
+| Effect files                           | Never imported                                     | Imported when an element with the effect nears the viewport |
+| `data-dio-state`                       | Never render it                                    | Written by the runtime                         |
+
+`transition()` is safe to call before the app runs, without the transitions plugin, after the app is destroyed and in Node: it calls `swap` once and resolves with the status `'skipped'`. A router recipe can call it from shared code.
+
+## Next.js
+
+- Server components write markup only. Keep `start()` and code that uses the app in client components.
+- `next/image` passes unknown attributes to the `<img>` it renders, so `data-dio` and its params work on it. Add `crossOrigin="anonymous"` for images from another origin.
+- `withDiorama` writes `src/diorama.gen.ts`, the registry of your effects folder with lazy imports, and points both bundlers at it. Commit it. The server build includes the registry, but nothing on the server calls it.
+- App Router navigations swap the page in place. The app and the canvas stay, the effects of the old page are released and those of the new page created.
+
+## Static generation
+
+A statically generated page is server rendering at build time, and the same rules apply: markup in the HTML, `start()` in the browser. Reduced motion, touch, Save-Data and the GPU are all decided in the browser, so one HTML file serves every visitor.

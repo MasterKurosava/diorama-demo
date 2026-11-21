@@ -1,0 +1,59 @@
+---
+effect: rotator
+example:
+  description: A design studio's hero headline whose last word rolls on a lit 3D cube through websites, apps, brands and launches.
+  caption: Switch the style and the axis, or move the sliders. Hover the headline to hold the current word.
+  aspect: 16 / 8
+  controls: [interval, duration, depth, shade]
+  variants: [style, axis]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A departures board
+
+`style="flip"` turns each word on a split flap: the top half of the word falls over a hinge, shows the bottom half of the next word on its back and lands with a small bounce, the way a station board clacks. A shorter `interval` suits it. It reads best in capitals and a bold, narrow font, on an event, travel or launch page.
+
+<Example id="effects/rotator/board" description="A night train's departure line that flips through Berlin, Prague, Vienna and Budapest in yellow capitals on a dark board." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### Words turned by the scroll
+
+With `data-dio-trigger="scroll"` the words follow the scroll position both ways and hold still between turns. In a section pinned with `position: sticky`, or one marked with `data-dio-section`, the words spread over the scroll through that section; anywhere else over the way the line travels up the viewport. A drum suits it: the words above and below curve away like a reel behind a window.
+
+```html
+<section class="story" data-dio-section="">
+  <h2 class="sticky">Made for <span data-dio="rotator" data-dio-style="drum" data-dio-trigger="scroll"><span>founders</span> <span>teams</span> <span>agencies</span> <span>everyone</span></span></h2>
+</section>
+```
+
+### A button that answers the pointer
+
+With `data-dio-trigger="hover"` the label turns once each time the pointer or keyboard focus reaches the button, and on a tap on a phone. `axis="y"` turns it sideways, along the line.
+
+```html
+<a class="cta" href="/signup">Start <span data-dio="rotator" data-dio-trigger="hover" data-dio-style="flip" data-dio-axis="y"><span>free</span> <span>today</span></span></a>
+```
+
+## Notes
+
+Put the effect on an inline element whose children are the words, one element each, usually spans, with a space between them. The effect shows the current word and keeps the others in the page for screen readers, which read every word, so write them in an order that makes sense read aloud. Before the effect runs, and on a device without WebGL, the browser would show all the words in a row: the rule below hides all but the first the same way.
+
+```css
+[data-dio="rotator"] > * + * {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+```
+
+The words are drawn on a real 3D shape only while they turn: a cube or drum whose axis lies behind the page, a flap on a hinge or a strip folding into the page, seen in perspective from in front of the word. A lamp above and to the left lights the faces by their angle, so a face turning away darkens and one tilting up catches a glint; `shade="0"` keeps the text color. Between turns the word is real, selectable text, and the effect draws no frames: a timer wakes the next turn, and it waits while the pointer is over the line or focus is in it. Under reduced motion the words still change, but fade into each other in place.
+
+While a word turns, the line around it eases to the width of the next one, so a centered heading stays centered and the text after the word moves along. The rotator is set to `display: inline-block` and `white-space: nowrap` while it runs, so a phrase of two words never breaks mid-turn. The element itself is hidden behind its copy while a word turns, its own background too: put a highlight or a pill behind the word on a parent.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does. Words with any of them still change on the timer, without turning, and a warning in development names the reason. `style`, `trigger` and `axis` rebuild the effect when they change and start over from the first word.

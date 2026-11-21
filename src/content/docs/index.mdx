@@ -1,0 +1,10 @@
+---
+title: Diorama
+description: Effects from three.js on ordinary HTML elements, a canvas that follows the page and flights of elements between pages.
+section: home
+order: 0
+---
+
+Add `data-dio="ripple"` to an image and it becomes a layer that stays in place while the page scrolls and reflows. Your own effects are files in a folder and work the same way: [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes) writes one from an empty file. three.js and each effect load only when an element with an effect nears the viewport, and frames are drawn only while something changes.
+
+Rendering uses WebGPU with a WebGL 2 fallback. Shaders are written in TSL. The project is in early development and the API can change before 1.0.

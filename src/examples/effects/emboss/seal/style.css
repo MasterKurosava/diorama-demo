@@ -1,0 +1,31 @@
+.eb-invite {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.4cqi;
+  box-sizing: border-box;
+  padding: 0 8%;
+  background: #f4efe6;
+  color: #3b3530;
+  font-family: var(--font-text);
+  text-align: center;
+}
+.eb-invite p {
+  margin: 0;
+}
+.eb-invite .eb-line {
+  font: 400 max(12px, 1.8cqi) / 1.4 var(--font-text);
+  letter-spacing: 0.05em;
+  color: #6c625a;
+}
+.eb-invite .eb-names {
+  font: 700 max(22px, 4.6cqi) / 1.1 var(--font-text);
+  letter-spacing: -0.01em;
+}
+.eb-invite .eb-seal {
+  margin-top: 9cqi;
+  font: 900 max(30px, 6.4cqi) / 1 var(--font-text);
+  letter-spacing: 0.02em;
+  color: #8c1d1d;
+}

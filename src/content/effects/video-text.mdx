@@ -1,0 +1,45 @@
+---
+effect: video-text
+example:
+  description: A travel headline in heavy capitals on a dark page, with a film of the aurora playing inside the letters.
+  aspect: 16 / 8
+  controls: [dim, fps]
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A photo inside the letters
+
+An image URL in `src` puts a still picture in the letters instead of a film, and then nothing is drawn after the first frame. A product page can set the name of a color in the color itself. On a light page a little `dim` keeps the letters from washing out.
+
+<Example id="effects/video-text/photo" description="The word Ochre in huge capitals filled with a photo of an ochre lounge chair, on a cream page." aspect="16 / 8" show={['html']} controls={['dim']} variants={[]} />
+
+### The whole picture inside the text
+
+`fit` frames the picture over the text as a block, like `object-fit` over an element. `cover` fills every letter and crops the picture to the text's proportions, which suits one wide line. `contain` keeps the whole picture visible, so letters past its edges stay empty: use it for a short, tall block of text.
+
+```html
+<h1
+  class="poster"
+  data-dio="video-text"
+  data-dio-src="/media/stage.webm /media/stage.mp4"
+  data-dio-fit="contain"
+>
+  Blue
+  <br />
+  Signal
+</h1>
+```
+
+## Notes
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the effect draws, a CSS filter hides the DOM text without removing it. Give the text a color that reads on its own, since that is what shows before the first frame, without WebGL and under reduced motion off.
+
+Use a large, heavy font: thin strokes show little of the picture. The film plays only while the text is on screen and the tab is visible, at most `fps` frames a second, and pauses otherwise. Under reduced motion it holds its first frame.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `text-shadow`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. A background or border on the heading itself is hidden with it while the effect draws, so put them on a wrapper.
+
+A video from another origin needs CORS headers: the effect loads it in CORS mode. `src` and `fit` rebuild the effect when they change.

@@ -1,0 +1,109 @@
+---
+title: Page covers
+label: Page covers
+description: Change pages behind a curtain, a mosaic of blocks or a blot of ink drawn over the whole page, with one option and no shader code.
+section: guides
+order: 3.5
+related: [guides/routers, effects/cover-curtain, effects/cover-pixel, effects/cover-ink, guides/reduced-motion]
+---
+
+A page cover closes over the page when a visitor follows a link, stays closed while the router loads and swaps the next page, and opens off the new one. It is drawn on the Diorama canvas, above everything else on the page: fixed headers, chat widgets and the GL copies of your images. Three covers come with Diorama: [`curtain`](/docs/effects/cover-curtain), [`pixel`](/docs/effects/cover-pixel) and [`ink`](/docs/effects/cover-ink).
+
+![An ink cover spreading from the Studio link of a studio site over its home page](/media/covers/ink.webp)
+
+## Turn a cover on
+
+Name the cover in the `transitions` option of `start()`:
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({ transitions: { cover: 'ink' } })
+```
+
+An object sets its look and timing:
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({
+  transitions: {
+    cover: {
+      name: 'curtain',
+      direction: 'left',
+      color: '#1b1a17',
+      accent: '#e4572e',
+      duration: 0.7,
+    },
+  },
+})
+```
+
+The cover loads after the page has started, in its own chunk with three, and adds nothing to your main bundle. Flights of elements with `data-dio-key` keep working: they run under the cover and land on the new page.
+
+## What happens on a click
+
+1. The visitor clicks a link to another page of the site.
+2. The cover closes from where the click was. A keyboard click (<Kbd keys="enter" /> on a focused link) starts at the link.
+3. Once the page is covered, the router gets the click and changes the page.
+4. The cover waits for the first screen of the new page, its pictures and models, at most `wait` seconds, then opens.
+
+Pages that change without a click, with Back, Forward or a router call in your code, open through the cover from the middle of the screen. Set `arrive: false` to leave those to the router.
+
+## Routers
+
+Astro ClientRouter needs nothing more. Diorama waits for the cover inside Astro's own loader, so the next page loads while the cover closes, and Back and Forward close it too.
+
+Next.js, Nuxt, Vue Router, Barba, Swup and your own `history` code need nothing more either. Diorama holds a plain click on a link to another page of the site, closes the cover and then passes the same click on, so the router handles it as usual. Clicks it leaves alone:
+
+- with <Kbd keys="ctrl" />, <Kbd keys="shift" />, <Kbd keys="alt" /> or ⌘ held, or with another mouse button;
+- on links with `target="_blank"`, `download`, another origin, or only a `#hash` on the same page;
+- on links inside an element with `data-dio-cover="off"`.
+
+A link that opens a modal through its own click handler should carry `data-dio-cover="off"`, or the cover closes for it and opens only after `timeout`:
+
+```html
+<a
+  href="/newsletter"
+  data-dio-cover="off"
+  class="open-signup"
+>Newsletter</a>
+```
+
+When your code changes the page, wait for the cover first:
+
+```ts
+import { covered } from 'dioramajs/transitions'
+import { app } from './diorama'
+
+async function go(href: string) {
+  await covered(app)
+  router.push(href)
+}
+```
+
+`covered()` resolves `true` once the page is covered and `false` at once when the cover can't play. On a site without a client router, a click closes the cover and the browser then loads the next page as usual: the cover plays only as the page leaves.
+
+## Options
+
+| Option     | Default | What it does |
+| ---------- | ------- | ------------ |
+| `name`     |         | `'curtain'`, `'pixel'`, `'ink'`, or your own effect |
+| `duration` | `0.6`   | Seconds to close, and again to open |
+| `ease`     | cubic   | Easing of each half, a function from 0..1 to 0..1 |
+| `wait`     | `0.5`   | Most seconds the closed cover waits for the new page's first screen |
+| `timeout`  | `10`    | Seconds a closed cover waits for a page change before it opens anyway |
+| `links`    | `true`  | Hold link clicks while the cover closes |
+| `arrive`   | `true`  | Open through the cover after Back, Forward or a router call |
+
+Each cover has options of its own, listed on its page.
+
+## Every visitor
+
+Under reduced motion there is no cover: link clicks go straight to the router and pages change at once. The same holds on devices without WebGPU or WebGL 2 and under Save-Data. The cover does not move focus; the router does what it always does. While the cover rests, closed or open, the page draws no frames.
+
+The engine and the cover load when the page is idle after it has loaded, or as soon as the pointer or focus reaches a link. A click before that changes the page without a cover.
+
+## Your own cover
+
+`name` also takes an effect, written like any other. The cover writes its `position` param, 0 while the old page shows, 1 when the page is covered and 2 when the new page shows, and `x` and `y`, where the click was as fractions of the viewport. The effect runs on `<html>` and draws into `ctx.overlay`. The ready-made covers in `@dioramajs/transitions/cover` are short examples of such effects.

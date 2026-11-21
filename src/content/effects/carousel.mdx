@@ -1,0 +1,53 @@
+---
+effect: carousel
+example:
+  description: Six coastal places on a ring seen from slightly above, the front one larger and mirrored on the floor; drag, swipe or use the arrow keys to turn it.
+  aspect: 16 / 9
+  controls: [spacing, tilt, focus, shade, reflection, perspective, duration]
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Rooms that turn by themselves, with a pause button
+
+With `interval` set to 3 the ring rests on each room for 3 seconds and turns on to the next. Content that moves on its own for longer than 5 seconds needs a way to stop it (WCAG 2.2.2), so autoplay brings its own pause button over the bottom right corner of the box. The ring also waits while the pointer is over it, while focus is inside it, in a background tab, and for 4 seconds after someone turns it by hand.
+
+<Example id="effects/carousel/rooms" description="Five hotel rooms on a ring that turns every 3 seconds, a pause button in the corner." aspect="16 / 9" show={['html']} controls={['interval']} variants={['motion']} />
+
+Set `motion` to `drift` for a ring that turns slowly and steadily instead, a room every `interval` seconds. The button is a real `<button>` placed right after the list in the page, in the tab order after the pictures; style it from the page with `::part(pause)`. If the page has a control of its own, set `pause` to false and let that control set `interval` to 0.
+
+### A curved wall of projects
+
+The `inside` style puts the viewer in the middle of the ring: the pictures face in and curve away at the sides, like a gallery wall around you. The ones beside and behind you fade out, so it reads well with eight pictures or more.
+
+<Example id="effects/carousel/wall" description="Eight project covers on a wall that curves around the viewer." aspect="16 / 9" show={['html']} controls={['spacing', 'perspective']} variants={[]} />
+
+### Turn with the page scroll
+
+With `by` set to `scroll` the ring turns once round while the list crosses the viewport, a showcase that plays as the page goes by. Drags, keys and autoplay are off then, and under reduced motion the ring stands still at `index`.
+
+```html
+<ul
+  class="range"
+  data-dio="carousel"
+  data-dio-by="scroll"
+  data-dio-tilt="12"
+>
+  <li><img src="/shop/kettle.avif" /></li>
+  <li><img src="/shop/mug.avif" /></li>
+</ul>
+```
+
+## Notes
+
+Write the ring as a list of images, in links if each opens a page, styled as the grid or the row you want without WebGL. Each picture takes the size of its image in that layout, so size the images for the ring (the example gives them most of the frame's height in a row that scrolls), and its picture is cut like the image, with the image's own `object-fit` and `object-position`; the corners follow the `border-radius` of the first image. The ring stands on the middle line of the list's box; with `radius` at `auto` (the default) it is wide enough that the pictures stand `spacing` apart, and a ring too wide for the box is drawn smaller as a whole. Up to 24 pictures go on the ring.
+
+The copy hides the list, its background included, so put a background on a parent. A click on a picture is caught by the effect: on a picture at the side it turns that one to the front, on the front one it follows its link, with Ctrl or Cmd in a new tab. An image without a link fires `dio:open` instead.
+
+The links stay in the page in order with their alt text. Tab moves through them and the ring turns to the focused one; the arrow keys, PageUp, PageDown, Home and End turn the ring and move the focus with it. Without links give the list `tabindex="0"` and an `aria-label` that says how to turn it.
+
+A drag with a mouse always turns the ring. On touch screens set `touch-action: pan-y` on the list so the ring follows the finger while the page still scrolls up and down. Only a sideways wheel or a two-finger swipe on a trackpad turns it; a wheel turned up and down scrolls the page.
+
+`style`, `by`, `motion` and `items` rebuild the effect when they change. Set them in the markup rather than switching them while the ring is on screen.

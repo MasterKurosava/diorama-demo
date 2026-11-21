@@ -1,0 +1,791 @@
+---
+/**
+ * The effects gallery: cards by category, filters kept in the address
+ * (?category=photo&module=media&touch=1&motion=static&cost=idle&find=wipe; not `q`, which opens
+ * the site search), and a preview of what the effect does: the recorded clip of the card under the
+ * pointer or in focus, or on touch screens of the card in the middle of the screen. A card without
+ * a clip runs its card.html live, with the engine loaded on the first hover. Reduced motion and
+ * Save-Data keep the posters.
+ */
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { CATEGORIES } from '../lib/categories.ts'
+import { effectPages } from '../lib/effect-pages.ts'
+import { byCategory, COST_CLASSES } from '../lib/effects.ts'
+
+const pages = await effectPages()
+const list = pages.map((p) => p.info)
+const sections = byCategory(list)
+const modules = [...new Set(list.map((e) => e.meta.module))].sort()
+const count = (slug: string) =>
+  list.filter((e) => e.category === slug || e.tags.includes(slug)).length
+// Live markup of a card: data-dio stays inert until the card mounts it.
+const live = (path: string | undefined) => {
+  if (!path) return undefined
+  const html = readFileSync(join(process.cwd(), 'src/examples', path), 'utf8')
+  return html.replace(/(<[a-z][\w-]*\b[^>]*?\s)data-dio=/gi, '$1data-ex-dio=')
+}
+const card = (name: string) => pages.find((p) => p.info.name === name)
+// Styles of the examples whose markup the cards run live: without them a card shows the bare
+// markup (unsized SVG icons, unstyled text) the moment it comes alive.
+const styles = [...new Set(pages.flatMap((p) => (p.card && p.example ? [p.example] : [])))]
+  .map((example) => join(process.cwd(), 'src/examples', example, 'style.css'))
+  .filter((file) => existsSync(file))
+  .map((file) => readFileSync(file, 'utf8'))
+  .join('\n')
+const COST = Object.fromEntries(COST_CLASSES.map((c) => [c.value, c.label]))
+---
+
+{styles && <Fragment set:html={`<style>${styles}</style>`} />}
+<doc-gallery class="gx" data-total={list.length}>
+  <form class="gx-filters" aria-label="Filter effects" data-pagefind-ignore>
+    <div class="gx-cats" role="group" aria-label="Category">
+      <button type="button" class="gx-chip" data-category="" aria-pressed="true">
+        All <span class="gx-n">{list.length}</span>
+      </button>
+      {
+        CATEGORIES.map((c) => {
+          const n = count(c.slug)
+          return (
+            <button type="button" class="gx-chip" data-category={c.slug} aria-pressed="false" disabled={n === 0} title={n === 0 ? 'No effects yet' : c.blurb}>
+              {c.title} <span class="gx-n">{n}</span>
+            </button>
+          )
+        })
+      }
+    </div>
+    <div class="gx-row">
+      <label class="gx-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+        <span class="sr-only">Search effects</span>
+        <input type="search" name="find" placeholder={`Search ${list.length} effects`} autocomplete="off" spellcheck="false" />
+      </label>
+      <label class="gx-select">
+        <span>Module</span>
+        <select name="module">
+          <option value="">Any</option>
+          {modules.map((m) => <option value={m}>{m}</option>)}
+        </select>
+      </label>
+      <label class="gx-select">
+        <span>Cost</span>
+        <select name="cost">
+          <option value="">Any</option>
+          {COST_CLASSES.map((c) => <option value={c.value}>{c.label}</option>)}
+        </select>
+      </label>
+      <label class="gx-check"><input type="checkbox" name="touch" value="1" /> Works on touch</label>
+      <label class="gx-check"><input type="checkbox" name="motion" value="static" /> Static under reduced motion</label>
+    </div>
+    <div class="gx-status">
+      <p class="gx-count" aria-live="polite" data-count>{list.length} effects</p>
+      <button type="button" class="gx-clear" data-clear hidden>Clear filters</button>
+    </div>
+  </form>
+
+  <div class="gx-sections" data-pagefind-ignore>
+    {
+      CATEGORIES.map((c) => {
+        const primary = sections.find((s) => s.slug === c.slug)?.effects ?? []
+        const also = list.filter((e) => e.tags.includes(c.slug))
+        if (!primary.length && !also.length) return null
+        return (
+          <section class="gx-section" data-section={c.slug} hidden={!primary.length ? true : undefined} data-only-filtered={!primary.length ? '' : undefined}>
+            <header>
+              <h2 id={`category-${c.slug}`}>{c.title}</h2>
+              <p>{c.blurb}</p>
+            </header>
+            <ul class="gx-grid">
+              {[...primary.map((e) => ({ e, also: false })), ...also.map((e) => ({ e, also: true }))].map(({ e, also: tagged }) => {
+                const p = card(e.name)
+                const markup = live(p?.card)
+                return (
+                  <li
+                    class="gx-card"
+                    data-name={e.name}
+                    data-category={e.category}
+                    data-tags={e.tags.join(' ')}
+                    data-module={e.meta.module}
+                    data-touch={e.touch ? '1' : '0'}
+                    data-motion={e.staticMotion ? 'static' : 'off'}
+                    data-cost={e.cost}
+                    data-text={`${e.name} ${e.meta.summary} ${e.categoryTitle} ${e.tags.join(' ')} ${e.meta.module}`.toLowerCase()}
+                    data-also={tagged ? '' : undefined}
+                    data-live={markup ? '' : undefined}
+                    data-card={p?.example ? `/src/examples/${p.example}/card.ts` : undefined}
+                    data-clip={p?.clip}
+                  >
+                    <a href={e.url}>
+                      <div class="gx-media">
+                        {p?.poster ? (
+                          <picture>
+                            <source srcset={`${p.poster}.avif`} type="image/avif" />
+                            <img src={`${p.poster}.webp`} alt="" width="640" height="400" loading="lazy" decoding="async" />
+                          </picture>
+                        ) : (
+                          <span class="gx-blank" aria-hidden="true">
+                            <code>{e.name}</code>
+                          </span>
+                        )}
+                        {markup && <template set:html={markup} />}
+                        <div class="gx-live" aria-hidden="true" />
+                      </div>
+                      <div class="gx-body">
+                        <code class="gx-name">{e.name}</code>
+                        <p>{e.meta.summary}</p>
+                        <p class="gx-meta">
+                          <span>{e.meta.module}</span>
+                          {tagged && <span>{e.categoryTitle}</span>}
+                          {!e.touch && <span>Pointer only</span>}
+                          <span>{COST[e.cost]}</span>
+                        </p>
+                      </div>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )
+      })
+    }
+  </div>
+  <p class="gx-empty" data-empty hidden>
+    No effect matches these filters. <button type="button" class="gx-clear" data-clear-empty>Clear filters</button>
+  </p>
+</doc-gallery>
+
+<style>
+  .gx {
+    display: block;
+    margin-top: var(--s-5);
+  }
+  .gx-filters {
+    display: grid;
+    gap: var(--s-3);
+    margin: 0 0 var(--s-7);
+    padding: 0 0 var(--s-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .gx-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+  .gx-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 34px;
+    padding: 4px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease);
+  }
+  .gx-chip:hover:not(:disabled) {
+    border-color: var(--link);
+    color: var(--link);
+  }
+  .gx-chip[aria-pressed='true'] {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .gx-chip:disabled {
+    border-style: dashed;
+    border-color: var(--border);
+    color: var(--text-muted);
+    cursor: default;
+    opacity: 0.7;
+  }
+  .gx-n {
+    font: 500 0.72rem var(--font-mono);
+    opacity: 0.7;
+  }
+  .gx-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-4);
+    font-size: 0.85rem;
+  }
+  .gx-search {
+    display: inline-flex;
+    flex: 1 1 180px;
+    max-width: 320px;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 36px;
+    padding: 0 var(--s-3);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-raised);
+    color: var(--text-muted);
+  }
+  .gx-search:focus-within {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .gx-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    outline: none;
+  }
+  .gx-select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .gx-select span {
+    font: 500 0.72rem var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .gx-select select {
+    width: auto;
+    min-height: 32px;
+    padding: 2px var(--s-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-paper);
+    background: var(--bg-raised);
+  }
+  .gx-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    cursor: pointer;
+  }
+  .gx-check input {
+    accent-color: var(--link);
+  }
+  .gx-status {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: 24px;
+  }
+  .gx-count {
+    margin: 0;
+    font: 500 0.75rem var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .gx-clear {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+  }
+  .gx-section + .gx-section {
+    margin-top: var(--s-8);
+  }
+  .gx-section header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-1) var(--s-4);
+    margin-bottom: var(--s-4);
+  }
+  .gx-section h2 {
+    margin: 0;
+  }
+  .gx-section header p {
+    margin: 0;
+    font-size: 0.89em;
+    color: var(--text-muted);
+  }
+  .gx-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--s-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Tagged copies show only while their category is chosen. */
+  .gx:not([data-category]) .gx-card[data-also],
+  .gx-card[hidden] {
+    display: none;
+  }
+  .gx-card a {
+    display: grid;
+    height: 100%;
+    grid-template-rows: auto 1fr;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .gx-media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-panel);
+    background: var(--bg-code);
+    transition: box-shadow var(--t-mid) var(--ease);
+  }
+  .gx-card a:hover .gx-media,
+  .gx-card a:focus-visible .gx-media {
+    box-shadow: var(--shadow-paper);
+  }
+  .gx-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--t-mid) var(--ease);
+  }
+  .gx-card[data-shown] .gx-media picture img {
+    opacity: 0;
+  }
+  /* The clip fades in over the poster once it plays, and back out when it stops. */
+  .gx-media :global(.gx-clip) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity var(--t-mid) var(--ease);
+    pointer-events: none;
+  }
+  .gx-card[data-playing] .gx-media :global(.gx-clip) {
+    opacity: 1;
+  }
+  /* No still yet: the name set large on the bare surface. */
+  .gx-blank {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  .gx-blank code {
+    padding: 0;
+    background: none;
+    font: 500 clamp(1.1rem, 2.4vw, 1.6rem) var(--font-mono);
+    letter-spacing: -0.02em;
+    color: var(--text-muted);
+    opacity: 0.55;
+  }
+  .gx-live {
+    position: absolute;
+    inset: 0;
+  }
+  .gx-live:empty {
+    display: none;
+  }
+  .gx-live > :global(*) {
+    width: 100%;
+    height: 100%;
+  }
+  .gx-live :global(img),
+  .gx-live :global(video) {
+    display: block;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+  .gx-live {
+    border-radius: inherit;
+  }
+  .gx-body {
+    display: grid;
+    align-content: start;
+    gap: var(--s-1);
+    padding: var(--s-3) var(--s-1) 0;
+  }
+  .gx-name {
+    justify-self: start;
+    padding: 0;
+    background: none;
+    font: 600 1rem var(--font-mono);
+    color: var(--text);
+  }
+  .gx-card a:hover .gx-name {
+    color: var(--link);
+  }
+  .gx-body p {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .gx-body .gx-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--s-2);
+    margin-top: var(--s-1);
+    font-size: 0.78rem;
+  }
+  .gx-meta span + span::before {
+    content: '·';
+    margin-right: var(--s-2);
+  }
+  .gx-meta span:first-child {
+    font-family: var(--font-mono);
+  }
+  .gx-empty {
+    padding: var(--s-7) 0;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  @media (max-width: 640px) {
+    .gx-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .gx-search {
+      grid-column: 1 / -1;
+      max-width: none;
+    }
+    .gx-select {
+      display: grid;
+      gap: 2px;
+    }
+    .gx-select select {
+      width: 100%;
+    }
+    .gx-check {
+      grid-column: 1 / -1;
+    }
+    .gx-cats {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin: 0 calc(-1 * var(--edge));
+      padding: 2px var(--edge) var(--s-2);
+      scrollbar-width: none;
+    }
+    .gx-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s-4);
+    }
+    .gx-card a {
+      grid-template-columns: 116px minmax(0, 1fr);
+      grid-template-rows: auto;
+      gap: var(--s-3);
+      align-items: start;
+    }
+    .gx-media {
+      border-radius: var(--radius-paper);
+    }
+    .gx-body {
+      padding: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gx-media img {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { app } from '../diorama.ts'
+
+  type Mount = (card: HTMLElement) => (() => void) | undefined | void
+  const cards = import.meta.glob('/src/examples/effects/*/card.ts')
+  const KEYS = ['category', 'module', 'cost', 'touch', 'motion', 'find'] as const
+
+  /** Reduced motion and Save-Data keep the posters. */
+  const canMove = (): boolean =>
+    !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    (navigator as { connection?: { saveData?: boolean } }).connection?.saveData !== true
+  const canHover = (): boolean => matchMedia('(hover: hover) and (pointer: fine)').matches
+
+  class DocGallery extends HTMLElement {
+    #off: (() => void)[] = []
+    #mounted = new Map<HTMLElement, () => void>()
+    #io?: IntersectionObserver
+    #band?: IntersectionObserver
+    readonly #playing = new Set<HTMLElement>()
+
+    connectedCallback(): void {
+      const form = this.querySelector('form')
+      if (!form) return
+      this.#read(form)
+      this.#apply(form)
+      const onChange = () => {
+        this.#apply(form)
+        this.#write(form)
+      }
+      let timer = 0
+      const onInput = (e: Event) => {
+        if ((e.target as HTMLInputElement).name !== 'find') return onChange()
+        clearTimeout(timer)
+        timer = window.setTimeout(onChange, 120)
+      }
+      const onChip = (e: MouseEvent) => {
+        const chip = (e.target as Element).closest<HTMLButtonElement>('.gx-chip')
+        if (!chip || chip.disabled) return
+        for (const c of form.querySelectorAll<HTMLButtonElement>('.gx-chip')) c.setAttribute('aria-pressed', String(c === chip))
+        onChange()
+      }
+      const onClear = (e: MouseEvent) => {
+        if (!(e.target as Element).closest('[data-clear], [data-clear-empty]')) return
+        form.reset()
+        for (const c of form.querySelectorAll<HTMLButtonElement>('.gx-chip')) c.setAttribute('aria-pressed', String(c.dataset.category === ''))
+        onChange()
+      }
+      const onSubmit = (e: Event) => e.preventDefault()
+      form.addEventListener('input', onInput)
+      form.addEventListener('click', onChip)
+      this.addEventListener('click', onClear)
+      form.addEventListener('submit', onSubmit)
+      this.#off.push(() => {
+        form.removeEventListener('input', onInput)
+        form.removeEventListener('click', onChip)
+        this.removeEventListener('click', onClear)
+        form.removeEventListener('submit', onSubmit)
+        clearTimeout(timer)
+      })
+      this.#clips()
+      this.#previews()
+    }
+
+    disconnectedCallback(): void {
+      for (const off of this.#off) off()
+      this.#off = []
+      for (const unmount of this.#mounted.values()) unmount()
+      this.#mounted.clear()
+      this.#io?.disconnect()
+      this.#band?.disconnect()
+      for (const card of this.#playing) this.#stop(card)
+    }
+
+    /** Filters from the address into the form. */
+    #read(form: HTMLFormElement): void {
+      const query = new URLSearchParams(location.search)
+      const category = query.get('category') ?? ''
+      for (const c of form.querySelectorAll<HTMLButtonElement>('.gx-chip'))
+        c.setAttribute('aria-pressed', String(c.dataset.category === category && !c.disabled))
+      if (!form.querySelector('.gx-chip[aria-pressed="true"]'))
+        form.querySelector('.gx-chip[data-category=""]')?.setAttribute('aria-pressed', 'true')
+      for (const key of KEYS) {
+        if (key === 'category') continue
+        const field = form.elements.namedItem(key) as HTMLInputElement | HTMLSelectElement | null
+        const value = query.get(key)
+        if (!field || value === null) continue
+        if (field instanceof HTMLInputElement && field.type === 'checkbox') field.checked = value === field.value
+        else field.value = value
+      }
+    }
+
+    #state(form: HTMLFormElement): Record<(typeof KEYS)[number], string> {
+      const field = (key: string) => form.elements.namedItem(key) as HTMLInputElement | HTMLSelectElement
+      const check = (key: string) => {
+        const f = field(key) as HTMLInputElement
+        return f.checked ? f.value : ''
+      }
+      return {
+        category: form.querySelector<HTMLElement>('.gx-chip[aria-pressed="true"]')?.dataset.category ?? '',
+        module: field('module').value,
+        cost: field('cost').value,
+        touch: check('touch'),
+        motion: check('motion'),
+        find: field('find').value.trim(),
+      }
+    }
+
+    /** Filters from the form into the address, without a history entry per keystroke. */
+    #write(form: HTMLFormElement): void {
+      const state = this.#state(form)
+      const query = new URLSearchParams()
+      for (const key of KEYS) if (state[key]) query.set(key, state[key])
+      const search = query.toString()
+      history.replaceState(history.state, '', `${location.pathname}${search ? `?${search}` : ''}${location.hash}`)
+    }
+
+    #apply(form: HTMLFormElement): void {
+      const s = this.#state(form)
+      const words = s.find.toLowerCase().split(/\s+/).filter(Boolean)
+      if (s.category) this.dataset.category = s.category
+      else delete this.dataset.category
+      const names = new Set<string>()
+      for (const section of this.querySelectorAll<HTMLElement>('[data-section]')) {
+        const cards = [...section.querySelectorAll<HTMLElement>('.gx-card')]
+        let shown = 0
+        for (const card of cards) {
+          const d = card.dataset
+          const tagged = d.also !== undefined
+          const ok =
+            (s.category ? section.dataset.section === s.category : !tagged) &&
+            (!s.module || d.module === s.module) &&
+            (!s.cost || d.cost === s.cost) &&
+            (!s.touch || d.touch === '1') &&
+            (!s.motion || d.motion === s.motion) &&
+            words.every((w) => (d.text ?? '').includes(w))
+          card.hidden = !ok
+          if (ok) {
+            shown++
+            names.add(d.name ?? '')
+          }
+        }
+        section.hidden = shown === 0
+      }
+      const total = Number(this.dataset.total)
+      const filtered = KEYS.some((k) => s[k])
+      const count = this.querySelector('[data-count]')
+      if (count) count.textContent = filtered ? `${names.size} of ${total} effects` : `${total} effects`
+      const clear = this.querySelector<HTMLElement>('[data-clear]')
+      if (clear) clear.hidden = !filtered
+      const empty = this.querySelector<HTMLElement>('[data-empty]')
+      if (empty) empty.hidden = names.size > 0
+    }
+
+    /**
+     * Recorded clips: the card under the pointer or in focus plays its clip from the start; on a
+     * touch screen the cards crossing the middle band of the screen play theirs.
+     */
+    #clips(): void {
+      const grid = this.querySelector<HTMLElement>('.gx-sections')
+      if (!grid || !canMove()) return
+      if (!canHover()) {
+        this.#band = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              const card = e.target as HTMLElement
+              if (e.isIntersecting) this.#play(card)
+              else this.#stop(card)
+            }
+          },
+          { rootMargin: '-38% 0px -38% 0px' },
+        )
+        for (const card of grid.querySelectorAll<HTMLElement>('.gx-card[data-clip]')) this.#band.observe(card)
+        return
+      }
+      const cardOf = (target: EventTarget | null) =>
+        target instanceof Element ? target.closest<HTMLElement>('.gx-card[data-clip]') : null
+      const enter = (e: Event) => {
+        const card = cardOf(e.target)
+        if (card) this.#play(card)
+      }
+      const leave = (e: Event) => {
+        const card = cardOf(e.target)
+        const to = cardOf((e as PointerEvent | FocusEvent).relatedTarget)
+        if (card && card !== to && !(e.type === 'pointerout' && card.contains(document.activeElement))) this.#stop(card)
+      }
+      grid.addEventListener('pointerover', enter)
+      grid.addEventListener('focusin', enter)
+      grid.addEventListener('pointerout', leave)
+      grid.addEventListener('focusout', leave)
+      this.#off.push(() => {
+        grid.removeEventListener('pointerover', enter)
+        grid.removeEventListener('focusin', enter)
+        grid.removeEventListener('pointerout', leave)
+        grid.removeEventListener('focusout', leave)
+      })
+    }
+
+    #play(card: HTMLElement): void {
+      if (this.#playing.has(card)) return
+      this.#playing.add(card)
+      let video = card.querySelector<HTMLVideoElement>('video.gx-clip')
+      if (!video) {
+        video = document.createElement('video')
+        video.className = 'gx-clip'
+        video.muted = true
+        video.loop = true
+        video.playsInline = true
+        video.preload = 'auto'
+        video.disablePictureInPicture = true
+        video.setAttribute('aria-hidden', 'true')
+        video.addEventListener('playing', () => {
+          if (this.#playing.has(card)) card.dataset.playing = ''
+        })
+        video.src = card.dataset.clip ?? ''
+        card.querySelector('.gx-media')?.append(video)
+      } else video.currentTime = 0
+      void video.play().catch(() => {
+        this.#playing.delete(card)
+      })
+    }
+
+    #stop(card: HTMLElement): void {
+      if (!this.#playing.delete(card)) return
+      delete card.dataset.playing
+      card.querySelector<HTMLVideoElement>('video.gx-clip')?.pause()
+    }
+
+    /**
+     * Live previews of cards without a clip: the engine loads on the first hover of such a card.
+     */
+    #previews(): void {
+      const grid = this.querySelector<HTMLElement>('.gx-sections')
+      if (!grid || !canHover() || !canMove()) return
+      let loading = false
+      this.#io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (!e.isIntersecting) this.#unmount(e.target as HTMLElement)
+      })
+      const intent = (e: Event) => {
+        const card = (e.target as Element).closest<HTMLElement>('.gx-card[data-live]:not([data-clip])')
+        if (!card) return
+        if (!loading) {
+          loading = true
+          void app.effects.load()
+        }
+        if (!this.#mounted.has(card)) this.#mount(card)
+      }
+      grid.addEventListener('pointerover', intent)
+      grid.addEventListener('focusin', intent)
+      this.#off.push(() => {
+        grid.removeEventListener('pointerover', intent)
+        grid.removeEventListener('focusin', intent)
+      })
+    }
+
+    #mount(card: HTMLElement): void {
+      const template = card.querySelector('template')
+      const live = card.querySelector<HTMLElement>('.gx-live')
+      if (!template || !live) return
+      live.replaceChildren(template.content.cloneNode(true))
+      for (const el of live.querySelectorAll('[data-ex-dio]')) {
+        el.setAttribute('data-dio', el.getAttribute('data-ex-dio') ?? '')
+        el.removeAttribute('data-ex-dio')
+      }
+      // The poster gives way once the effect draws.
+      const watch = new MutationObserver(() => {
+        const state = live.querySelector('[data-dio-state]')?.getAttribute('data-dio-state')
+        if (state === 'drawn' || state === 'live') card.dataset.shown = ''
+      })
+      watch.observe(live, { subtree: true, attributes: true, attributeFilter: ['data-dio-state'] })
+      app.effects.scan(live)
+      let cleanup: (() => void) | undefined
+      const script = card.dataset.card
+      const load = script ? cards[script] : undefined
+      if (load)
+        void load().then((m) => {
+          if (!this.#mounted.has(card)) return
+          const off = (m as { default?: Mount }).default?.(card)
+          if (typeof off === 'function') cleanup = off
+        })
+      this.#io?.observe(card)
+      this.#mounted.set(card, () => {
+        watch.disconnect()
+        cleanup?.()
+        delete card.dataset.shown
+        live.replaceChildren()
+      })
+    }
+
+    #unmount(card: HTMLElement): void {
+      this.#mounted.get(card)?.()
+      this.#mounted.delete(card)
+      this.#io?.unobserve(card)
+    }
+  }
+  if (!customElements.get('doc-gallery')) customElements.define('doc-gallery', DocGallery)
+</script>

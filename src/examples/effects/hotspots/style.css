@@ -1,0 +1,136 @@
+.product {
+  --accent: #d9622b;
+  --ink: #1d1e22;
+  position: relative;
+  margin: 0;
+  background: radial-gradient(110% 90% at 50% 30%, #f7f3ec, #e2dbcd);
+}
+/* Room on both sides of the camera for the cards. */
+.product .camera {
+  position: absolute;
+  inset: 6% 21%;
+}
+.product .camera > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.product ul {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+}
+
+/* Before the model draws, and without WebGL: a list of labels next to the poster. */
+.product .spot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.4em 0.85em 0.4em 0.6em;
+  background: #fff;
+  color: var(--ink);
+  font:
+    500 0.8125rem / 1.25 system-ui,
+    sans-serif;
+  text-align: start;
+  cursor: pointer;
+  box-shadow:
+    0 1px 2px rgb(29 30 34 / 0.12),
+    0 6px 16px rgb(29 30 34 / 0.08);
+  transition: opacity 0.2s;
+}
+.product .spot::before {
+  content: "";
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.product .spot b {
+  font-weight: 600;
+}
+.product .spot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * On the model: a dot on the point, a leader line to the card beside the camera. The effect puts
+ * the card on the side its point is on (data-dio-side), --dio-reach out and --dio-shift up or down
+ * so the cards clear the camera and each other.
+ */
+.product:has(> .camera[data-dio-state="drawn"]) .spot {
+  --reach: var(--dio-reach, 32px);
+  --shift: var(--dio-shift, 0px);
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 6px rgb(217 98 43 / 0.22),
+    0 2px 6px rgb(0 0 0 / 0.3);
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot::before {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: hypot(var(--reach), var(--shift));
+  height: 1px;
+  border-radius: 0;
+  background: rgb(29 30 34 / 0.5);
+  transform-origin: 0 50%;
+  rotate: atan2(var(--shift), var(--reach));
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot > span {
+  position: absolute;
+  left: calc(50% + var(--reach));
+  top: calc(50% + var(--shift));
+  translate: 0 -50%;
+  display: grid;
+  width: max-content;
+  max-width: 11.5em;
+  padding: 0.45em 0.75em;
+  border-radius: 8px;
+  background: #fff;
+  color: rgb(29 30 34 / 0.62);
+  font-size: 0.75rem;
+  box-shadow:
+    0 1px 2px rgb(29 30 34 / 0.14),
+    0 8px 24px rgb(29 30 34 / 0.12);
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot b {
+  color: var(--ink);
+  font-size: 0.8125rem;
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot[data-dio-side="left"]::before {
+  rotate: atan2(var(--shift), calc(-1 * var(--reach)));
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot[data-dio-side="left"] > span {
+  left: auto;
+  right: calc(50% + var(--reach));
+  text-align: end;
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot:hover > span {
+  color: var(--ink);
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 5px var(--accent),
+    0 2px 6px rgb(0 0 0 / 0.3);
+}
+.product:has(> .camera[data-dio-state="drawn"]) .spot:focus-visible > span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

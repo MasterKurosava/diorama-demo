@@ -1,0 +1,105 @@
+---
+interface Props {
+  /** Site-wide group: choosing a tab here chooses it on every page and is remembered. */
+  readonly sync?: 'framework' | 'pm'
+  /** Accessible name of the tab list. Required when not synced. */
+  readonly label?: string
+}
+const { sync, label } = Astro.props
+if (!sync && !label) throw new Error('Tabs: unsynced tabs need a label')
+const html = await Astro.slots.render('default')
+// Panels of this list only: nested lists (Install inside a framework tab) have their own.
+const tabs: { label: string; value: string }[] = []
+let depth = 0
+for (const m of html.matchAll(
+  /<doc-tabs\b|<\/doc-tabs>|role="tabpanel" data-label="([^"]*)" data-value="([^"]*)"/g,
+)) {
+  if (m[0] === '</doc-tabs>') depth--
+  else if (m[0].startsWith('<doc-tabs')) depth++
+  else if (depth === 0) tabs.push({ label: m[1] ?? '', value: m[2] ?? '' })
+}
+const name = label ?? (sync === 'pm' ? 'Package manager' : 'Framework')
+---
+
+<doc-tabs class="tabs" data-sync={sync}>
+  <div role="tablist" aria-label={name}>
+    {
+      tabs.map((t, i) => (
+        <button type="button" role="tab" data-value={t.value} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? '0' : '-1'} set:text={t.label} />
+      ))
+    }
+  </div>
+  <div class="tab-panels" set:html={html} />
+</doc-tabs>
+
+<script>
+  import { choose, current, EVENT, type SyncGroup } from '../client/sync.ts'
+
+  let uid = 0
+
+  class DocTabs extends HTMLElement {
+    #off?: () => void
+
+    connectedCallback(): void {
+      const tabs = [...this.querySelectorAll<HTMLButtonElement>(':scope > [role=tablist] > [role=tab]')]
+      const panels = [...this.querySelectorAll<HTMLElement>(':scope > .tab-panels > [role=tabpanel]')]
+      const id = `tabs-${++uid}`
+      tabs.forEach((tab, i) => {
+        const panel = panels[i]
+        if (!panel) return
+        tab.id = `${id}-tab-${i}`
+        panel.id = `${id}-panel-${i}`
+        tab.setAttribute('aria-controls', panel.id)
+        panel.setAttribute('aria-labelledby', tab.id)
+      })
+      const group = this.dataset.sync as SyncGroup | undefined
+      const select = (index: number, focus = false) => {
+        tabs.forEach((tab, i) => {
+          const on = i === index
+          tab.setAttribute('aria-selected', String(on))
+          tab.tabIndex = on ? 0 : -1
+          if (panels[i]) panels[i].hidden = !on
+        })
+        if (focus) tabs[index]?.focus()
+      }
+      // A page without the chosen framework shows its first tab and keeps the choice.
+      const fromGroup = () => {
+        if (!group) return
+        const i = tabs.findIndex((t) => t.dataset.value === current(group))
+        select(i < 0 ? 0 : i)
+      }
+      fromGroup()
+      if (!group) select(0)
+      this.setAttribute('data-ready', '')
+
+      const pick = (i: number, focus = false) => {
+        const value = tabs[i]?.dataset.value
+        if (group && value) choose(group, value)
+        else select(i, focus)
+        if (focus) tabs[i]?.focus()
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => pick(i))
+        tab.addEventListener('keydown', (e) => {
+          const last = tabs.length - 1
+          const next = { ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last }[e.key]
+          if (next === undefined) return
+          e.preventDefault()
+          pick(next, true)
+        })
+      })
+      if (group) {
+        const onSync = (e: Event) => {
+          if ((e as CustomEvent<{ group: string }>).detail.group === group) fromGroup()
+        }
+        document.addEventListener(EVENT, onSync)
+        this.#off = () => document.removeEventListener(EVENT, onSync)
+      }
+    }
+
+    disconnectedCallback(): void {
+      this.#off?.()
+    }
+  }
+  if (!customElements.get('doc-tabs')) customElements.define('doc-tabs', DocTabs)
+</script>

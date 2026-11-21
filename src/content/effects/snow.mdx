@@ -1,0 +1,57 @@
+---
+effect: snow
+example:
+  description: A winter sale banner for an outdoor store with snow falling over it and a soft drift building along its bottom edge.
+  aspect: 16 / 7
+  caption: Move the pointer through the snow to push the flakes aside; the button still works under them.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Snow over the whole page for the holidays
+
+Put the effect on `<body>` and the snow falls over the viewport on every page, over the content, and never blocks a click. Keep `count` modest on a page people read, and turn it off after the campaign by removing one attribute.
+
+```html
+<body
+  data-dio="snow"
+  data-dio-count="120"
+  data-dio-wind="-0.3"
+>
+  <main>…</main>
+</body>
+```
+
+### Cherry petals for a spring collection
+
+`style="petals"` lets pink petals tumble and flip on their way down, for spring launches, weddings and spas. A little `wind` carries them across.
+
+<Example id="effects/snow/petals" description="Pink petals tumbling over a pale green header for a spring clothing collection." aspect="16 / 5" show={['html']} controls={['count', 'speed', 'wind']} variants={[]} />
+
+### Autumn leaves in brand colors
+
+`style="leaves"` drops pointed leaves with a darker midrib. Pass your own colors to `color`, `var()` included, to match a seasonal menu or a sale.
+
+```html
+<section
+  class="autumn"
+  data-dio="snow"
+  data-dio-style="leaves"
+  data-dio-color="#c2410c #f59e0b var(--brand)"
+>
+  <h2>The autumn menu</h2>
+</section>
+```
+
+## Notes
+
+The flakes draw over everything in the element's box, or over the viewport on `<body>`, and the element itself is never hidden or changed, so links and buttons under the snow keep working.
+
+Far flakes are small, slow and faint and near ones larger, faster and softer, so the snowfall has depth. With `pile` the drift starts low and builds up over half a minute while the element is on screen; it is drawn for the snow style only.
+
+It draws up to `fps` frames a second while the element is on screen and none off screen; on the low tier at most 70 flakes at 24 frames a second. Under reduced motion it does not load at all.
+
+`style`, `color` and `seed` rebuild the effect when they change. The count, size, speed, wind, drift and push change live.

@@ -1,0 +1,22 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { MANAGERS, runCommand } from '../lib/commands.ts'
+import Tab from './Tab.astro'
+import Tabs from './Tabs.astro'
+
+interface Props {
+  /** A package binary with its arguments: 'dioramajs gen --check'. */
+  readonly command: string
+}
+const { command } = Astro.props
+---
+
+<Tabs sync="pm">
+  {
+    MANAGERS.map((pm) => (
+      <Tab label={pm.label} value={pm.value}>
+        <Code code={`$ ${runCommand(pm.value, command)}`} lang="sh" frame="terminal" />
+      </Tab>
+    ))
+  }
+</Tabs>

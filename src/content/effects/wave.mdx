@@ -1,0 +1,55 @@
+---
+effect: wave
+example:
+  description: A festival poster headline whose letters lift one after another as a wave runs through them.
+  aspect: 16 / 7
+  caption: Switch the trigger or the axis to play it again. With the hover trigger, point at the headline.
+  variants: [trigger, axis]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A title that floats all the time
+
+`data-dio-trigger="loop"` keeps the letters on an endless wave, which suits a festival name or a playful brand line in a hero. Keep `amplitude` small and `speed` slow so the line stays readable. The loop draws at most `fps` frames a second, 30 by default, and none while the title is off screen.
+
+<Example id="effects/wave/loop" description="An event title whose letters float on a slow, endless wave." aspect="16 / 5" show={['html']} controls={['amplitude', 'wavelength', 'speed']} variants={[]} />
+
+### Navigation links that rock on hover
+
+With `data-dio-trigger="hover"` a link stays as plain text and sends a short wave through its letters each time the pointer or keyboard focus reaches it. The `rotate` axis rocks the letters instead of lifting them, and a short `duration` lets the wave finish before the visitor clicks.
+
+```html
+<a
+  href="/tickets"
+  data-dio="wave"
+  data-dio-trigger="hover"
+  data-dio-axis="rotate"
+  data-dio-duration="0.45"
+  data-dio-stagger="0.03"
+>Get tickets</a>
+```
+
+### A section title tied to the scroll
+
+`data-dio-trigger="scroll"` moves the wave with the scroll position, so it runs forward as the title comes up and back when the visitor scrolls up. The `flip` axis tips the tops of the letters towards the viewer, like a row of cards in a stadium.
+
+```html
+<h2
+  data-dio="wave"
+  data-dio-trigger="scroll"
+  data-dio-axis="flip"
+  data-dio-amplitude="0.6"
+>Lineup, day one</h2>
+```
+
+## Notes
+
+The heading keeps its text as you wrote it, with no span per letter, so screen readers, search engines and find in page see the real words. Between waves the element is the real, selectable text. A heading on screen when the page opens plays as soon as the effect is ready: the wave starts and ends with the text as laid out, so nothing flashes.
+
+`wavelength` and `speed` belong to the loop; `duration` and `stagger` to the single waves of the other modes. `amplitude="0"` turns the effect off and shows the text, and `speed="0"` holds the loop still. Under reduced motion the effect is off and the engine does not load for it.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does, so such a heading stays as it is, with a warning in development. An underline is hidden while the letters move. `trigger` and `axis` rebuild the effect when they change; the other params change live.

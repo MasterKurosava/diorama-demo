@@ -1,0 +1,10 @@
+.ex-root:has(> img.gift) {
+  display: grid;
+  place-items: center;
+  background: #f1ece4;
+}
+.ex-root > img.gift {
+  width: min(50%, 420px);
+  height: auto;
+  aspect-ratio: 3 / 2;
+}

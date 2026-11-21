@@ -1,0 +1,79 @@
+---
+effect: zoom
+example:
+  description: A product photo of a camera's speed dial next to its description; hovering the photo shows a sharp magnified view of the part under the pointer.
+  aspect: 16 / 9
+  caption: Hover the photo. Its srcset lists a 2400 px file, which loads on the first hover; until it arrives the shown picture is magnified. In side mode the view covers the description.
+related:
+  - guides/loading
+  - guides/performance
+---
+
+## Recipes
+
+### Condition photos under a loupe
+
+A shop selling used or handmade goods shows the scratches and the stitching up close. In `lens` mode a round loupe follows the pointer and the rest of the photo stays in view. Each image lists its large file in `srcset`, so no extra attribute is needed.
+
+<Example id="effects/zoom/loupe" description="Three photos of a vintage camera in a row, each showing a round magnifying loupe under the pointer." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### An old map that zooms on click
+
+On a page that is mostly read, a zoom that follows every pass of the pointer gets in the way. With `trigger="click"` the view opens where the reader clicks and closes on the next click or when the pointer leaves. A `zoom-in` cursor tells the reader it is there.
+
+<Example id="effects/zoom/map" description="A bird's eye map of Santa Barbara from 1877 that shows the streets four times larger after a click." aspect="1600 / 1089" show={['html']} controls={['zoom', 'ease']} variants={[]} />
+
+### A view beside the photo
+
+`side` mode draws the magnified view into another element, as large shops do next to the product photo, and marks the area on the photo. Give the element a size, leave it empty and hide it from screen readers: it holds only the picture.
+
+```html
+<div class="product">
+  <img
+    src="/p/bag-900.avif"
+    srcset="/p/bag-900.avif 900w, /p/bag-2400.avif 2400w"
+    sizes="50vw"
+    data-dio="zoom"
+    data-dio-mode="side"
+    data-dio-into="#bag-zoom"
+  />
+  <div class="details">
+    <div id="bag-zoom" aria-hidden="true"></div>
+  </div>
+</div>
+```
+
+### Zoom and a lightbox for touch and keyboards
+
+The zoom works for a mouse or a pen only. Wrap each photo in a link to its large file and put `lightbox` on the list: a click or Enter opens the photo full screen, and inside the viewer a pinch or a double tap zooms it on a touch screen. Keep `trigger="hover"` here, since a click already opens the viewer.
+
+```html
+<ul data-dio="lightbox">
+  <li>
+    <a href="/p/front-2400.webp">
+      <img
+        src="/p/front-900.webp"
+        data-dio="zoom"
+        data-dio-mode="lens"
+      />
+    </a>
+  </li>
+  <li>
+    <a href="/p/back-2400.webp">
+      <img
+        src="/p/back-900.webp"
+        data-dio="zoom"
+        data-dio-mode="lens"
+      />
+    </a>
+  </li>
+</ul>
+```
+
+## Notes
+
+The large file is found in this order: `full`, the `href` of a link around the image when it points to an image file, the widest `srcset` candidate, then `currentSrc`. It loads on the first hover and stays for 10 s after the pointer leaves, then its texture is freed and the bytes stay in the cache. A 2400 px picture takes about 31 MB of GPU memory while it is held.
+
+Keep the large file at 2400 to 4000 px on the long side. `resolution` caps the decode at 4096 px, and low and medium quality tiers cap it lower, so a bigger file costs download time and gains nothing on most devices.
+
+The image and its `alt` do not change, and touch screens never load the effect. Pair it with `lightbox` where readers on phones need the detail too.

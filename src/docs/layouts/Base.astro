@@ -1,0 +1,53 @@
+---
+import { ClientRouter } from 'astro:transitions'
+import Header from '../components/Header.astro'
+import Search from '../components/Search.astro'
+import { HEAD_SCRIPT, TABS_CSS } from '../lib/head.ts'
+import { NAME, SITE } from '../site.ts'
+import '../styles/tokens.css'
+import '../styles/layout.css'
+import '../styles/prose.css'
+
+interface Props {
+  readonly title: string
+  readonly description: string
+  /** Pages that are not indexed or listed: the 404 page. */
+  readonly noindex?: boolean
+}
+
+const { title, description, noindex } = Astro.props
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/'
+const full = title === NAME ? NAME : `${title} · ${NAME}`
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={`${SITE}${path}`} />
+    {!noindex && <link rel="alternate" type="text/markdown" href={`${path}.md`} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline set:html={HEAD_SCRIPT} />
+    <style is:inline set:html={TABS_CSS}></style>
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <Header path={path} />
+    <slot />
+    <footer class="df">
+      <p>
+        Diorama is MIT licensed. The API can still change before 1.0.
+        <a href="/docs/credits">Credits</a>
+      </p>
+    </footer>
+    <Search />
+    <script>
+      import '../diorama.ts'
+    </script>
+  </body>
+</html>

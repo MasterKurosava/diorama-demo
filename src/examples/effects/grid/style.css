@@ -1,0 +1,60 @@
+/* An event card: the grid fills the left part, the details sit beside it. Nothing sits over the
+   floor, because the docs canvas is above the page. */
+.gr-gig {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #120428;
+  color: #efe6ff;
+  font: 400 14px / 1.5 var(--font-text);
+}
+/* The look without WebGL: the sky glowing down to the horizon over a dark floor. */
+.gr-floor {
+  background: linear-gradient(180deg, #0d0221 0 30%, #ff8a3d 50%, #2a0838 50%, #0d0221);
+}
+.gr-info {
+  align-self: center;
+  padding: 0 9%;
+}
+.gr-kicker {
+  margin: 0 0 8px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff8ae2;
+}
+.gr-info h2 {
+  margin: 0 0 14px;
+  font: 600 clamp(20px, 2.6vw, 28px) / 1.15 var(--font-display, var(--font-text));
+  color: #fff;
+}
+.gr-info dl {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 14px;
+}
+.gr-info dt {
+  font: 500 10px / 1.4 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a593c4;
+}
+.gr-info dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+.gr-info p:last-child {
+  margin: 0;
+  color: #c7b8e3;
+}
+@media (max-width: 640px) {
+  .gr-gig {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .gr-info {
+    padding: 16px 20px 20px;
+  }
+}

@@ -1,4 +1,4 @@
-import { effect, oneOf } from 'diorama'
+import { effect, oneOf } from 'dioramajs'
 import {
   abs,
   clamp,

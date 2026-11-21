@@ -1,0 +1,49 @@
+.cf-signup {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 0 8%;
+  box-sizing: border-box;
+  background: #14162b;
+  color: #eef0ff;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.cf-signup label {
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a9aee0;
+}
+.cf-signup .cf-row {
+  display: flex;
+  gap: 8px;
+}
+.cf-signup input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid #3b3f6e;
+  border-radius: 8px;
+  background: #0d0f20;
+  color: inherit;
+  font: inherit;
+}
+.cf-signup button {
+  flex: none;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #7b5cff;
+  color: #fff;
+  font: 600 15px / 1.2 var(--font-text);
+  cursor: pointer;
+}
+.cf-signup button:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.cf-signup .cf-note {
+  margin: 0;
+  font-size: 14px;
+  color: #a9aee0;
+}

@@ -1,0 +1,115 @@
+---
+effect: gallery
+example:
+  description: Five hotel rooms in one box; a click on the picture or the Next button changes it with a soft, noisy wave.
+  aspect: 4 / 3
+  controls: [duration, strength, interval, click, swipe, loop]
+related:
+  - guides/gsap-lenis
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A product gallery with thumbnails
+
+Set `style` to `slide` for the carousel move shoppers expect, and `loop` to false so the first and last views hold instead of wrapping around. The thumbnails sit under the box, not in it: the gallery's copy covers the whole box, so anything inside would be hidden.
+
+<Example id="effects/gallery/product" description="A lounge chair in five views that slide in from the side, chosen with a row of thumbnails." aspect="4 / 3" show={['html']} controls={[]} variants={[]} />
+
+Each thumbnail sets `index` on the instance, and the `dio:index` event marks the view on screen. The event also fires after a click or a swipe on the picture, so the row stays in step.
+
+```ts
+const shots = document.querySelector('.shots')
+const thumbs = [...document.querySelectorAll('.thumbs button')]
+
+thumbs.forEach((thumb, i) => {
+  thumb.addEventListener('click', () =>
+    app.effects.get(shots, 'gallery')?.set({ index: i }),
+  )
+})
+shots.addEventListener('dio:index', (e) => {
+  thumbs.forEach((thumb, i) =>
+    thumb.setAttribute('aria-current', String(i === e.detail.index)),
+  )
+})
+```
+
+### A hero slideshow with a pause button
+
+The `zoom` style fades each picture in as it settles from a slight zoom, a calm move for the first screen of a hotel or a restaurant. With `interval` set to 5 the pictures change every 5 seconds; the timer waits while the pointer is over the box or focus is inside it. Content that moves on its own for longer than 5 seconds needs a control that stops it (WCAG 2.2.2), so give the slideshow a pause button.
+
+<Example id="effects/gallery/hero" description="Four rooms of a house that change every 5 seconds, each settling from a slight zoom, with a pause button under them." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+The button turns `interval` off and on again and keeps `aria-pressed` in step.
+
+```ts
+const house = document.querySelector('.house')
+const pause = document.querySelector('.house-pause')
+
+pause.addEventListener('click', () => {
+  const paused = pause.getAttribute('aria-pressed') === 'true'
+  app.effects.get(house, 'gallery')?.set({ interval: paused ? 5 : 0 })
+  pause.setAttribute('aria-pressed', String(!paused))
+})
+```
+
+### Name the picture on screen
+
+Nothing in the page tells a screen reader that the picture changed. Put a caption with `aria-live="polite"` under the box and fill it from `dio:index`, whose `index` is the place of the picture reached, from 0. The example at the top of this page names the room and counts the pictures this way.
+
+```html
+<div
+  class="rooms"
+  data-dio="gallery"
+  style="touch-action: pan-y"
+>
+  <img src="/media/rooms/garden.avif" />
+  <img src="/media/rooms/ocean.avif" />
+</div>
+<p class="room-name" aria-live="polite">The Garden Room</p>
+```
+
+```ts
+const rooms = document.querySelector('.rooms')
+const name = document.querySelector('.room-name')
+const pictures = [...rooms.querySelectorAll('img')]
+
+rooms.addEventListener('dio:index', (e) => {
+  name.textContent = pictures[e.detail.index].alt.split(':')[0]
+})
+```
+
+### Scrub the pictures with the scroll
+
+A fraction of `index` holds the exact point between two pictures, so a scrubbed tween plays each change at the pace of the scroll: the rooms of a house pass by as the reader moves down the page. Turn `click` and `swipe` off, so the scroll is the only thing that moves the pictures. [GSAP and Lenis](/docs/guides/gsap-lenis) covers tweens of params.
+
+```ts
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const rooms = app.attach('.rooms', 'gallery', {
+  click: false,
+  swipe: false,
+})
+gsap.to(rooms.params, {
+  index: 4,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '.rooms',
+    start: 'top 70%',
+    end: 'bottom 30%',
+    scrub: true,
+  },
+})
+```
+
+## Notes
+
+The copy covers the container's whole box and frames each picture by that image's own `object-fit` and `object-position`. Give every image the size of the box, as a scroll-snap strip with `flex: 0 0 100%` does, and keep captions, arrows and dots outside it. Without WebGL the strip is what visitors see and swipe.
+
+The images stay in the page in their order, each with its alt text, so a screen reader can reach all of them. The gallery takes no keys and the box takes no focus: give keyboard users buttons that set `index`, as the recipes do.
+
+`style`, `items` and `seed` rebuild the effect when they change. Set them in the markup rather than switching them while the gallery is on screen.

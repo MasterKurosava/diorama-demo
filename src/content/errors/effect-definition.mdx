@@ -1,0 +1,54 @@
+---
+code: EFFECT_DEFINITION
+level: error
+message: 'param "{key}" is a built-in input or reserved name'
+summary: An effect definition breaks a rule, such as a reserved param name, so the effect cannot be defined or registered.
+---
+
+`defineEffect` and `effect()` check the definition when the module runs. They throw one error that lists every problem found, joined with `; `, so the message above is one of several possible problems.
+
+## Why it happens
+
+- A param has the name of a built-in input (`pointer`, `pointerWorld`, `hover`, `velocity`, `progress`, `pin`, `size`, `time`, `hoverTime`, `motion`, `opacity`, `presence`) or of a reserved attribute (`key`, `state`, `track`, `load`, `preload`, `progress`, `vt`, `transition`).
+- A param name is not lowerCamelCase (`param "{key}" must be lowerCamelCase`), or it is the name of an option such as `when`, `media`, `rebuild` or `quality` (`param "{key}" is a reserved name of an option`).
+- A param default has an unsupported type, `rebuild` names a param the effect does not declare, `setup` is not a function, `when` is not a string, `presence` is neither `'fade'` nor `'custom'`, or `on` is not a valid CSS selector.
+- The effect name is not kebab-case, or it is one of the reserved attribute names.
+- `app.attach()` gets a definition whose name is already registered for a different definition. This case is reported instead of thrown, with the message `name "{name}" is taken by another definition; use register() to replace`, and the handle stays inert.
+- The `quality` field is malformed, for example `quality.min` is not a tier or a cap is not a finite number. The runtime reports this when the first instance mounts, and that instance becomes `failed`.
+- A GLSL effect from `@dioramajs/glsl` declares params, uniforms or textures that do not match its shaders. All problems arrive as one error when the effect module is imported.
+
+## How to fix
+
+Rename the param. Built-in inputs stay readable on `ctx.u`, so the effect does not need a param for them:
+
+```ts
+import { defineEffect } from 'dioramajs'
+
+export default defineEffect({
+  name: 'brighten',
+  // `progress: 0` here throws EFFECT_DEFINITION:
+  // progress is a built-in input.
+  params: { strength: 0 },
+  setup({ params, u }) {
+    return () => {
+      // Read the input as u.progress and the param as params.strength.
+    }
+  },
+})
+```
+
+To replace an effect under a name that is already taken, pass it to `start()` instead of `app.attach()`. A matching name replaces the built-in or folder effect:
+
+```ts
+import { start } from 'dioramajs'
+import ripple from './my-ripple'
+
+export const app = start({ effects: { ripple } })
+```
+
+## Related
+
+- `EFFECT_PARAM`
+- `defineEffect`
+- `effect()`
+- `app.effects.register()`

@@ -1,0 +1,44 @@
+---
+effect: blinds
+example:
+  description: An interior studio's headline behind closed oak blinds whose slats turn over one after another, lit and casting thin shadows, until the text lies flat.
+  caption: Switch the style and the trigger, or move the sliders; Replay plays it again. Move the pointer across the open heading to nudge the slats.
+  aspect: 16 / 8
+  controls: [gap, duration, stagger, light]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A flip sign with two messages
+
+`data-dio-reverse` prints a second text on the backs of the slats, so the closed panel reads as one message and the open one as the other. With `data-dio-trigger="hover"` and `angle="180"` the sign rests closed on its back and turns over where the pointer is; `back` paints the backs, and the second text takes whichever of the page and the text color stands out on it. On a phone a tap turns the whole sign over in a ripple from the finger, and the next tap turns it back.
+
+<Example id="effects/blinds/sign" description="A bakery's sign in red that reads Closed until the pointer turns its slats over to Open." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+The element's own text is the one screen readers read, search engines index and find in page finds: put the message that matters there and the alternative on the backs.
+
+### A card display wave on the scroll
+
+`style="tiles"` cuts the heading into square cards that flip over their diagonal in a ripple from the top left corner, like a stadium card display. With `data-dio-trigger="scroll"` the ripple follows the scroll both ways: it starts once `threshold` of the heading is in view and lies flat when the heading reaches the middle of the viewport. Scroll past this example to see it.
+
+<Example id="effects/blinds/tiles" description="A weaving mill's section heading on dark green cards that flip over in a diagonal ripple as it scrolls up the page." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### A shop shutter for a launch
+
+`style="vertical"` turns upright slats from left to right, like a shutter opening in front of a shop window. A bright `back` against a dark page reads as a painted shutter; `stagger` sets how fast the opening runs along the line.
+
+```html
+<h1 data-dio="blinds" data-dio-style="vertical" data-dio-back="#ffcf3a" data-dio-stagger="0.05">Opening night</h1>
+```
+
+## Notes
+
+The slats are thin boards built in 3D and seen in perspective from in front of the heading, not a mask over flat text. Each one turns about its own axis and stands out of the page as it turns, so its edge catches the light and it casts a soft shadow on the slat next to it and on the page, longer the further it stands out. The lamp sits above the page on the side `light` names, and faces turned toward it brighten while faces turned away darken. The front of a slat is cut from the page's own background color, which fades in as it turns, so put the effect on a heading over a solid background; over an image or a gradient the fronts stay clear and only the letters turn.
+
+When the wave is over, and between nudges of the pointer, the heading is real, selectable text again and the effect draws no frames. With the view trigger a heading the visitor has already seen stays as it is, and one on the first screen opens behind the page's intro. With the hover trigger the slats rest at `angle`, drawn, until the pointer comes near; `angle="0"` rests open. Under reduced motion the text is shown as it is and the engine does not load for it.
+
+Leaving a page the slats close again and fade; entering one, they open as the page comes in. The element is hidden behind its copy while it is drawn, its own background too: put a background behind the heading on a parent. The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does: an element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `trigger`, `slats` and `reverse` rebuild the effect when they change; the other params change live.

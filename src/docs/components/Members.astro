@@ -1,0 +1,50 @@
+---
+import type { ApiMember } from '../lib/api.ts'
+import Doc from './Doc.astro'
+import Signature from './Signature.astro'
+import Tokens from './Tokens.astro'
+
+interface Props {
+  readonly members: readonly ApiMember[]
+  readonly self?: string
+  /** Prefix of row anchors, when two member tables share a page. */
+  readonly prefix?: string
+}
+const { members, self, prefix = '' } = Astro.props
+---
+
+<div class="table-wrap">
+  <table class="api-members">
+    <thead>
+      <tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Description</th></tr>
+    </thead>
+    <tbody>
+      {
+        members.map((m) => (
+          <tr id={`${prefix}${m.name}`}>
+            <td>
+              <code>
+                {m.readonly && m.kind === 'property' ? 'readonly ' : ''}
+                {m.name}
+                {m.optional ? '?' : ''}
+              </code>
+            </td>
+            <td class="api-type">
+              {m.kind === 'method' ? (
+                m.signatures.map((s) => <Signature signature={s} self={self} />)
+              ) : (
+                <code>
+                  <Tokens tokens={m.type} self={self} />
+                </code>
+              )}
+            </td>
+            <td>
+              <Doc md={m.summary} self={self} />
+              {m.default && <p class="api-default">Default <code>{m.default}</code>.</p>}
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

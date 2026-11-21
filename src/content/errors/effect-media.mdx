@@ -1,0 +1,32 @@
+---
+code: EFFECT_MEDIA
+level: error
+message: 'cannot decode {src}'
+summary: The image or video of a media effect has no usable pixels, so the instance failed until the source changes.
+---
+
+## Why it happens
+
+- The image did not load: a 404, a wrong path or a network error. The effect waits for the element's `load` or `error` event and then decodes, so a failed request ends as a failed decode.
+- The file is broken, or the browser does not support its format.
+- The image has `crossorigin` set but the server sends no CORS headers. The browser then refuses the image itself, and the failure shows here instead of as `EFFECT_CORS`.
+- A `video` fired `loadeddata` without data for the current frame. The message then reads `video has no data`.
+
+A source change during decode is not a failure. When `currentSrc` changes while the effect decodes, for example on a `srcset` switch at resize or when a lazy-loading library swaps the source, the effect starts over with the new one.
+
+## How to fix
+
+Open the URL from the message in the browser or the network panel and fix the path or the file.
+
+The failure is not final. The instance listens to its element, and the next `load` (`loadeddata` for video) with a different `currentSrc`, or a change of the `crossorigin` attribute, puts it back to waiting. A corrected source retries without a reload:
+
+```ts
+const img = document.querySelector<HTMLImageElement>('img[data-dio]')
+if (img) img.src = '/img/cover.avif'
+```
+
+## Related
+
+- `EFFECT_CORS`
+- `ASSET_PARSE`
+- `data-dio-state`

@@ -1,0 +1,44 @@
+---
+effect: smoke
+example:
+  description: A distillery tour headline on a dark page that condenses out of drifting, backlit smoke, with a kicker and a short paragraph under it.
+  caption: Press Condense again to dissolve the heading and bring it back. Switch the style or the trigger, or move the sliders; mist and ink switch the example to a light page.
+  aspect: 16 / 9
+  controls: [density, speed, rise, turbulence, duration]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Fog that lifts as the visitor scrolls
+
+`data-dio-trigger="scroll"` ties the smoke to the heading's place in the window: it condenses as the heading rises toward the middle, stays plain text around the middle, and dissolves upward as it leaves the top. Scrolling back runs it in reverse. A heading on the first screen starts as text and only dissolves once the page scrolls. `mist` is a pale fog for light pages, mixed from the page color and the text color.
+
+```html
+<h2 data-dio="smoke" data-dio-style="mist" data-dio-trigger="scroll">Morning on the lake</h2>
+```
+
+### Ink blooming in water
+
+`ink` takes the text color and lets it billow out in dark plumes that curl more and rise less, the way ink spreads in a glass of water. A higher `turbulence` curls it further.
+
+```html
+<h2 data-dio="smoke" data-dio-style="ink" data-dio-turbulence="1.6" style="color: #1c3f8a">Written in water</h2>
+```
+
+### A heading that keeps smoldering
+
+`data-dio-trigger="loop"` keeps the letters crisp while thin plumes rise off a few of them at a time, at 30 frames a second while the heading is on screen and none off screen. `speed="0"` freezes the smoke, and `rise` sets how high it climbs.
+
+```html
+<h2 data-dio="smoke" data-dio-trigger="loop" data-dio-rise="1.4">Slow burn</h2>
+```
+
+## Notes
+
+The smoke is a volume, not a flat picture: each pixel marches a short ray through it, front to back, from a little in front of the page to a little behind it. Its shape comes from a coarse field of the glyphs (their distance, two blurs and a plume that streams up off their tops), swirled by a tiling 3D noise and carried upward over time. Light comes from behind and above: each step looks once or twice toward the light for the smoke in the way, so thin wisps glow at their edges and the thick parts fall into their own shadow. The letters themselves sit in the middle of the volume, so smoke in front of them veils them and smoke behind them does not. Because the ray goes through the page camera, the layers of smoke shift against each other as the heading moves through the window.
+
+At rest the heading is plain DOM text: the view trigger draws only while it condenses, the scroll trigger only while scrolling and the hover trigger only while wisps settle. Under reduced motion the text shows as it is, without smoke. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `trigger` and `color` rebuild the effect when they change.

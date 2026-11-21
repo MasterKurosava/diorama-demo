@@ -1,0 +1,39 @@
+---
+interface Props {
+  /** URL of the page; its twin is the same URL plus `.md`. */
+  readonly url: string
+}
+const { url } = Astro.props
+---
+
+<doc-copy class="page-tools" data-md={`${url}.md`}>
+  <button class="btn" type="button">Copy page</button>
+  <a href={`${url}.md`}>View as Markdown</a>
+  <span class="sr-only" aria-live="polite"></span>
+</doc-copy>
+
+<script>
+  class DocCopy extends HTMLElement {
+    connectedCallback(): void {
+      const button = this.querySelector('button')
+      const live = this.querySelector('[aria-live]')
+      let text: string | undefined
+      button?.addEventListener('click', async () => {
+        try {
+          text ??= await (await fetch(this.dataset.md ?? '')).text()
+          await navigator.clipboard.writeText(text)
+          if (live) live.textContent = 'Copied'
+          button.textContent = 'Copied'
+        } catch {
+          if (live) live.textContent = 'Copy failed'
+          button.textContent = 'Copy failed'
+        }
+        setTimeout(() => {
+          button.textContent = 'Copy page'
+          if (live) live.textContent = ''
+        }, 2000)
+      })
+    }
+  }
+  if (!customElements.get('doc-copy')) customElements.define('doc-copy', DocCopy)
+</script>

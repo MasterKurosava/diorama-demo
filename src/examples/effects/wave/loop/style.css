@@ -1,0 +1,11 @@
+.wv-float {
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  background: #1b1035;
+}
+.wv-float .wv-name {
+  margin: 0;
+  font: 700 clamp(1.6rem, 7cqi, 4rem) / 1.2 var(--font-text);
+  color: #ffd166;
+}

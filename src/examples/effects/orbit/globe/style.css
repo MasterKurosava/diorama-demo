@@ -1,0 +1,36 @@
+.ob-ship {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: 5cqi;
+  box-sizing: border-box;
+  padding: 0 7%;
+  background: #f1ede4;
+  color: #1a1a1a;
+}
+.ob-ship .ob-globe {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  margin: 0;
+  white-space: nowrap;
+  cursor: grab;
+  touch-action: pan-y;
+  font: 800 max(12px, 2.3cqi) / 1.2 var(--font-text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #1f4fd1;
+}
+.ob-ship .ob-ship-copy h3 {
+  margin: 0 0 1.4cqi;
+  font: 800 max(20px, 3.6cqi) / 1.05 var(--font-text);
+  letter-spacing: -0.02em;
+}
+.ob-ship .ob-ship-copy p {
+  margin: 0;
+  max-width: 34ch;
+  font: 400 max(13px, 1.7cqi) / 1.5 var(--font-text);
+  color: #55524c;
+}

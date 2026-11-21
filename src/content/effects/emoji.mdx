@@ -1,0 +1,100 @@
+---
+effect: emoji
+example:
+  description: A live stream with a like button that sends hearts floating up over the picture on every tap.
+  aspect: 16 / 9
+  caption: Tap the heart, as many times as you like; every tap still counts. Switch the motion to see burst, fountain and rain.
+  controls: [count, scale, speed, spread, sway, spin, duration]
+  variants: [motion, trigger, origin]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Reactions from other viewers
+
+A stream or a webinar gets reactions from its audience over a websocket. Put one effect on the reaction bar with the `event` trigger and the list of reactions, and dispatch an event for every message. Its `detail` names the emoji to send and how many, up to `count`; an emoji missing from the list sends a random one of it.
+
+<Example id="effects/emoji/reactions" description="A reaction bar on a dark stream page with thumbs, hearts, laughs and surprised faces floating up from it as other viewers react." aspect="16 / 7" show={['html', 'script']} controls={[]} variants={[]} />
+
+```ts title="src/reactions.ts"
+const bar = document.querySelector('.reactions') as HTMLElement
+const socket = new WebSocket('wss://example.com/live/reactions')
+
+socket.addEventListener('message', (message) => {
+  const { emoji } = JSON.parse(message.data) as { emoji: string }
+  bar.dispatchEvent(
+    new CustomEvent('reaction', { detail: { emoji, count: 1 } }),
+  )
+})
+```
+
+### A burst when the payment goes through
+
+A click on Pay is too early: the payment can still fail. Use the `event` trigger with `burst`, and dispatch the event once your server confirms. Say what happened in the page too; the emoji are decoration.
+
+```html
+<section
+  class="checkout"
+  data-dio="emoji"
+  data-dio-trigger="event"
+  data-dio-event="paid"
+  data-dio-motion="burst"
+  data-dio-emoji="🎉 🥳 ✨"
+  data-dio-count="24"
+>
+  <button type="submit">Pay $42</button>
+  <p role="status"></p>
+</section>
+```
+
+### Seasonal rain over a section
+
+The `interval` trigger emits every `interval` seconds while the section is on screen and pauses while it is not. With `rain`, the emoji fall through the section over its width, and a few at a time make a steady rain.
+
+```html
+<section
+  class="sale"
+  data-dio="emoji"
+  data-dio-trigger="interval"
+  data-dio-motion="rain"
+  data-dio-emoji="🎃🦇🍬"
+  data-dio-count="5"
+  data-dio-interval="0.8"
+  data-dio-duration="3"
+>
+  <h2>Halloween sale</h2>
+</section>
+```
+
+A run of emoji with no spaces counts as one emoji each, so `🎃🦇🍬` is a list of three.
+
+### Your own icons
+
+A word of the list that is a URL or a file name ending in `.svg`, `.png`, `.webp` and the like is drawn as a picture. Keep them small and square; a picture from another origin needs CORS headers, or it is left out with a warning in development.
+
+```html
+<button
+  type="button"
+  data-dio="emoji"
+  data-dio-motion="fountain"
+  data-dio-emoji="/icons/coin.svg /icons/star.svg"
+  data-dio-count="16"
+>
+  Claim reward
+</button>
+```
+
+## Notes
+
+The effect never cancels the click: a like still counts and a form still submits. When the site swaps the button for a "Liked" label or hides it in the same click, the emoji fly on from where the button was and then stop.
+
+The emoji are drawn once with the system emoji font, so they look like the visitor's own emoji on Apple, Windows and Android devices. They draw on the canvas over the page and never take a click. Up to 16 different emoji or pictures make one list.
+
+Every emoji moves with the page as it scrolls. Frames run only while emoji fly; once their element is scrolled far away they stop at once. All of them are one instanced draw from a pool of 300, and the quality tier caps `count` at 12 on the low tier and 24 on the medium one.
+
+Under reduced motion neither the module nor the engine loads for it, and the element stays as it is.
+
+`trigger`, `motion`, `emoji`, `event`, `origin` and `seed` rebuild the effect when they change. `scale`, `sway` and `spin` change the emoji in the air too; counts, speeds and times apply to the next emission.

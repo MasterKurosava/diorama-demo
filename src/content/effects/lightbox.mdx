@@ -1,0 +1,97 @@
+---
+effect: lightbox
+example:
+  description: Six photos of a coastal walk in a grid; a click lifts one out of the grid and opens it full screen.
+  aspect: 3 / 2
+  controls: [margin, zoom, duration, backdrop, dim, loop, swipe]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### One image in an article
+
+Put `data-dio="lightbox"` on a single `<img>` inside a link to its large file, as you would for a zoomable figure in a blog post. A floor plan, a map or a chart gains the most: the reader opens it, zooms with the wheel, a pinch or a double click, and drags to the part they need. The caption of the viewer comes from the `<figcaption>` of the image's figure, or from its alt text.
+
+<Example id="effects/lightbox/plan" description="A paragraph and a floor plan; a click opens the plan full screen, where it zooms up to three times." aspect="4 / 3" show={['html']} controls={['zoom', 'margin']} variants={[]} />
+
+### A quiet viewer for screenshots
+
+For documentation or a press kit, where readers open a picture to read it and go back, set `motion` to `fade`, show only the counter and the close button, and leave `scroll` and `swipe` out of `close`, so only a deliberate press closes it. Escape always closes, as a modal dialog must.
+
+```html
+<ul
+  class="screens"
+  data-dio="lightbox"
+  data-dio-motion="fade"
+  data-dio-controls="counter close"
+  data-dio-close="esc backdrop button"
+>
+  <li>
+    <a href="/media/plan/ground-floor-2400.webp">
+      <img src="/media/plan/ground-floor-1200.webp" />
+    </a>
+  </li>
+  <li>
+    <a href="/media/coast/slope-1440.avif">
+      <img src="/media/coast/slope-800.avif" />
+    </a>
+  </li>
+</ul>
+```
+
+### Large files without links
+
+When the previews are not links, as in a product page where the photos sit in buttons, name each large file with `data-dio-full` on the image. Without it the viewer takes the largest `srcset` candidate or the file on screen. Keep a link where you can: without WebGL a link still opens the large file, a button does nothing.
+
+```html
+<ul
+  class="views"
+  data-dio="lightbox"
+  data-dio-motion="zoom"
+>
+  <li>
+    <button type="button">
+      <img
+        src="/media/chair/front.webp"
+        data-dio-full="/media/chair/front-2400.webp"
+      />
+    </button>
+  </li>
+  <li>
+    <button type="button">
+      <img
+        src="/media/chair/side.webp"
+        data-dio-full="/media/chair/side-2400.webp"
+      />
+    </button>
+  </li>
+</ul>
+```
+
+### Open it from a button of your own
+
+A listing often ends its grid with a button such as "Show all 24 photos". Set `index` on the instance to open the viewer at that picture; it opens while the grid is on screen. `dio:open` and `dio:close` tell the page when the viewer comes and goes, for example to pause a video behind it.
+
+```ts
+const photos = document.querySelector('.coast')
+
+document.querySelector('.show-all').addEventListener('click', () => {
+  app.effects.get(photos, 'lightbox')?.set({ index: 0 })
+})
+photos.addEventListener('dio:open', (e) =>
+  console.log('opened photo', e.detail.index),
+)
+```
+
+## Notes
+
+The viewer is a modal dialog. Enter on a focused preview opens it, focus stays inside while it is open, Escape closes it and focus returns to the preview's link. A screen reader hears the dialog's name, the caption and the counter as you page, even when `controls` hides them on screen. Give each preview a link or a button, so it takes focus.
+
+Ctrl-click, Cmd-click and the middle button open the link the usual way, and before the engine runs or without WebGL a click follows the link to the large file. `labels` translates the buttons, the counter and the dialog's name: `data-dio-labels="Fermer|Précédent|Suivant|{i} sur {n}|Visionneuse"`.
+
+Every preview in the container is a texture while the page shows it, and up to three large files are decoded at a time. Split long galleries into containers of about 60 previews.
+
+`motion`, `close`, `controls` and `labels` rebuild the effect when they change, which closes an open viewer. Set them in the markup.

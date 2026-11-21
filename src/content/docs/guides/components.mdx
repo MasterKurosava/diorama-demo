@@ -1,0 +1,207 @@
+---
+title: React, Vue and Svelte
+label: React, Vue, Svelte
+description: Put effects on component markup with data-dio attributes, attach them from component code, and know how mounts, keys and portals look to Diorama.
+section: guides
+order: 10
+related: [guides/ssr, guides/routers, guides/gsap-lenis]
+---
+
+Diorama watches the DOM, not the framework. An effect is an attribute, and every framework writes attributes, so there is no React or Vue adapter to install. The framework has one job: start the app once, in the browser. This page uses Vite projects; for server rendering with Next.js, Nuxt or SvelteKit, read [Server rendering](/docs/guides/ssr) as well.
+
+## Start the app once
+
+The app belongs to the site, not to a component: the canvas and the effects outlive every page. Create it in one module and import that module where you need the app.
+
+```ts title="src/diorama.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start()
+```
+
+Import the module from your entry file, so the app starts with the page. `start()` returns the app at once and finishes starting in the background. A second call returns the same app, so a module that runs again after a hot update does not create another one.
+
+## Write the markup
+
+Put `data-dio` and the param attributes straight into your templates. A changed prop writes the attribute, and Diorama applies it to the same instance in the next frame, without running setup again.
+
+<Tabs label="Framework">
+<Tab label="React">
+
+```tsx title="src/Cover.tsx"
+export function Cover({
+  src,
+  active,
+}: {
+  src: string
+  active: boolean
+}) {
+  return (
+    <img
+      src={src}
+      data-dio="ripple"
+      data-dio-strength={active ? 2 : 1}
+    />
+  )
+}
+```
+
+</Tab>
+<Tab label="Vue">
+
+```vue title="src/Cover.vue"
+<script setup lang="ts">
+defineProps<{ src: string; active: boolean }>()
+</script>
+
+<template>
+  <img
+    :src="src"
+    data-dio="ripple"
+    :data-dio-strength="active ? 2 : 1"
+  />
+</template>
+```
+
+</Tab>
+<Tab label="Svelte">
+
+```svelte title="src/Cover.svelte"
+<script lang="ts">
+  let { src, active }: { src: string; active: boolean } = $props()
+</script>
+
+<img
+  {src}
+  data-dio="ripple"
+  data-dio-strength={active ? 2 : 1}
+/>
+```
+
+</Tab>
+</Tabs>
+
+Attribute names are kebab case: the param `colorA` is `data-dio-color-a`. In JSX write the attribute as it is; React does not turn `dataDioColorA` into a `data-*` attribute.
+
+<Example id="components-strength" description="A photo with ripple and a checkbox that writes data-dio-strength as 2 or 1, the way a component writes the attribute when its prop changes." aspect="16 / 9" controls={[]} show={['html', 'script']} caption="Hover the photo, then switch active: the rings deepen on the same instance." />
+
+## Know what Diorama sees
+
+One `MutationObserver` watches the document and settles the final state of the DOM once per microtask. Whatever a framework does to nodes reaches Diorama as ordinary DOM changes.
+
+| The framework                                              | Diorama                                                                       |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Changes a `data-dio-*` prop                                | Updates the param of the same instance and draws a frame                      |
+| Renders an element conditionally (`v-if`, `{#if}`)         | Parks the instance on removal and releases it in the next frame or after 100 ms; inserts make new instances |
+| Reorders a keyed list                                      | Nothing: a node moved within the same task keeps its instance                 |
+| Changes a `key`                                            | Releases the old instance and creates one for the new node                    |
+| Runs effects twice in React StrictMode                     | One instance, with your params                                                |
+| Renders into a portal or `<Teleport>`                      | Creates the instance in the new container                                     |
+| Hydrates server markup                                     | Keeps the nodes and their instances                                           |
+| Swaps the page content on navigation                       | Releases the effects of the old page and creates those of the new one; the canvas stays |
+
+Releasing is real: the geometry, materials and textures of an instance are disposed when the framework removes its element. Elements that arrive later, from `innerHTML`, templates or a slider, are picked up on their own.
+
+## Attach from component code
+
+`app.attach()` puts an effect on an element and returns a handle. Calling the handle detaches it, so it works as the cleanup of the component. It works right after `start()`: until the app runs, the handle records your params and hands them over.
+
+<Tabs label="Framework">
+<Tab label="React">
+
+```tsx title="src/Hero.tsx"
+import { useEffect, useRef } from 'react'
+import { app } from './diorama'
+
+export function Hero({ src }: { src: string }) {
+  const ref = useRef<HTMLImageElement>(null)
+  useEffect(
+    () => app.attach(ref.current!, 'brighten', { strength: 2 }),
+    [],
+  )
+  return <img ref={ref} src={src} />
+}
+```
+
+In React 19 a ref callback with a cleanup does the same: `ref={(el) => (el ? app.attach(el, 'brighten') : undefined)}`. StrictMode in development runs it as attach, cleanup, attach, and one instance with your params remains.
+
+</Tab>
+<Tab label="Vue">
+
+```vue title="src/Hero.vue"
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue'
+import { app } from './diorama'
+
+defineProps<{ src: string }>()
+const el = useTemplateRef<HTMLImageElement>('el')
+let detach: (() => void) | undefined
+onMounted(() => {
+  detach = app.attach(el.value!, 'brighten', { strength: 2 })
+})
+onBeforeUnmount(() => detach?.())
+</script>
+
+<template>
+  <img ref="el" :src="src" />
+</template>
+```
+
+</Tab>
+<Tab label="Svelte">
+
+An attachment gets the element and returns its cleanup, and the handle is that cleanup.
+
+```svelte title="src/Hero.svelte"
+<script lang="ts">
+  import { app } from './diorama'
+
+  let { src }: { src: string } = $props()
+  const brighten = (node: HTMLElement) =>
+    app.attach(node, 'brighten', { strength: 2 })
+</script>
+
+<img {@attach brighten} {src} />
+```
+
+With an action the cleanup goes in `destroy`: `const brighten = (node) => ({ destroy: app.attach(node, 'brighten') })`.
+
+</Tab>
+</Tabs>
+
+The handle's `params` are live: `handle.params.strength = 3` draws in the next frame, and GSAP can tween them, as [GSAP and Lenis](/docs/guides/gsap-lenis) shows. For an effect that came from markup, `app.effects.get(element, 'ripple')` returns its instance once the app runs; `await ready(app)` first in code that may run earlier. The object stays the same for that element and effect name, even when the instance is created again.
+
+## Vue built-in components
+
+- `<KeepAlive>` takes the node of an inactive component out of the document, so its instance is released and holds no GPU memory while hidden. Params written to the instance are kept, and the instance created on activation gets them back. `onDeactivated` and `onActivated` need no Diorama code.
+- `<Transition>` keeps a leaving element until its animation ends, and the instance lives as long. The canvas copy follows the element's `opacity` as it fades.
+- `<Teleport>` works like any other node.
+
+## Type the attributes
+
+TypeScript accepts any hyphenated attribute in JSX, so `data-dio-strength={2}` compiles without declarations. To check the effect attribute and the reserved ones, extend the attribute interface of your framework.
+
+```ts title="src/diorama-jsx.d.ts"
+import type {} from 'react'
+
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    /** Effect names, separated by spaces. */
+    'data-dio'?: string
+    'data-dio-load'?: 'eager'
+    'data-dio-track'?: 'layout' | 'frame'
+  }
+}
+```
+
+Now `data-dio-load="lazy"` is a type error, while params still take any value. Keep `data-dio` a `string`: a union of names would reject two effects separated by a space. For Vue, augment `HTMLAttributes` in `'vue'`; for Svelte 5, `HTMLAttributes<T>` in `'svelte/elements'`; for Astro, `astroHTML.JSX.HTMLAttributes`.
+
+## Avoid the traps
+
+- Do not write `data-dio-state` and do not render it on the server. Diorama owns it and fixes values it did not write.
+- An instance from markup has no detach. Remove its name from `data-dio`, or the whole attribute, to take it off.
+- A short attribute shared by two effects on one element, such as `data-dio-strength` with `data-dio="ripple bend"`, applies to neither. Address one: `data-dio-ripple-strength`.
+- A prop set to `null` or `undefined` removes the attribute, and the param falls back to the value from `attach()` or the default. React and Vue write `false` as the string `"false"`, which the param reads as `false`. In Svelte, write booleans as strings yourself: `data-dio-mirror={String(flag)}`.
+- An image from another origin needs CORS headers on its server, or the effect fails with `EFFECT_CORS` and the image stays plain HTML. Also set `crossOrigin="anonymous"` in React and `crossorigin` elsewhere: without it, Diorama downloads the image a second time in CORS mode.
+- A list without keys makes the framework rewrite attributes in place instead of moving nodes. Instances stay where they are and only their params change. With keys, the instance moves with its element.
+- The observer does not enter shadow roots. Inside a web component, call `app.effects.observe(this.shadowRoot)`; the returned function stops watching.

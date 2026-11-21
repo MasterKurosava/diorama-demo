@@ -1,0 +1,24 @@
+.ex-band {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: 1.6cqi;
+  box-sizing: border-box;
+  padding: 0 9% 6%;
+  background: #1f9e8f;
+}
+.ex-band .ex-band-title {
+  justify-self: start;
+  margin: 0;
+  font: 900 13cqi / 0.95 var(--font-text);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+.ex-band p {
+  margin: 0;
+  font: 600 max(12px, 1.6cqi) / 1.4 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d6f7f1;
+}

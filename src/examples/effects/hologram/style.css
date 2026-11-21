@@ -1,0 +1,33 @@
+.hg-launch {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 8%;
+  box-sizing: border-box;
+  text-align: center;
+  background:
+    radial-gradient(60% 55% at 50% 60%, #0c1a24 0%, transparent 70%),
+    linear-gradient(180deg, #070b11 0%, #04070b 100%);
+  color: #dff6ff;
+}
+.hg-launch .hg-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6f8a99;
+}
+.hg-launch .hg-title {
+  margin: 0.1em 0 0.55em;
+  font: 800 clamp(2.6rem, 13cqi, 7.5rem) / 1 var(--font-text);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.hg-launch .hg-line {
+  max-width: 44ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #8aa3b0;
+}

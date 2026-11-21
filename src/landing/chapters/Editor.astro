@@ -1,0 +1,51 @@
+      <section class="room ed" id="editor" data-sky="#1a1030" aria-labelledby="ed-title">
+        <div class="ed-head">
+          <p class="ed-kicker"><b>06</b> Live code · ink</p>
+          <h2 id="ed-title" class="ed-title">An effect is<br />a short file.</h2>
+          <p class="ed-lede">
+            This is the whole effect, running on the picture. Edit a number or the colour: it swaps in
+            live, no reload. When nothing moves, nothing is drawn.
+          </p>
+        </div>
+
+        <figure class="ed-card">
+          <div class="ed-sheet">
+            <img src="/media/watcher.jpg" width="900" height="1200" alt="A woman on a hill watching the city at dusk, drawn in ink" data-dio="ink" />
+          </div>
+          <figcaption>
+            <span class="hint" data-touch="Tap or stroke the paper sideways">Move across the paper</span>
+            <button class="again" type="button">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" /></svg>
+              Wet it again
+            </button>
+          </figcaption>
+        </figure>
+
+        <div class="editor">
+          <div class="ed-bar">
+            <span class="ed-file">src/effects/<b>ink.ts</b></span>
+            <span class="tip" hidden>drag a number · click the swatch</span>
+            <span class="ed-state" data-state="file" aria-live="polite"><i aria-hidden="true"></i><span class="state-text">Running the file as saved</span></span>
+            <button class="reset" type="button" hidden>Undo edits</button>
+          </div>
+          <div class="ed-code">
+            <div class="gutter" aria-hidden="true"></div>
+            <div class="field">
+              <pre class="paint" aria-hidden="true"><code></code></pre>
+              <textarea spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="The source of the ink effect, editable: changes apply as you type"></textarea>
+            </div>
+          </div>
+          <div class="lower">
+            <p class="problem" role="alert"><span></span></p>
+            <div class="meter">
+              <div class="fps" title="Scenes three.js rendered in the last second"><span class="fps-n">0</span><span>frames drawn / s</span></div>
+              <div class="spark" aria-hidden="true"></div>
+              <dl class="counts">
+                <div title="Elements with a GL copy"><dt>Layers</dt><dd data-count="layers">0</dd></div>
+                <div title="Pictures the runtime holds as textures"><dt>Textures</dt><dd data-count="textures">0</dd></div>
+                <div title="New versions drawn without a reload"><dt>Rebuilds</dt><dd data-count="rebuilds">0</dd></div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>

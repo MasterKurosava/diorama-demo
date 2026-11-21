@@ -1,0 +1,29 @@
+.fd-show {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3cqi;
+  background: #e9f1ef;
+  color: #16302b;
+  text-align: center;
+}
+.fd-show .fd-show-date {
+  margin: 0;
+  font: 500 max(11px, 1.6cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2f7a68;
+}
+.fd-show .fd-show-title {
+  margin: 0;
+  font: 900 13cqi / 1 var(--font-text);
+  letter-spacing: -0.02em;
+  color: #e4572e;
+}
+.fd-show .fd-show-line {
+  max-width: 38ch;
+  margin: 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #3d5650;
+}

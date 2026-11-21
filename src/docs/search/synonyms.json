@@ -1,0 +1,74 @@
+{
+  "install": {
+    "pages": ["/docs/start"],
+    "terms": ["setup", "vite", "astro"]
+  },
+  "setup": {
+    "pages": ["/docs/start"],
+    "terms": ["install"]
+  },
+  "page transition": {
+    "pages": ["/docs/start/first-transition"],
+    "terms": ["flight", "key"]
+  },
+  "shared element": {
+    "pages": ["/docs/start/first-transition"],
+    "terms": ["flight", "data-dio-key"]
+  },
+  "mouse": {
+    "pages": ["/docs/api/inputs#pointer"],
+    "terms": ["pointer", "cursor", "hover"]
+  },
+  "cursor": {
+    "pages": ["/docs/api/inputs#pointer"],
+    "terms": ["pointer"]
+  },
+  "scroll": {
+    "pages": ["/docs/api/inputs#progress"],
+    "terms": ["progress", "pin"]
+  },
+  "shader": {
+    "pages": ["/docs/start/first-effect"],
+    "terms": ["tsl", "glsl"]
+  },
+  "smooth scroll": {
+    "pages": ["/docs/api/lenis"],
+    "terms": ["lenis"]
+  },
+  "cdn": {
+    "pages": ["/docs/start/html"],
+    "terms": ["script", "auto"]
+  },
+  "webflow": {
+    "pages": ["/docs/start/html"],
+    "terms": ["cdn", "script"]
+  },
+  "tilda": {
+    "pages": ["/docs/start/html"],
+    "terms": ["cdn", "script"]
+  },
+  "react": {
+    "pages": ["/docs/start/next"],
+    "terms": ["next", "component"]
+  },
+  "nextjs": {
+    "pages": ["/docs/start/next"],
+    "terms": ["next"]
+  },
+  "cors": {
+    "pages": ["/docs/errors/effect-cors"],
+    "terms": ["crossorigin"]
+  },
+  "webgl": {
+    "pages": ["/docs/errors/render-unavailable"],
+    "terms": ["webgpu", "renderer"]
+  },
+  "first effect": {
+    "pages": ["/docs/start/first-effect"],
+    "terms": ["effect", "tsl"]
+  },
+  "own effect": {
+    "pages": ["/docs/start/first-effect"],
+    "terms": ["effect", "custom"]
+  }
+}

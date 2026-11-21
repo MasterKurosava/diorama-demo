@@ -1,0 +1,48 @@
+---
+code: ASSET_TYPE
+level: warning
+message: '{url} has no asset type: preload takes asset URLs or a Document'
+summary: Diorama cannot tell what kind of asset a URL is, most often a page address given to preload, so nothing loads for it.
+---
+
+The type of an asset comes from the `type` option or from the extension: `.glb` and `.gltf` are `gltf`, `.ktx2` is `ktx2`, and `.jpg`, `.jpeg`, `.png`, `.webp`, `.avif` and `.gif` are `texture`. Any other URL has no type.
+
+## Why it happens
+
+- `app.assets.preload()` or `data-dio-preload` got a URL without a known extension, most often a page address such as `/work/aurora`, or an image URL without an extension. A preload only warns, in development builds, once per message.
+- `app.assets.load()` got such a URL without a `type`. Then `ready` rejects and the error is reported: `no type for {url}: pass { type } (known: {types}); a page address is not an asset`.
+- `type` names a type that has no loader: `no loader for "{type}" (known: {types})`.
+- The module of a lazy loader did not import, including the lazy chunk of the three.js loaders: `the loader of "{type}" did not load`.
+
+## How to fix
+
+To preload the next page, pass its parsed `Document` or a container element, not its address. `preload` then takes the images with `data-dio` or `data-dio-key` and the URLs in `data-dio-preload`:
+
+```ts
+import type { App } from 'dioramajs'
+
+export function preloadPage(app: App, next: Document, url: string) {
+  return app.assets?.preload(next, { base: url })
+}
+```
+
+For an asset URL without an extension, load it with an explicit `type`:
+
+```ts
+import type { App } from 'dioramajs'
+
+export function photo(app: App) {
+  return app.assets?.load('https://images.example.com/photo?id=42', {
+    type: 'texture',
+  })
+}
+```
+
+An own loader gets an extension through its `extensions` field in the `loaders` option of `assets()`.
+
+## Related
+
+- `ASSET_LOAD`
+- `data-dio-preload`
+- `app.assets.preload()`
+- `app.assets.load()`

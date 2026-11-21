@@ -1,0 +1,23 @@
+.rb-opening {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3.6cqi;
+  background: #f6efe3;
+  text-align: center;
+  color: #4a3b2c;
+}
+.rb-opening p {
+  max-width: 42ch;
+  margin: 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+}
+.rb-opening .rb-opening-title {
+  margin: 0;
+  padding: 0.1em 0.45em 0.06em;
+  font: 900 11cqi / 1 var(--font-text);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  color: #fff8ec;
+}

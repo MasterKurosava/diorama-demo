@@ -1,0 +1,53 @@
+---
+effect: marquee
+example:
+  description: A row of six partner logos that runs left in an endless loop, faster while the page scrolls.
+  aspect: 16 / 5
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A logo row under the hero
+
+Lay the logos out as one flex row with a `gap`, give each item `flex: none` so it keeps its width, and clip the row with `overflow: hidden`. The effect repeats the row with the same gap between copies, so you write each logo once. Inline SVGs keep their colors from your CSS, and `opacity` or a `filter: grayscale(1)` on a logo carries over too.
+
+```html
+<ul class="logos" data-dio="marquee">
+  <li><img src="/logos/northwind.svg" /></li>
+  <li><img src="/logos/halcyon.svg" /></li>
+  <li><img src="/logos/vertex.svg" /></li>
+</ul>
+```
+
+### A big ticker that turns with the scroll
+
+Agency and event sites often run one huge line across the page. `data-dio-reverse="true"` turns it around when the visitor scrolls up, and a larger `skew` makes it lean harder while the page moves. Scroll past this example to see it.
+
+<Example id="effects/marquee/ticker" description="A full-width band of large uppercase type that runs left and turns around when the page scrolls up." aspect="16 / 4" show={['html']} controls={[]} variants={[]} />
+
+### Moving only while the page scrolls
+
+With `data-dio-speed="0"` the row stands still until the visitor scrolls, and `boost` sets how far it travels per pixel of scroll. It reads as a part of the scroll rather than an animation of its own, and it draws no frames while the page rests.
+
+```html
+<p
+  class="band"
+  data-dio="marquee"
+  data-dio-speed="0"
+  data-dio-boost="0.6"
+  data-dio-direction="right"
+>Design · Build · Ship · Repeat ·</p>
+```
+
+## Notes
+
+The content stays in the page once, as you wrote it: screen readers and search engines read it once, and a CSS filter hides it while the copies run. Links inside stay where the page lays them out rather than where the copies move, so for a row of links keep `pause` on: the row slows to a stop under the mouse or keyboard focus, which also gives visitors a way to stop moving content.
+
+The effect draws backgrounds, borders and corner radii of the items in the row, images with their `object-fit`, inline SVGs and text. It does not draw shadows, gradients or background images of the items, and the element's own background stays put as a plain color under the moving content. An image from another origin needs CORS, or the row stays as it is with a warning in development.
+
+The gap between copies is the row's own `column-gap` for a flex or grid row and 1em for plain text, plus `gap`. Under reduced motion the row stands still, filled with copies, and scrolling does not move it. Off screen it draws no frames, and on screen it draws at most 60 a second.
+
+`direction` rebuilds the effect when it changes; the other params change live.

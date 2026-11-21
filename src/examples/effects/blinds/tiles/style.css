@@ -1,0 +1,23 @@
+.bl-mill {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(12px, 2.6cqi, 24px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: #f1ede4;
+  color: #1f4e3d;
+}
+.bl-mill .bl-mill-title {
+  margin: 0;
+  max-width: 12ch;
+  font: 800 clamp(1.8rem, 8cqi, 4.6rem) / 1.02 var(--font-text);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.bl-mill .bl-mill-line {
+  max-width: 46ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #4d5b52;
+}

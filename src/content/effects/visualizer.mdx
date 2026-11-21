@@ -1,0 +1,76 @@
+---
+effect: visualizer
+example:
+  description: A player for a short electronic track with live spectrum bars that rise and fall with the music.
+  aspect: 16 / 8
+  caption: Kite Frequency is a sundown warm-up generated with Web Audio for the Blue Signal demo. The peaks file is read only by the peaks style.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A podcast episode with a waveform
+
+The `peaks` style draws the whole episode from a small JSON file and shows the played part in `accent`. A click, a tap or a drag along it seeks, so it doubles as a scrubber, and it needs no access to the sound itself. Make the file once per episode with [audiowaveform](https://github.com/bbc/audiowaveform): `audiowaveform -i ep2.mp3 -o ep2.json -z 256 -b 8`.
+
+<Example id="effects/visualizer/episode" description="A podcast episode card with a native player and a waveform that seeks on click." aspect="16 / 9" caption="Apollo 11 air-to-ground, 20 July 1969, NASA, public domain, over a music bed made for the Blue Signal demo." show={['html']} controls={[]} variants={[]} />
+
+`touch-action: pan-y` on the waveform lets a finger drag along it while vertical swipes still scroll the page.
+
+### A radio player with a ring
+
+The `ring` style puts the bars around a circle, which frames a round play button or a cover. The `<audio>` can drop its native controls when your own button plays and pauses it.
+
+<Example id="effects/visualizer/ring" description="A round play button inside a ring of bars that pulse with the music." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### Audio from a CDN
+
+The bars, the wave and the ring read the sound through Web Audio, and the browser lets a page read only sound it is allowed to. For a file on another origin, add `crossorigin="anonymous"` to the element and serve the file with an `Access-Control-Allow-Origin` header that allows your site.
+
+```html
+<audio
+  id="set"
+  src="https://cdn.example.org/sets/sundown.mp3"
+  crossorigin="anonymous"
+  controls
+  preload="metadata"
+></audio>
+<div
+  class="bars"
+  data-dio="visualizer"
+  data-dio-for="#set"
+  aria-hidden="true"
+></div>
+```
+
+Without both, the effect fails with [`EFFECT_CORS`](/docs/errors/effect-cors) and leaves the element alone, because Web Audio would play an opaque source as silence. The sound keeps playing. The `peaks` style draws from the JSON file and works with any source.
+
+### A list of episodes
+
+In a list where a click on the card opens the episode page, turn `seek` off: the waveform still shows how much has been played, and clicks reach the link.
+
+```html
+<li class="episode">
+  <a href="/episodes/2">The Eagle has landed</a>
+  <audio src="/audio/ep2.mp3" preload="none"></audio>
+  <div
+    data-dio="visualizer"
+    data-dio-style="peaks"
+    data-dio-peaks="/peaks/ep2.json"
+    data-dio-seek="false"
+    aria-hidden="true"
+  ></div>
+</li>
+```
+
+## Notes
+
+The `<audio>` or `<video>` stays the player: its controls, keyboard and media keys work as usual, and the visualizer is decoration with `aria-hidden`. With `for` left empty it takes the closest `<audio>` or `<video>` before it in the same parent, so a player and its bars can sit side by side without an id.
+
+The first play routes the element's sound through the page's `AudioContext` for the rest of the element's life, as browsers allow one such connection per element.
+
+It draws nothing while paused. While playing it draws at most `fps` frames a second, then the bars fall for 0.3 s and it stops. Under reduced motion the bars, the wave and the ring hold a calm still shape, and `peaks` works fully.
+
+`style`, `peaks` and `for` rebuild the effect when they change. Colors, the bar count, the gap and the analyzer range change live.

@@ -1,0 +1,47 @@
+---
+effect: glow
+example:
+  description: A dark grid of six platform feature cards whose borders light up near the pointer.
+  aspect: 4 / 3
+  caption: Move the pointer over the cards and across the gaps between them. Switch the mode, or move the sliders.
+  controls: [radius, border, fill, ease]
+  variants: [mode]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Integration tiles without borders
+
+Logo walls and integration lists often have no borders at all. The `fill` mode lights the surface of the tiles instead, and a cool `color` keeps it in the palette of a dark page.
+
+<Example id="effects/glow/tiles" description="Eight integration tiles on a dark page, the ones near the pointer glowing pale blue." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### One card in the brand color
+
+Put the effect on a single card when there is no grid, such as the featured plan of a pricing table. Without `cards` the element itself is the card, and the light starts within `radius` of it.
+
+```html
+<article
+  class="plan"
+  data-dio="glow"
+  data-dio-mode="both"
+  data-dio-color="#7c5cff"
+  data-dio-radius="240"
+>
+  <h3>Pro</h3>
+  <p>$24 per month, billed yearly.</p>
+</article>
+```
+
+## Notes
+
+The cards stay DOM: text, links and focus work as usual, and the light draws over them on the canvas. It reads each card’s `border-radius` per corner as the light comes on, so pill buttons and cards with mixed corners get a ring that fits. A site that draws the canvas behind the page with `start({ canvas: 'behind' })` needs cards with transparent backgrounds, or the cards hide the light.
+
+Frames run only while the pointer moves near the cards and while the light fades in or out. A grid of up to 64 cards is one instanced draw.
+
+On phones and tablets the effect is off, since there is no pointer to follow. Under reduced motion the light still sits under the pointer but jumps with it, without trailing or fading.
+
+`mode` and `cards` rebuild the effect when they change; the other params change live.

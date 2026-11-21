@@ -1,0 +1,38 @@
+/* A row of covers across the frame, with room under it for the reflection. */
+.ex-root > .work {
+  position: relative;
+  top: 14%;
+  height: 50%;
+}
+/* Without WebGL the covers are a row of links that scrolls and snaps. */
+.work {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.work li {
+  flex: 0 0 auto;
+  height: 100%;
+  scroll-snap-align: center;
+}
+.work a {
+  display: block;
+  height: 100%;
+}
+.work img {
+  display: block;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.work a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}

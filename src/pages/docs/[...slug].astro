@@ -1,0 +1,72 @@
+---
+import { render } from 'astro:content'
+import { components } from '../../docs/components/mdx.ts'
+import Article from '../../docs/layouts/Article.astro'
+import Home from '../../docs/layouts/Home.astro'
+import {
+  type DocPage,
+  docPages,
+  prevNext,
+  sectionHref,
+  sectionLabel,
+  urlOfEntry,
+} from '../../docs/lib/pages.ts'
+
+export async function getStaticPaths() {
+  const pages = await docPages()
+  return pages
+    .filter((p) => p.section !== 'api')
+    .map((page) => ({
+      params: { slug: page.url === '/docs' ? undefined : page.url.slice('/docs/'.length) },
+      props: { page },
+    }))
+}
+
+const { page } = Astro.props as { page: DocPage }
+const { Content, headings } = await render(page.entry)
+const pages = await docPages()
+const { prev, next } = await prevNext(page.url)
+const link = (p?: DocPage) => (p ? { url: p.url, label: p.label } : undefined)
+const templateOf = (p: DocPage) =>
+  p.entry.data.template ?? (p.section === 'learn' ? 'lesson' : 'article')
+// Only lessons count as steps: a standalone tutorial in Learn is an article.
+const lessons = pages.filter((p) => templateOf(p) === 'lesson')
+const template = templateOf(page)
+const step = template === 'lesson' ? lessons.findIndex((p) => p.url === page.url) + 1 : 0
+const related = (page.entry.data.related ?? []).map((id) => {
+  const url = urlOfEntry(id.replace(/^\/?docs\//, '').replace(/^\//, ''))
+  return { url, label: pages.find((p) => p.url === url)?.title ?? id }
+})
+// Pages beside the home page, such as Credits, sit right under Docs.
+const crumbs = [
+  { label: 'Docs', href: '/docs' },
+  ...(page.section === 'home'
+    ? []
+    : [{ label: sectionLabel(page.section), href: sectionHref(page.section, pages) }]),
+  { label: page.label },
+]
+---
+
+{
+  page.url === '/docs' ? (
+    <Home title={page.title} description={page.description}>
+      <Content components={components} />
+    </Home>
+  ) : (
+    <Article
+      title={page.title}
+      description={page.description}
+      url={page.url}
+      crumbs={crumbs}
+      headings={headings}
+      prev={link(prev)}
+      next={link(next)}
+      kind="guide"
+      frameworks={page.entry.data.frameworks}
+      kicker={step > 0 ? `Step ${step} of ${lessons.length}` : undefined}
+      related={related}
+    >
+      <Content components={components} />
+    </Article>
+  )
+}

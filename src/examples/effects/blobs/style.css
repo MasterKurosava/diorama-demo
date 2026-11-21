@@ -1,0 +1,56 @@
+/* A radio card: the blobs fill the left part, the details sit beside it. Nothing sits over the
+   blobs, because the docs canvas is above the page. */
+.bl-radio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #0b1026;
+  color: #dfe3f5;
+  font: 400 14px / 1.5 var(--font-text);
+}
+/* The look without WebGL: three of the blobs as soft CSS circles on the same background. */
+.bl-lava {
+  background:
+    radial-gradient(22% 34% at 28% 38%, #6d5dfc 60%, transparent 72%),
+    radial-gradient(16% 26% at 72% 58%, #22d3ee 60%, transparent 72%),
+    radial-gradient(12% 20% at 44% 70%, #fbbf24 60%, transparent 72%), #0b1026;
+}
+.bl-info {
+  align-self: center;
+  padding: 0 9%;
+}
+.bl-kicker {
+  margin: 0 0 8px;
+  font: 500 11px / 1.4 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #22d3ee;
+}
+.bl-info h2 {
+  margin: 0 0 12px;
+  font: 600 clamp(20px, 2.6vw, 28px) / 1.15 var(--font-display, var(--font-text));
+  color: #fff;
+}
+.bl-info p:not(.bl-kicker) {
+  margin: 0 0 18px;
+  color: #aab1cf;
+}
+.bl-info a {
+  display: inline-block;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #6d5dfc;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+@media (max-width: 640px) {
+  .bl-radio {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .bl-info {
+    padding: 16px 20px 20px;
+  }
+}

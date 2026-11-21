@@ -1,0 +1,166 @@
+---
+title: Webflow and Tilda
+description: Add Diorama to a Webflow or Tilda site with one script tag, put effects on elements with attributes or selectors, and write effects without a build.
+section: guides
+order: 11
+frameworks: [html]
+related: [start/html, guides/reduced-motion, guides/gsap-lenis]
+---
+
+Site builders have no build step, so Diorama comes from a CDN as one module script. It starts on its own with the image effects `image`, `ripple` and `bend` and with page transitions, and loads three.js in separate chunks after the first paint, only on pages with effects.
+
+## Add the script
+
+Paste the tag into the code that every page gets.
+
+```html
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+></script>
+```
+
+- Webflow: Site settings, Custom code, Head code. For one page only, the page settings have the same field. Custom code runs on the published site, not in the Designer.
+- Tilda: Site settings, More, HTML code for the HEAD section. For one page, add an HTML block (T123) to it.
+
+On a live site, put the exact version after `diorama@` in the address. A new release then cannot change the site, and the chunks the script loads come from the same version.
+
+## Put effects on elements
+
+Where the builder allows custom attributes, add `data-dio` with the effect names and a `data-dio-` attribute per param.
+
+In Webflow, select the image, open the Settings panel and add custom attributes: name `data-dio`, value `ripple`; name `data-dio-strength`, value `2`. The result in the page is the markup Diorama reads.
+
+```html
+<img
+  src="cover.jpg"
+  data-dio="ripple"
+  data-dio-strength="2"
+/>
+```
+
+Where you cannot add attributes, attach effects from code with a selector. Import `start` from the same address: the script has already started the app, and `start()` returns it. A selector is a live rule, so images that load later or appear in a slider get the effect too.
+
+```html
+<script type="module">
+  import { start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+
+  start().attach('#rec123456789 img', 'ripple', { strength: 2 })
+</script>
+```
+
+In Tilda every block has an id that starts with `rec`; read it in the page code and use it in the selector. In Webflow, a class you give the element works as well: `.hero-image`.
+
+<Example id="builder-attach" description="A section in the markup of a site builder whose image gets ripple from a selector, with no data-dio attribute in the markup." show={['html', 'script']} />
+
+## Serve images with CORS
+
+The canvas can read the pixels of an image from another domain only with CORS. Builders serve images from their own CDN, and that CDN must answer with an `Access-Control-Allow-Origin` header. Without it, the effect fails with `EFFECT_CORS` and the image stays plain HTML.
+
+An image without the `crossorigin` attribute still works when the CDN sends the header: Diorama requests it once more in CORS mode, which costs a second download. Add the attribute to skip it. In Webflow, add the custom attribute `crossorigin` with the value `anonymous`. Where you cannot, set it from the same script before attaching. The browser loads the image again in CORS mode, and Diorama tries again once it has.
+
+```html
+<script type="module">
+  import { start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+
+  for (const img of document.querySelectorAll('#rec123456789 img')) {
+    img.setAttribute('crossorigin', 'anonymous')
+  }
+  start().attach('#rec123456789 img', 'ripple')
+</script>
+```
+
+If the builder's CDN sends no CORS headers, host the image somewhere that does.
+
+## Pass options
+
+Options of `start()` go in `window.diorama`, set in a plain script before the tag.
+
+```html
+<script>
+  window.diorama = { canvas: 'behind', background: '#08080b', transitions: false }
+</script>
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+></script>
+```
+
+`canvas: 'behind'` draws under the page instead of over it, for designs where the page itself is transparent over a background. `transitions: false` turns page transitions off. To call `start()` yourself, set `window.diorama = { manual: true }`.
+
+## Add GSAP and Lenis
+
+If the page loads GSAP from a CDN, the script picks up `window.gsap` and `window.ScrollTrigger` without code: tweens and the canvas share one ticker, and pinned sections drive the `pin` input. Load GSAP with classic script tags, which run before the module.
+
+Lenis does not publish its instance, so create it in the options.
+
+```html
+<script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/lenis@1.3.26/dist/lenis.css"
+/>
+<script>
+  window.diorama = { lenis: new Lenis() }
+</script>
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+></script>
+```
+
+Diorama then advances Lenis itself, once per frame and before drawing, so the canvas and the page scroll together. More in [GSAP and Lenis](/docs/guides/gsap-lenis).
+
+## Write your own effect
+
+An effect can live in the page code, with no file to host. Start the app yourself and register it under the name you use in markup. The setup function is the same as in a project with a build.
+
+```html
+<script>
+  window.diorama = { manual: true }
+</script>
+<script type="module">
+  import { effect, start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+
+  const brighten = effect({ strength: 1 }, ({ surface, u }) => {
+    surface.color((color) => color.mul(u.strength.add(1)))
+  })
+
+  start({ effects: { brighten } })
+</script>
+```
+
+Several effects are easier to keep as files on any static host. Each file imports `effect` from the same CDN address, so the page has one copy of Diorama, and `start()` loads a file only when its effect is first needed.
+
+```js title="fx/brighten.js"
+import { effect } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((color) => color.mul(u.strength.add(1)))
+})
+```
+
+```html
+<script>
+  window.diorama = {
+    effects: {
+      brighten: () => import('https://fx.example.com/brighten.js'),
+    },
+  }
+</script>
+```
+
+For a folder of effect files, `dioramajs gen` writes a registry module with one import per file. Publish it next to the files.
+
+<Run command="dioramajs gen --dir fx --out fx/registry.js" />
+
+<Callout kind="warning">
+The CDN build carries its own three.js and does not export TSL functions such as `vec4` or `smoothstep`. Write effects with the methods of the nodes you get, such as `color.mul()`, `uv.sub()`, `.length()` and `.sin()`. Do not import three.js from another address: a second copy of three.js breaks the shader graph.
+</Callout>
+
+## Check the result
+
+- Open the published site, not the builder's editor: custom code runs only there.
+- An element with a running effect gets `data-dio-state`: `drawn` once its picture is on the canvas, `failed` if the effect failed, `off` when the effect does not run there: without WebGL, under Save-Data, on touch for `ripple`, or with reduced motion for an effect that turns itself off. Look for it in the element panel of DevTools.
+- The console names failed effects with a code, such as `EFFECT_CORS` for an image without CORS.
+- On a phone `ripple` stays off, since it moves only under a pointer that hovers. See [Reduced motion](/docs/guides/reduced-motion).

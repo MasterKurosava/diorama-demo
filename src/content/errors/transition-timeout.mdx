@@ -1,0 +1,38 @@
+---
+code: TRANSITION_TIMEOUT
+level: warning
+message: 'the swap did not settle in {seconds} s'
+summary: The swap promise of a page transition did not settle within the timeout, so the transition gave up its flights.
+---
+
+This warning prints in development builds only.
+
+## Why it happens
+
+- The swap returns a promise that takes longer than `timeout`, 10 s by default. The next page loads slowly, or the router waits for something that does not happen.
+- The promise never settles, for example a router hook that resolves only on a later event.
+
+The copies and veils of the transition are released, and the transition resolves with `status: 'failed'`. `transition.swapped` still waits for the swap, so the router finishes its own replacement. When the DOM changes late, effects reconcile it as usual, without flights.
+
+## How to fix
+
+<Steps>
+
+1. Make the swap's promise settle once the DOM is replaced, not after unrelated work.
+2. For routes that are slow on purpose, raise `timeout` for that call.
+
+</Steps>
+
+```ts
+import { type App, transition } from 'dioramajs'
+
+export function go(app: App, swap: () => Promise<void>) {
+  return transition(app, swap, { timeout: 20 })
+}
+```
+
+## Related
+
+- `TRANSITION_SWAP`
+- `TRANSITION_ANIMATE`
+- `transition()`

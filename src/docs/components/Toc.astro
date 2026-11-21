@@ -1,0 +1,77 @@
+---
+interface Heading {
+  readonly depth: number
+  readonly slug: string
+  readonly text: string
+}
+interface Props {
+  readonly headings: readonly Heading[]
+  /** 'side' sits right of the article from 1280 px; 'inline' is the folded block below that. */
+  readonly variant: 'side' | 'inline'
+}
+const { headings, variant } = Astro.props
+const list = headings.filter((h) => h.depth === 2 || h.depth === 3)
+const show = list.filter((h) => h.depth === 2).length > 1
+---
+
+{
+  show &&
+    (variant === 'side' ? (
+      <doc-toc class="toc">
+        <nav aria-labelledby="toc-title">
+          <h2 id="toc-title">On this page</h2>
+          <ul>
+            {list.map((h) => (
+              <li class={`h${h.depth}`}>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </doc-toc>
+    ) : (
+      <details class="toc-inline">
+        <summary>On this page</summary>
+        <ul>
+          {list.map((h) => (
+            <li>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))
+}
+
+<script>
+  class DocToc extends HTMLElement {
+    #observer?: IntersectionObserver
+
+    connectedCallback(): void {
+      const links = new Map<string, HTMLAnchorElement>()
+      for (const a of this.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')) links.set(decodeURIComponent(a.hash.slice(1)), a)
+      const targets = [...links.keys()].flatMap((id) => document.getElementById(id) ?? [])
+      const visible = new Set<Element>()
+      const mark = () => {
+        const first = targets.find((t) => visible.has(t)) ?? targets.filter((t) => t.getBoundingClientRect().top < 0).at(-1)
+        for (const [id, a] of links) a.setAttribute('aria-current', String(first?.id === id))
+      }
+      this.#observer = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) visible.add(e.target)
+            else visible.delete(e.target)
+          }
+          mark()
+        },
+        { rootMargin: '-60px 0px -60% 0px' },
+      )
+      for (const t of targets) this.#observer.observe(t)
+    }
+
+    disconnectedCallback(): void {
+      this.#observer?.disconnect()
+    }
+  }
+  if (!customElements.get('doc-toc')) customElements.define('doc-toc', DocToc)
+</script>

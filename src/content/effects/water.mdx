@@ -1,0 +1,36 @@
+---
+effect: water
+example:
+  description: A lido's summer headline in deep blue letters lying in a puddle of clear water with a wandering shore, caustics dancing over the letters.
+  caption: Drag the pointer across the heading to leave a wake and click to drop a stone. Switch the style to rain or ice; on ice the pointer melts a clear patch.
+  aspect: 16 / 8
+  controls: [depth, caustics, ripples, rain, damping, tint]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Rain on a dark page
+
+`style="rain"` drops `rain` drops a second at random across the heading. Each lands as a small crater that rings out in a round wave, bending the letters as it passes and focusing a ring of light. On a dark page the caustics glow in the water itself, so the rings read even where the page is nearly black.
+
+<Example id="effects/water/rain" description="A live session title in pale letters on a night-blue page, with raindrops ringing out across the words." aspect="16 / 7" show={['html']} controls={['rain', 'damping']} variants={[]} />
+
+### An ice label that thaws under the pointer
+
+`style="ice"` freezes the surface into clear ice: frost gathers at the edges and in patches, thinner over the letters so their color reads, cracks run through it and the letters under it soften a little. The pointer melts a clear patch that stays open for a moment and then freezes over again, with a ring of slush at its edge. Give the heading its own background color and padding, and the ice fills that box like a frozen pond with walls.
+
+```html
+<h2 class="label" data-dio="water" data-dio-style="ice">Winter sale</h2>
+```
+
+## Notes
+
+The surface is simulated on the GPU: a small grid of heights and speeds over the heading is stepped about 60 times a second by the wave equation with damping, and the pointer's wake, clicks and raindrops are added to it as drops. A slow swell of five waves from different directions is added on top. The normal of every point of the surface bends the line of sight down to the letters, so they waver under the waves, and the same bend focuses the sun into caustics: the light a patch of surface gathers lands where its curvature points it, bright along thin lines and dim between them. The surface reflects a sky with a window and the sun's glints, weighted by Fresnel, so the reflection grows on the slopes of the ripples. `tint` sets how much light the water takes on the way down, red first, and how much of its own color it scatters back.
+
+Without its own background, the water lies in a puddle around the words: its shore wanders between about a seventh and two fifths of an em past the letters and rounds off before the edge of the box, so no rectangle shows. Give the heading padding of about a third of an em for it. The water is shallow and nearly clear at the shore and deeper toward the letters, and at the shore the surface curls down to the page in a thin bright line. The page color behind is the floor. With a solid background color on the heading, that color is the floor of a pool whose walls shade its edges and reflect the waves. Over a background image only the letters, the tint and the light are drawn.
+
+With `trigger="always"` the swell keeps moving and the caustics dance at 30 frames a second while the heading is on screen. With `trigger="hover"` the water holds still until the pointer comes over it and draws nothing once the ripples settle; ice draws frames only while a patch refreezes. Under reduced motion the water stays still. The heading stays real text in the DOM: screen readers read it, search engines index it and find in page works. The canvas cannot draw some text the way the browser does: `background-clip: text`, `text-shadow`, `-webkit-text-stroke` and vertical writing modes. An element with any of them, or with a background image of its own, keeps its text as it is, and a warning in development names the reason. `style` and `trigger` rebuild the effect when they change.

@@ -1,0 +1,83 @@
+.cf-shop {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #f6efe4;
+}
+.cf-shop .cf-order {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 380px);
+  padding: 22px 24px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: #fffaf2;
+  box-shadow: 0 18px 40px -18px rgb(60 30 10 / 0.35);
+  color: #2b1d14;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.cf-shop .cf-kicker {
+  margin: 0;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a6a52;
+}
+.cf-shop .cf-lines {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-shop .cf-lines li,
+.cf-shop .cf-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+.cf-shop .cf-lines li + li {
+  margin: 0;
+}
+.cf-shop .cf-total {
+  padding-top: 10px;
+  border-top: 1px solid #ead9c4;
+  font-weight: 700;
+}
+.cf-shop .cf-pay {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #1f6b52;
+  color: #fff;
+  font: 600 16px / 1.2 var(--font-text);
+  cursor: pointer;
+}
+.cf-shop .cf-pay:hover {
+  background: #185641;
+}
+.cf-shop .cf-pay:focus-visible {
+  outline: 3px solid #f2b84b;
+  outline-offset: 2px;
+}
+.cf-shop .cf-status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 14px;
+  color: #1f6b52;
+}
+@media (max-width: 560px) {
+  .cf-shop .cf-order {
+    gap: 8px;
+    padding: 14px 16px;
+  }
+  .cf-shop .cf-lines {
+    display: none;
+  }
+  .cf-shop .cf-total {
+    padding-top: 0;
+    border-top: 0;
+  }
+}

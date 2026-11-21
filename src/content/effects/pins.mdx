@@ -1,0 +1,44 @@
+---
+effect: pins
+example:
+  description: A science museum's exhibit hero on a dark background with the words Touch it standing out of a field of silver pins.
+  caption: Move the pointer over the pins and press to push them in. Switch the style and the press, or move the sliders.
+  aspect: 16 / 8
+  controls: [height, radius, duration]
+  variants: [style, press]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Square bars for a city skyline
+
+`style="bars"` swaps the pins for square bars with a beveled top that fill the field edge to edge, so the raised letters look like blocks of towers seen from above. Their sides take the light by the way they face, and the tall ones cast shadows on the low ones. A larger `gap` makes chunkier blocks, and a larger `height` taller towers whose sides show more in perspective.
+
+<Example id="effects/pins/skyline" description="An urban design studio's heading Downtown in blue square bars on a pale gray background." aspect="16 / 6" show={['html']} controls={['height', 'gap']} variants={[]} />
+
+### Round buttons that rise under the finger
+
+`style="domes"` draws round plastic buttons, like the pins of a braille display, and `press="out"` makes the pointer push them up toward the viewer instead of in. On a phone the buttons rise under a finger and settle when it lifts.
+
+<Example id="effects/pins/tactile" description="A braille display product line, Read by touch, in dark round buttons on a cream background." aspect="16 / 6" show={['html']} controls={['radius', 'height']} variants={[]} />
+
+### Pins in a color of their own
+
+The pins take the color of the text by default, as polished metal: dark text gives gunmetal pins, light text silver ones. `color` sets another one, for example a steel gray under a colored heading.
+
+```html
+<h2 data-dio="pins" data-dio-color="#c0c4cc" data-dio-height="40">Made by hand</h2>
+```
+
+## Notes
+
+The pins are real 3D objects in the space of the page, one instanced draw for all of them, seen through the same camera as the page, so the raised ones lean away from the middle of the screen and show their shafts at the edges of the letters. A distance field of the glyphs is built once on the CPU, and each pin stands out by a smooth function of its distance to the letter edge, so the letters rise as plateaus whose edges ramp down over a pin or two. Every pin is lit by a studio light: metal tips reflect a softbox and catch a sharp highlight, the shafts are darker, the pins around a tall one shade it, and the raised pins cast soft shadows on the field and the page.
+
+The field follows the shape of the words: pins stand only within about a sixth of an em of the letters, the last ones smaller and sunk into the page, so it has no edge or plate around it. The low pins sit dimmer and fainter than the risen ones, so the letters read on a light page and a dark one alike. `gap` is the distance between the centers of neighboring pins in ems, 0.06 by default, so a letter is the same number of pins wide at any font size; the pins never come closer than 3 px. The field holds at most 16,000 pins, fewer on slower devices; past that the gap widens.
+
+On view the letters rise in a wave from left to right, and `duration` is the time the whole rise takes. The pointer presses a soft circle `radius` pixels wide: hovering presses lightly, a click or a finger deeper, and the pins spring back when it moves on; `radius="0"` turns it off. Frames run only while pins move: at rest the relief stays drawn and the effect draws nothing. Under reduced motion the letters stand in relief from the start and the pointer does nothing.
+
+The text stays real text in the DOM: screen readers read it, search engines index it, and find in page works, while the pins are drawn in its place. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `press`, `gap` and `seed` rebuild the effect when they change; the other params change live.

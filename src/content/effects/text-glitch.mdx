@@ -1,0 +1,45 @@
+---
+effect: text-glitch
+example:
+  description: A live music night headline that breaks into slabs jumping at the viewer every few seconds, with red and cyan layers parting in depth.
+  aspect: 16 / 8
+  caption: Switch the style and the trigger, or move the sliders. With trigger hover, point at the heading; on a phone, tap it.
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A lineup whose names glitch under the pointer
+
+On a festival, music or gaming site, each act or title glitches as the pointer enters its card, and stays calm the rest of the time. The effect listens on the link the heading sits in, so the whole card triggers it, and keyboard focus does too. The `slice` style turns the struck slabs into solid blocks that jump out of the page. Give each card its own `seed` so no two break alike.
+
+<Example id="effects/text-glitch/lineup" description="Three festival lineup cards on black whose act names break into 3D blocks when a card is hovered." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### A hologram title as it first shows
+
+The `vhs` style leans the line back with a stack of scanline copies trailing behind it, like a hologram losing its signal, and bends it like worn tape. With `trigger="load"` it plays once, when half of the heading is in view.
+
+```html
+<h2 data-dio="text-glitch" data-dio-style="vhs" data-dio-trigger="load">Transmission 1994</h2>
+```
+
+### A headline that breaks up with scroll speed
+
+With `trigger="scroll"` the glitch follows the scroll speed: a slow read leaves the heading alone, a fast flick tears it apart for a moment.
+
+```html
+<h1 data-dio="text-glitch" data-dio-trigger="scroll" data-dio-strength="1.5">Faster, louder</h1>
+```
+
+## Notes
+
+The glitch is drawn in 3D through the page camera: slabs move towards and away from the viewer, so a heading far from the middle of the screen shows more parallax than one in the center. Between bursts the element is plain DOM text, selectable and read by screen readers as written.
+
+Keep bursts short and rare on pages people read: three flashes or more per second can trigger seizures, so `duration` stays under a second and `interval` above two seconds. Under reduced motion the effect does not run at all.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does; such text stays as it is, with a warning in development.
+
+`style` and `trigger` rebuild the effect; `strength`, `split`, `slices`, `interval`, `duration` and `seed` change live.

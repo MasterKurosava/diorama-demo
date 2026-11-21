@@ -1,0 +1,295 @@
+.prose {
+  overflow-wrap: break-word;
+}
+.prose h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.6rem + 2.2vw, 3.25rem);
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+.prose .lede {
+  margin: var(--s-4) 0 0;
+  font-size: 1.12em;
+  color: var(--text-muted);
+}
+.prose h2 {
+  margin: 2.6em 0 0.6em;
+  font-size: 1.75rem;
+  font-weight: 760;
+  font-stretch: 108%;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.prose h3 {
+  margin: 2em 0 0.5em;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.prose h4 {
+  margin: 1.6em 0 0.4em;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.prose :is(h2, h3, h4) a.anchor {
+  margin-left: 0.3em;
+  color: var(--text-muted);
+  opacity: 0;
+  text-decoration: none;
+}
+.prose :is(h2, h3, h4):hover a.anchor,
+.prose a.anchor:focus {
+  opacity: 1;
+}
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1em;
+}
+.prose li + li {
+  margin-top: 0.3em;
+}
+.prose :not(pre) > code,
+.prose .code-link > code {
+  font: 400 0.86em var(--font-mono);
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--bg-code);
+}
+.prose a.code-link {
+  text-decoration: none;
+}
+.prose a.code-link code {
+  color: var(--link);
+  box-shadow: inset 0 -1px 0 currentColor;
+}
+.prose a.code-link:hover code {
+  color: var(--link-hover);
+}
+.prose .expressive-code {
+  margin: var(--s-5) 0;
+}
+/* `=>` stays two characters, as it is typed. */
+/* Expressive Code resets `pre > code` with `all: unset`, so the rule goes on the code element. */
+.expressive-code .frame pre > code,
+.prose code {
+  font-variant-ligatures: none;
+}
+.prose table {
+  width: 100%;
+  margin: var(--s-5) 0;
+  border-collapse: collapse;
+  font-size: 0.89em;
+  line-height: 1.5;
+}
+.prose .table-wrap {
+  overflow-x: auto;
+  margin: var(--s-5) 0;
+}
+.prose .table-wrap table {
+  margin: 0;
+}
+.prose th {
+  text-align: left;
+  font-weight: 650;
+}
+.prose th,
+.prose td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.kbd-combo {
+  white-space: nowrap;
+}
+.kbd-combo > span {
+  margin: 0 0.15em;
+  color: var(--text-muted);
+}
+.prose kbd {
+  font: 500 0.8em var(--font-mono);
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+.prose mark {
+  background: var(--mark);
+  color: inherit;
+}
+
+.callout {
+  margin: var(--s-5) 0;
+  padding: 20px 24px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-paper);
+  box-shadow: var(--shadow-paper);
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+.callout-label {
+  display: block;
+  margin-bottom: var(--s-2);
+  font: 500 11.5px var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.callout.warning .callout-label {
+  color: var(--warning);
+}
+.callout.performance .callout-label {
+  color: var(--perf);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font: 500 0.62em var(--font-mono);
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+/* A heading's badge keeps the label size instead of scaling with the heading. */
+.prose :is(h1, h2, h3) .badge {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-stretch: normal;
+}
+
+.steps {
+  counter-reset: step;
+  padding-left: 0;
+  list-style: none;
+}
+.steps > li {
+  position: relative;
+  padding-left: 2.6em;
+  counter-increment: step;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font: 500 0.78em / 1 var(--font-mono);
+}
+
+.tree {
+  margin: var(--s-5) 0;
+  padding: var(--s-4) var(--s-5);
+  background: var(--bg-code);
+  border-radius: var(--radius-panel);
+  font: 400 var(--code-size) / 1.6 var(--font-mono);
+}
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 1.4em;
+}
+.tree > ul {
+  padding-left: 0;
+}
+.tree li {
+  margin: 0;
+}
+.tree .dir {
+  color: var(--link);
+}
+.tree .note {
+  color: var(--text-muted);
+  font-family: var(--font-text);
+  font-size: 0.9em;
+}
+.tree strong {
+  background: var(--mark);
+  font-weight: 600;
+}
+
+/* Tabs: the head script sets html[data-framework] and html[data-pm] before the first paint. */
+.tabs {
+  margin: var(--s-5) 0;
+}
+.tabs [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--border);
+}
+.tabs [role="tab"] {
+  min-height: 32px;
+  padding: var(--s-1) var(--s-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.tabs [role="tab"][aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--link);
+}
+.tabs [role="tabpanel"][hidden] {
+  display: none;
+}
+.tabs [role="tabpanel"] > .expressive-code:first-child {
+  margin-top: var(--s-3);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-4);
+  margin: var(--s-6) 0;
+}
+.cards a {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-5);
+  background: var(--bg-raised);
+  border-radius: var(--radius-paper);
+  box-shadow: var(--shadow-paper);
+  color: var(--text);
+  text-decoration: none;
+}
+.cards a:hover strong {
+  color: var(--link);
+}
+.cards span {
+  color: var(--text-muted);
+  font-size: 0.89em;
+}
+
+.kicker {
+  font: 500 11.5px var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Dev only: content problems that would fail the build. */
+.dev-problem {
+  margin: var(--s-5) 0;
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid #c0262d;
+  border-radius: var(--radius-paper);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: 400 0.85rem / 1.5 var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.related ul {
+  padding-left: 1.2em;
+}

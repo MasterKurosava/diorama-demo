@@ -1,0 +1,24 @@
+.ex[data-id="mono-gallery"] .ex-root {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+.ex[data-id="mono-gallery"] .ex-root > * {
+  width: auto;
+  height: auto;
+  min-height: 0;
+}
+.ex[data-id="mono-gallery"] .gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ex[data-id="mono-gallery"] .gallery img {
+  width: 100%;
+  height: 100%;
+}
+.ex[data-id="mono-gallery"] .strength {
+  accent-color: var(--link);
+}

@@ -1,0 +1,17 @@
+.ex-root:has(> img.app-shot) {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 90% at 50% 0%, #e6eef0, #cfdde1);
+}
+.ex-root > img.app-shot {
+  width: min(44%, 340px);
+  height: auto;
+  aspect-ratio: 1170 / 2532;
+  border-radius: 18px;
+}
+/* The tablet, the laptop and the browser window: a wide box for the dashboard. */
+.ex-root > img.app-shot.wide {
+  width: 92%;
+  aspect-ratio: 16 / 11;
+  border-radius: 8px;
+}

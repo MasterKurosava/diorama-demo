@@ -1,0 +1,45 @@
+---
+effect: glitch
+example:
+  description: A row of three new releases of a record label, each cover breaking up in a short digital glitch every couple of seconds.
+  caption: Switch the style and the trigger, or move the sliders. With trigger hover, point at a cover; on a phone, tap it.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A lineup that glitches under the pointer
+
+On a festival, music or gaming site, each act or title gets a short burst as the pointer enters its card, and the card is calm the rest of the time. The `slice` style shifts whole blocks and smears a few into streaks. Give each card its own `seed` so no two glitch alike.
+
+<Example id="effects/glitch/lineup" description="Three festival lineup cards on black: a cello, a flugelhorn and the night sky, each glitching as the pointer enters." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### A product film on worn tape
+
+The effect runs on a playing `<video>` as well as on an image. The `vhs` style wobbles the frame, washes out the color and rolls a band of bad tracking down the picture. With `trigger="interval"` the burst comes back every few seconds, at slightly uneven times, while the video is on screen.
+
+<Example id="effects/glitch/tape" description="A short film of a mustard lounge chair in a sunlit room, breaking up like a worn VHS tape every few seconds." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### A hero that breaks up with scroll speed
+
+With `trigger="scroll"` the glitch follows the scroll speed: a slow read leaves the image alone, a fast flick tears it apart for a moment. It suits a streetwear drop or a launch page where the hero should feel loud.
+
+```html
+<img
+  src="/drop/hero.avif"
+  data-dio="glitch"
+  data-dio-trigger="scroll"
+  data-dio-style="slice"
+  data-dio-strength="1.5"
+/>
+```
+
+## Notes
+
+The glitch changes how the image looks for a fraction of a second; its `alt` stays the same. Keep bursts short and rare on pages people read: three flashes or more per second can trigger seizures, so `duration` stays under a second and `interval` above two seconds unless the glitch is small.
+
+Under reduced motion the effect does not run at all and the image shows as it is.
+
+`style` and `trigger` rebuild the effect; `strength`, `blocks`, `split`, `interval`, `duration` and `seed` change live.

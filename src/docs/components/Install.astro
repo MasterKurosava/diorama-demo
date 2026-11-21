@@ -1,0 +1,23 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { installCommand, MANAGERS } from '../lib/commands.ts'
+import Tab from './Tab.astro'
+import Tabs from './Tabs.astro'
+
+interface Props {
+  /** Space-separated package names: 'diorama three'. */
+  readonly packages: string
+  readonly dev?: boolean
+}
+const { packages, dev = false } = Astro.props
+---
+
+<Tabs sync="pm">
+  {
+    MANAGERS.map((pm) => (
+      <Tab label={pm.label} value={pm.value}>
+        <Code code={`$ ${installCommand(pm.value, packages, dev)}`} lang="sh" frame="terminal" />
+      </Tab>
+    ))
+  }
+</Tabs>

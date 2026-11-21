@@ -1,0 +1,51 @@
+---
+effect: coin
+example:
+  description: A navy and coral compass logo struck into a gold coin with a raised rim; it leans toward the pointer as the light runs over the metal.
+  aspect: 4 / 3
+  caption: Move the pointer over the coin, drag it to see its edge and its back, or click it to turn it over. Lower ink to strike the logo in bare metal.
+  controls: [metal, ink, relief, yaw, pitch, tilt, turn, spin, shadow]
+  variants: [style, motion]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A logo struck as a coin
+
+Give the image a transparent background: a PNG, or an SVG with a width and a height in the file. Its opaque shapes are struck into the face and stand out in `relief`; the transparent field around them is polished metal in `metal`. `ink` keeps the logo's own colors at 1 and strikes it in bare metal at 0, which suits a monochrome mark.
+
+```html
+<img
+  src="/brand/logo.svg"
+  width="512"
+  height="512"
+  data-dio="coin"
+  data-dio-metal="#c8ccd2"
+  data-dio-ink="0"
+/>
+```
+
+### An award medal that lands on its back
+
+`style="medal"` makes a thicker disc with a wide polished rim, and `motion="toss"` throws it up on a click or Enter: it tumbles and lands on the other face. `back` takes the reverse as an image or a color.
+
+<Example id="effects/coin/medal" description="A gold medal with a blue enamel center and a white star; a click tosses it up and it lands showing Best Studio 2026 on its back." aspect="4 / 3" show={['html']} controls={['relief', 'tilt']} variants={[]} />
+
+### Tokens that turn with the scroll
+
+`turn` turns a coin as the page scrolls past it, so a row of tokens shows its edges and backs without any pointer, on touch screens too. A negative `turn` goes the other way. `style="token"` is a thick enamel token with a striped edge, colored by `metal`.
+
+<Example id="effects/coin/token" description="Three coins in a row: a green token with a leaf, a gold coin with a mountain, a silver coin with a compass struck in relief; they turn as the page scrolls." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+## Notes
+
+The coin is the circle in the middle of the image's box, its diameter the shorter side. A photo of a coin should be cut out round, with transparent corners; a square photo loses its corners.
+
+An SVG becomes a picture at the size written in its file, so give it a `width` and a `height` at least as large as the coin is shown. The image keeps its alt text for screen readers, and without WebGL the plain image shows.
+
+The coin draws only while it moves: a lean, a drag, a flip, the scroll with `turn` or the idle `spin`. A coin inside a link keeps the link's click and does not flip on it.
+
+`style`, `motion` and `back` rebuild the effect; every other param changes live.

@@ -1,0 +1,11 @@
+.explode {
+  border-radius: var(--radius-panel);
+  background: #0a0907;
+}
+.explode > img.watch {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
+}

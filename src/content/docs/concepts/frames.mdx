@@ -1,0 +1,132 @@
+---
+title: How a frame is decided
+label: Frames
+description: Why a still page draws no frames, who asks for one, and how frame policies, holds and decaying inputs keep frames coming only while needed.
+section: concepts
+order: 1
+related: [guides/performance, concepts/scroll, start/first-effect]
+---
+
+Diorama has no animation loop running in the background. The loop sleeps until something asks for a frame, draws it, and checks at the end whether anything still wants the next one. This page explains who asks, how effects decide, and why a page at rest draws nothing.
+
+<Example id="frame-tape" description="The built-in ripple on a photo with a tape of the last 120 display refreshes, each marked with the reason Diorama ran a frame or left empty; buttons switch the frame policy, and checkboxes emulate reduced motion and a hidden tab." aspect="16 / 9" controls={[]} show={['html', 'effect']} caption="Each effect file uses the setup of the built-in ripple with another animate option. The checkboxes act on this whole page." />
+
+## A frame is wanted or it is not
+
+Each app has one loop in `demand` mode. The loop wants a frame when one of these holds:
+
+- something called `invalidate()` since the last frame;
+- a hold is active;
+- a `keepAwake(seconds)` window has not run out;
+- the mode is `always`, which Diorama never sets itself.
+
+When a frame is wanted and none is pending, the loop requests exactly one from its driver, by default `requestAnimationFrame`. When nothing is wanted, nothing is requested: no timer, no callback, no GPU work.
+
+Inside a frame the systems run in five stages.
+
+| Stage         | What happens for effects                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| `input`       | Scroll position and pointer are read.                                                             |
+| `layout`      | Visible elements are measured, inputs such as `progress`, `pin` and `time` are computed.         |
+| `update`      | Update functions of visible instances run, then each instance's frame policy is checked.          |
+| `render`      | three.js draws the scene.                                                                         |
+| `afterRender` | Elements whose copy was drawn get `data-dio-state="drawn"`, which hides their DOM.               |
+
+After the last stage the loop asks again whether a frame is wanted. If it is, the next one is requested at once; if not, the loop goes back to sleep. An `invalidate()` during a frame gives exactly one more frame.
+
+## Who asks for a frame
+
+Most frames come from events Diorama listens to.
+
+- A scroll event, a pointer move over an element with an effect, a resize.
+- A write to a param, from markup, `handle.params` or a GSAP tween.
+- A DOM change near an effect element: its box moved, it was added or removed.
+- The motion watcher: while a visible element has a CSS transform, a transition or an animation, it compares boxes once per display frame and invalidates only when something moved. After a second without change it stops.
+- A flight, which holds frames until it lands.
+
+Off screen elements take no part: they are not updated, not drawn, and a param write to them requests nothing.
+
+## Frame policy
+
+Events cover effects that change only when something happens. An effect that moves on its own asks for frames through its frame policy, the `animate` option.
+
+| `animate`       | Asks for frames while the element is visible |
+| --------------- | -------------------------------------------- |
+| `'input'`       | never: it draws on events only               |
+| `'hover'`       | while the pointer is over it and while hover fades |
+| `'visible'`     | every frame                                  |
+| `{ fps: 30 }`   | time frames at most 30 times a second        |
+| a function      | while it returns `true`, checked after each update |
+
+Without the option the policy comes from what the effect reads: `u.time` means `'visible'`, `u.hoverTime` means `'hover'`, neither means `'input'`.
+
+The update function can answer for itself. Returning `true` asks for the next frame and `false` for none, so an effect draws until state kept in JavaScript settles, such as a damped position or a fade. Without `animate` the answer decides alone, whatever clocks the update reads; with `animate`, `true` adds frames to the policy and `false` takes none away. An update that returns nothing leaves the decision to the policy.
+
+```ts title="src/effects/shimmer.ts" twoslash
+import { effect } from 'dioramajs'
+import { sin } from 'three/tsl'
+
+// Reads u.hoverTime: draws while hovered and while hover fades.
+export default effect({ strength: 0.1 }, ({ surface, u }) => {
+  const wave = sin(u.hoverTime.mul(6)).mul(u.strength)
+  surface.color((color) => color.mul(wave.add(1)))
+})
+```
+
+The decision is made at the end of the `update` stage of the same frame. An effect that asks for frames for the first time gets the next one, and an effect that stops asking gets one closing frame that shows its final state. All instances share one hold, taken while any of them asks and released when none does.
+
+## Inputs that fade
+
+Some inputs keep changing after their cause has stopped. They hold frames themselves, so an effect with the `'input'` policy never freezes halfway through a fade.
+
+- `hover` eases towards 1 or 0 and requests frames until it arrives, but only if some instance on the element reads it.
+- `velocity` decays after a scroll. Reading it requests the next frame while it is still above zero; nobody reading it means one frame per scroll event and no tail.
+- `opacity` requests frames while the CSS opacity of the element or its ancestors keeps changing.
+
+## Time
+
+`u.time` counts seconds the element has been visible. It stands still while the element is off screen, while the tab is hidden and under reduced motion, so a loop picks up where it stopped instead of jumping.
+
+Frame time is protected against long gaps. The first frame after the loop slept gets at most one display frame of time, and a slow frame in the middle of an animation gets at most 0.1 seconds. The loop measures the display rate as it runs, from 30 to 240 frames a second, so a phone in power saving mode at 30 Hz advances time correctly.
+
+## Why a still page draws nothing
+
+Put together, the rules leave nothing running at rest.
+
+| Scenario                                       | Frames                                                      |
+| ---------------------------------------------- | ----------------------------------------------------------- |
+| Page at rest, pointer not over effects         | 0                                                           |
+| Pointer over `ripple`, policy `'hover'`        | every frame; after it leaves, until hover fades, then one more |
+| A `'visible'` effect on screen                 | every frame; once it scrolls away, 0                        |
+| Scrolling                                      | one per scroll event, plus the fade of velocity if read     |
+| Tweening a param of a visible effect           | one per write                                               |
+| Tweening a param of an off screen effect       | 0                                                           |
+| Hidden tab                                     | 0                                                           |
+
+With GSAP the frames come from `gsap.ticker` instead of `requestAnimationFrame`, after the tweens of the same tick, and the ticker subscription ends when no frame is wanted. With Lenis the frame runs right after Lenis moves the page. Both keep the same rule: no frame unless one is wanted.
+
+## Ask for frames yourself
+
+Code outside effects uses the app's loop controls.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+const app = start()
+declare function playIntro(): Promise<void>
+// ---cut---
+// One frame after a change Diorama cannot see.
+app.invalidate()
+
+// Frames for a fixed time.
+app.keepAwake(0.5)
+
+// Frames until released, labelled for app.loop.stats.
+const release = app.hold('intro')
+await playIntro()
+release()
+```
+
+Inside an effect prefer the frame policy or the update's answer. A hold keeps frames coming even while the element is off screen, and both stop on their own. Both are checked only in frames: when something changes without one, such as an event that starts a motion, call `ctx.invalidate()` for the first frame and let the update or the function ask for the rest.
+
+To see what the loop is doing, read `app.loop.stats`: `frames` counts frames so far and `reason` says why the last one ran, one of `invalidate`, `hold`, `timed`, `always` or `step`.

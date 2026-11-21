@@ -1,0 +1,27 @@
+/* A warm page with a word behind the camera: what the green screen was is now the page. */
+.studio {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: radial-gradient(circle at 50% 40%, #efe4cf, #c9b48f);
+}
+.studio .brand {
+  position: absolute;
+  margin: 0;
+  font: 800 clamp(2rem, 11vw, 7rem) / 1 var(--font-text);
+  letter-spacing: -0.04em;
+  color: #8a5a1f;
+  opacity: 0.55;
+}
+.studio .camera {
+  position: relative;
+  display: block;
+  width: 86%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+}
+[data-dio~="chroma"][data-dio-state="off"] {
+  visibility: hidden;
+}

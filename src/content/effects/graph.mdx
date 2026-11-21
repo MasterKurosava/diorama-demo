@@ -1,0 +1,64 @@
+---
+effect: graph
+example:
+  description: The integrations of an invoicing app as a network around it, grouped by kind, that grows out of the middle on scroll.
+  aspect: 16 / 9
+  caption: Hover a node to keep its links and see what it connects to. The nested list under the graph stays the same in every mode.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A team structure
+
+A nested list already is a tree: each item links to the one it sits in. The `tree` mode hangs it top down, a level per step, with each name under its node. `data-dio-group` on an item colors it and everything inside it.
+
+<Example id="effects/graph/team" description="A studio's teams as a tree from the lead down, colored by department." aspect="16 / 9" show={['html']} controls={['radius', 'thickness', 'dim']} variants={[]} />
+
+### A map of topics
+
+Any item can link to any other with `data-dio-to`, by id or by name. The `force` mode spreads linked items as a network: related topics cluster, bridges sit between clusters. `arrows` marks the direction, here from a lesson to what it builds on. Each item keeps its link, so a click on a node opens the lesson and the keyboard reaches every one.
+
+<Example id="effects/graph/topics" description="A photography course as a network of lessons with arrows to what each builds on." aspect="16 / 9" show={['html']} controls={['radius', 'thickness', 'dim']} variants={['mode', 'motion']} />
+
+### Links with weights from a table
+
+A table works too: each row links the names in its first two cells, and a number in the third makes the link thicker. The `circle` mode sets the nodes on a ring grouped by color, with links bowed through the middle, so who works with whom reads at a glance.
+
+```html
+<table
+  class="flows"
+  data-dio="graph"
+  data-dio-mode="circle"
+  data-dio-arrows
+>
+  <thead>
+    <tr>
+      <th>From</th>
+      <th>To</th>
+      <th>Orders</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td data-dio-group="hub">Warehouse</td>
+      <td>Berlin</td>
+      <td>420</td>
+    </tr>
+    <tr><td>Warehouse</td><td>Paris</td><td>310</td></tr>
+    <tr><td>Berlin</td><td>Prague</td><td>90</td></tr>
+  </tbody>
+</table>
+```
+
+## Notes
+
+The list or table is the source of truth. It stays in the page for screen readers, search engines and the keyboard, hidden only while the graph is drawn, and it shows as is without WebGL. Focus on an item's link lights its node and shows its tooltip, so a keyboard user sees where they are. Size the element with CSS; `overflow: auto` keeps a long list inside the same box when it shows.
+
+The layout is worked out once on the CPU from `seed` and the box's proportions, so the picture is the same on every visit and does not drift. A resize lays it out again only when the proportions change noticeably. Nodes grow with their number of links, or with `data-dio-value` when the items give one. Names that would overlap are left out of the picture and appear when their node is lit.
+
+It draws only while the nodes come in and for a few frames as a lit node fades in or out. Under reduced motion the graph stands complete from the first frame. A tap on a node lights it, a second tap follows its link. Style the tooltip with `::part(tooltip)`.
+
+`mode`, `motion`, `colors` and `seed` rebuild the graph when they change; sizes, `labels`, `arrows` and the timing change live. One graph draws up to 400 nodes.

@@ -1,0 +1,85 @@
+---
+effect: expand
+example:
+  description: The cover of the next project in a small card, which grows to fill the pinned frame as you scroll and shrinks back as you scroll up.
+  caption: Scroll the page. The frame holds still while the cover grows out of its card to the edges of the frame.
+  scroll: 150vh
+related:
+  - concepts/scroll
+  - concepts/flights
+  - guides/gsap-lenis
+---
+
+## Recipes
+
+### A case study cover that takes over the screen
+
+The section is tall and its stage sticks to the top at the height of the screen. Between `start` and `end` of the pin, the image grows from its card to the stage, and holds the screen until the section lets the stage go. With `sizes="100vw"` the browser picks a source sharp enough for the full screen.
+
+```html
+<section
+  class="next"
+  data-dio-section
+  style="height: 250vh"
+>
+  <div
+    class="stage"
+    style="position: sticky; top: 0; height: 100vh"
+  >
+    <figure
+      class="card"
+      style="overflow: hidden; border-radius: 16px"
+    >
+      <img
+        src="/work/sea-steps/cover-1920.avif"
+        srcset="/work/sea-steps/cover-960.avif 960w, /work/sea-steps/cover-1920.avif 1920w"
+        sizes="100vw"
+        style="border-radius: inherit"
+        data-dio="expand"
+        data-dio-end="0.55"
+      />
+    </figure>
+  </div>
+</section>
+```
+
+A card that clips its image clips the copy as a rectangle, so its rounded corners would turn square: give the `<img>` `border-radius: inherit` as here. With a `data-dio-key` and a page transition, the cover flies into the next page from the box it was drawn at, expanded or not.
+
+### Open it, then fold it back
+
+`out` below 1 folds the image back into its card before the pin ends, so a section can show a detail full screen and return to the layout around it. `radius` keeps rounded corners at full size.
+
+```html
+<img
+  src="/img/dial.avif"
+  data-dio="expand"
+  data-dio-start="0.1"
+  data-dio-end="0.4"
+  data-dio-out="0.75"
+  data-dio-radius="24"
+/>
+```
+
+### Open it from a button
+
+With `by` set to `manual` the scroll leaves it alone and `position` sets the expansion, from 0 in the card to 1 at the size of `into`. Tween it from a button for a "view full frame" control. With `pin` or `progress`, `position` is a floor under the scroll instead.
+
+<Example id="effects/expand/button" description="The sea steps cover in a card, which a button opens to the whole frame and closes again." aspect="3 / 2" show={['html', 'script']} controls={[]} variants={[]} />
+
+### Text over the full-screen image
+
+The canvas sits over the page by default, so the expanded copy covers the stage's own text. For a caption over the image, start Diorama with the canvas behind the page and keep the stage background transparent.
+
+```ts
+import { start } from 'dioramajs'
+
+start({ canvas: 'behind' })
+```
+
+## Notes
+
+The copy grows from the source the browser picked for the card. A card of 400 px with `srcset` and no `sizes` gets a small file, and it looks soft on a full screen. Give it `sizes="100vw"`, or `sizes` that match the stage.
+
+Without `into`, it grows into the closest sticky ancestor, the stage, and without one into the viewport. Pinned stages should fill half the viewport or more: then the canvas holds still while the stage is pinned, and the expanded copy does not trail native scroll. Without Lenis on iOS, the full-screen copy can still trail composited scroll by a frame as the section lets the stage go; Lenis avoids it.
+
+Under reduced motion the image stays in its card, and the page reads as it would without Diorama. Keep anything the expanded image tells in the text around it as well.

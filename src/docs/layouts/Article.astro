@@ -1,0 +1,93 @@
+---
+import Breadcrumbs from '../components/Breadcrumbs.astro'
+import PageTools from '../components/PageTools.astro'
+import PrevNext from '../components/PrevNext.astro'
+import Sidebar from '../components/Sidebar.astro'
+import Toc from '../components/Toc.astro'
+import { FRAMEWORKS, type Framework } from '../lib/commands.ts'
+import type { SearchKind } from '../search/types.ts'
+import Base from './Base.astro'
+
+interface Props {
+  readonly title: string
+  readonly description: string
+  readonly url: string
+  readonly crumbs: readonly { readonly label: string; readonly href?: string }[]
+  readonly headings?: readonly {
+    readonly depth: number
+    readonly slug: string
+    readonly text: string
+  }[]
+  readonly prev?: { readonly url: string; readonly label: string }
+  readonly next?: { readonly url: string; readonly label: string }
+  /** Search group of the page. */
+  readonly kind: SearchKind
+  /** Search filter by framework; every framework when unset. */
+  readonly frameworks?: readonly Framework[]
+  /** Extra Pagefind metadata: signature, module, poster, clip. */
+  readonly meta?: Readonly<Record<string, string>>
+  /** No on-page contents column: API and error pages. */
+  readonly wide?: boolean
+  readonly noindex?: boolean
+  /** Small label above the title: 'Step 2 of 7'. */
+  readonly kicker?: string
+  readonly related?: readonly { readonly url: string; readonly label: string }[]
+}
+
+const {
+  title,
+  description,
+  url,
+  crumbs,
+  headings = [],
+  prev,
+  next,
+  kind,
+  frameworks,
+  meta = {},
+  wide,
+  noindex,
+  kicker,
+  related = [],
+} = Astro.props
+const filters = (frameworks ?? FRAMEWORKS.map((f) => f.value)).map((f) => `framework:${f}`)
+---
+
+<Base title={title} description={description} noindex={noindex}>
+  <div class="dl">
+    <Sidebar current={url} />
+    <main id="content" class:list={['dl-main', { wide }]}>
+      <article class="prose">
+        <Breadcrumbs items={crumbs} />
+        <div data-pagefind-body={noindex ? undefined : ''}>
+          <span hidden data-pagefind-filter={`kind:${kind}`}></span>
+          {filters.map((f) => <span hidden data-pagefind-filter={f}></span>)}
+          {Object.entries(meta).map(([k, v]) => <span hidden data-pagefind-meta={`${k}:${v}`}></span>)}
+          <span hidden data-pagefind-meta={`summary:${description}`}></span>
+          {kicker && <p class="kicker">{kicker}</p>}
+          {Astro.slots.has('heading') ? <slot name="heading" /> : <h1>{title}</h1>}
+          <p class="lede">{description}</p>
+          {!noindex && <div data-pagefind-ignore><PageTools url={url} /></div>}
+          <div data-pagefind-ignore><Toc headings={headings} variant="inline" /></div>
+          <slot />
+          {
+            related.length > 0 && (
+              <nav class="related" aria-labelledby="related-pages">
+                <h2 id="related-pages">Related</h2>
+                <ul>
+                  {related.map((r) => (
+                    <li>
+                      <a href={r.url}>{r.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )
+          }
+        </div>
+        <PrevNext prev={prev} next={next} />
+      </article>
+      {!wide && <Toc headings={headings} variant="side" />}
+    </main>
+  </div>
+</Base>

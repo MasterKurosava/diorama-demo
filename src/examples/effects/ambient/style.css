@@ -1,0 +1,12 @@
+/* A dark room around the film, with space for the light to spread into. */
+.screening {
+  display: grid;
+  place-items: center;
+  background: #12100e;
+}
+.screening .film {
+  width: 60%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+}

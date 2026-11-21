@@ -1,0 +1,54 @@
+---
+effect: tone
+example:
+  description: A photo of surf breaking over brown rocks, shown in black and white, as a duotone or as a halftone of dots.
+  caption: The defaults give black and white. Pick color and background, switch the style to halftone, or set reveal to bring the color back.
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Room cards in the brand's colors
+
+Photos from different shoots look like one set once they share two colors. Give every card the brand's ink and paper, and `reveal="fade"` brings the real color back under the pointer, so the reader still sees what the room looks like before booking it.
+
+<Example id="effects/tone/rooms" description="Three hotel room photos in navy and cream that turn back to color under the pointer." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### Light dots on a dark site
+
+On a dark page, make `color` the light one: the dots are then light on a dark ground and grow in the highlights, like a screen print on black paper. A lineup of acts photographed by different people reads as one poster.
+
+<Example id="effects/tone/stages" description="Two instrument photos as light blue halftone dots on dark navy, as on a festival lineup." aspect="16 / 10" show={['html']} controls={[]} variants={[]} />
+
+### Team photos that turn to color on phones
+
+`fade` and `spot` need a pointer that hovers, so on a phone the photos would stay toned. `reveal="view"` brings the color back while a photo crosses the middle half of the viewport, as the reader scrolls a team page.
+
+```html
+<img
+  src="/team/leo.avif"
+  data-dio="tone"
+  data-dio-color="#1d2a3a"
+  data-dio-background="#f4e3c3"
+  data-dio-reveal="view"
+/>
+```
+
+### The same look without WebGL
+
+Before the engine loads, and on devices without WebGL, the photo shows in color. A CSS filter gives a close black and white for the default look; the copy draws over it once it runs.
+
+```css
+img[data-dio~="tone"] {
+  filter: grayscale(1);
+}
+```
+
+## Notes
+
+The tone changes how a photo looks, not what it says: its `alt` stays the same. Do not use it on pictures that carry information in their color, such as charts, maps or the color choices of a product.
+
+For halftone, keep `cell` at 4 px or more. Smaller dots fall between the pixels of a standard screen and show a moiré pattern.
+
+`style` and `reveal` rebuild the effect; the colors, `strength` and the grid change live, so a theme switch can write `color` and `background` from code.

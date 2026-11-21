@@ -1,0 +1,52 @@
+/* The list's middle is at 40 + 150 px, the column's at 380 + 140 px: offset 330 0. */
+.studio {
+  display: grid;
+  grid-template-columns: 300px 280px;
+  gap: 40px;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 40px;
+}
+.studio .names {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.studio .names li {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.studio .names li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+.studio .names a {
+  font: 600 1.6rem / 1.2 var(--font-text);
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+.studio .names a:hover,
+.studio .names a:focus-visible {
+  color: var(--link);
+}
+.studio .preview-column {
+  display: grid;
+  place-items: center;
+  height: 224px;
+  border: 1px dashed var(--border-strong);
+  font: 400 0.8rem var(--font-mono);
+  color: var(--text-muted);
+}
+/* Narrow screens: the list alone. Touch screens never load the effect anyway. */
+@media (max-width: 720px) {
+  .studio {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 8%;
+  }
+  .studio .preview-column {
+    display: none;
+  }
+  .studio .names a {
+    font-size: 1.05rem;
+  }
+}

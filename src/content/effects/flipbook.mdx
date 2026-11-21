@@ -1,0 +1,94 @@
+---
+effect: flipbook
+example:
+  description: A six-page dinner menu as a book with a cover; a click on a page turns it and the paper bends around a fold.
+  aspect: 16 / 10
+  controls: [duration, curl, shade, cover, click, swipe]
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A photo album with stiff pages
+
+The `flat` motion swings each page about the spine without bending it, like a board book or a layflat album. With `cover` set to false the first two pictures open as a spread instead of a closed book on its cover.
+
+<Example id="effects/flipbook/album" description="Four cyanotype plates of seaweed as an album; each page swings flat about the spine." aspect="16 / 10" show={['html']} controls={['duration', 'shade']} variants={[]} />
+
+### A page counter and a text version
+
+Pictures of pages are neither searched nor translated, and a screen reader reads only their alt text. Put the menu as text next to the book, and a counter that follows `dio:index`, whose `index` is the first page of the spread on screen.
+
+```html
+<section
+  class="menu"
+  data-dio="flipbook"
+  tabindex="0"
+  aria-label="Dinner menu. Click a page or use the arrow keys to turn it."
+  style="touch-action: pan-y"
+>
+  <img src="/media/menu/01.webp" />
+  <img src="/media/menu/02.webp" />
+  <img src="/media/menu/03.webp" />
+</section>
+<p>
+  <output class="pages" aria-live="polite">Cover</output>
+  ·
+  <a href="/menu.pdf">The menu as PDF</a>
+</p>
+```
+
+For a book that shows two pages, the counter reads the spread from its first page.
+
+```ts
+const menu = document.querySelector('.menu')
+const pages = document.querySelector('.pages')
+const n = menu.querySelectorAll('img').length
+
+menu.addEventListener('dio:index', (e) => {
+  const first = e.detail.index + 1
+  const last = Math.min(first + 1, n)
+  pages.textContent =
+    first === 1
+      ? 'Cover'
+      : first === last
+        ? `Page ${first} of ${n}`
+        : `Pages ${first} and ${last} of ${n}`
+})
+```
+
+### Jump to a section
+
+Set `index` to a page and the book turns to the spread that holds it, so a row of links works as a table of contents. Pages count from 0: in the menu above, page 3 is the mains.
+
+```html
+<nav class="sections" aria-label="Menu sections">
+  <button type="button" data-page="1">To begin</button>
+  <button type="button" data-page="3">Mains</button>
+  <button type="button" data-page="5">Wine</button>
+</nav>
+```
+
+```ts
+const menu = document.querySelector('.menu')
+
+document.querySelector('.sections').addEventListener('click', (e) => {
+  const page = e.target.closest('button')?.dataset.page
+  if (page)
+    app.effects.get(menu, 'flipbook')?.set({ index: Number(page) })
+})
+```
+
+## Notes
+
+The images stay in the page in their order, so a screen reader reads every page's alt text, and without WebGL the pages are the strip you styled. With `tabindex="0"` on the container the book takes focus and turns with the arrow keys, PageUp, PageDown, Home and End. Make the container a `<section>` with an `aria-label` that names the book and says how to turn it.
+
+With `cover`, the default, the book starts closed: the cover stands alone in the middle of the box, and a click anywhere on it opens the book. As the cover turns, the book slides so the open spread is centered on its spine. With an even number of pages the last one is the back cover, and the book closed on it stands in the middle again. Under reduced motion the book moves at once and the pages crossfade.
+
+Give every page the same proportions: the book takes them from the first page and fits the spread inside the container's box. On a box narrower than one and a half pages, `mode="auto"` shows one page at a time.
+
+Up to six pages are textures at a time, decoded at most at `resolution` on the long side. Pages of 1200 to 1600 px are sharp in a book that fills a laptop screen.
+
+`mode`, `motion`, `items` and `resolution` rebuild the effect when they change. Set them in the markup rather than switching them while a reader turns pages.

@@ -1,0 +1,70 @@
+---
+title: Ink cover
+label: Ink cover
+description: A page transition where a blot of ink spreads from the clicked link over the page, then recedes or opens a hole to show the new page.
+section: effects
+order: 4
+related: [guides/page-covers, effects/cover-curtain, effects/cover-pixel, guides/routers]
+---
+
+A blot of ink spreads from the link the visitor clicked, its edge uneven and drops running ahead of it, until it covers the page. After the router has swapped the page, the ink draws back into where it came from. It suits portfolios, editorial sites, galleries and food brands.
+
+![Ink spreading from the Studio link in the header over the page of a studio site, a drop ahead of its edge](/media/covers/ink.webp)
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({ transitions: { cover: 'ink' } })
+```
+
+The [page covers guide](/docs/guides/page-covers) explains how the cover works with your router, the timing options and what visitors with reduced motion see.
+
+## Recipes
+
+### Receding ink
+
+By default the ink recedes into the point it came from, and the new page shows from the far corners in.
+
+![Ink drawing back toward the header link and showing the new page around it](/media/covers/ink-recede.webp)
+
+### A hole in the ink
+
+`motion: 'hole'` keeps the ink on the page and opens a hole where it started. The new page grows out of the click.
+
+```ts
+start({
+  transitions: {
+    cover: { name: 'ink', motion: 'hole', color: '#c1121f' },
+  },
+})
+```
+
+![A hole with an uneven edge opening in red ink and showing a studio page](/media/covers/ink-hole.webp)
+
+### A calm edge
+
+`wobble` sets how uneven the edge is. At 0 the ink is a clean circle without drops.
+
+```ts
+start({
+  transitions: {
+    cover: { name: 'ink', wobble: 0.1, color: '#264653' },
+  },
+})
+```
+
+## Options
+
+| Option   | Default     | What it does |
+| -------- | ----------- | ------------ |
+| `motion` | `'recede'`  | How the new page shows: the ink `'recede'`s, or a `'hole'` opens |
+| `color`  | `'#0e0e10'` | Any CSS color |
+| `wobble` | `0.5`       | 0 to 1, how uneven the edge is, with drops ahead of it |
+| `shade`  | `0.3`       | 0 to 1, a darker rim along the edge |
+| `seed`   | `1`         | Another number gives another edge and other drops |
+
+`duration`, `ease`, `wait`, `timeout`, `links` and `arrive` are shared by every cover and described in the [guide](/docs/guides/page-covers#options).
+
+## Notes
+
+A keyboard click starts the ink at the middle of the focused link. Back, Forward and a router call in your code have no click, so the ink starts in the middle of the screen.

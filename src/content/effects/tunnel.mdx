@@ -1,0 +1,66 @@
+---
+effect: tunnel
+example:
+  description: A product launch story in five lines that wait one behind another down a dark corridor, flown through as you scroll.
+  caption: Scroll the page. The frame holds still while the camera flies down the corridor, and the last line stays as text at the end. Switch the style, or move the sliders.
+  aspect: 16 / 9
+  scroll: 300vh
+  variants: [style]
+related:
+  - concepts/scroll
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A launch story told on a pinned section
+
+Give the section one screen of height per phrase: five phrases take `500vh`, so the stage stays pinned for four screens of scroll and each phrase gets a screen to arrive, hold and pass. Put the effect on a block that fills the sticky stage, with the phrases as its children, and keep the background on the stage: while it draws, the effect's own element is hidden, background included.
+
+```html
+<section class="launch" data-dio-section style="height: 500vh">
+  <div class="stage" style="position: sticky; top: 0; height: 100vh; background: #08090d">
+    <div class="story" data-dio="tunnel" style="height: 100%">
+      <p>Every launch starts in the dark.</p>
+      <p>A sketch on a napkin.</p>
+      <p>A thousand late nights.</p>
+      <p>One stubborn idea.</p>
+      <p>Now it ships.</p>
+    </div>
+  </div>
+</section>
+```
+
+Lay the phrases out as a plain list, one under another, centered in the stage. That is what visitors see under reduced motion and without WebGL, and what screen readers and search read in every case. With the effect running they stack in one spot: the camera slows down on each phrase so it can be read, and at the end of the section the last one stays as plain text.
+
+### A calm zoom for a hotel or wellness intro
+
+`style="zoom"` drops the corridor and flies straight through the phrases, each centered behind the one before. A light, thin typeface and a bigger `blur` make the passing line melt away before the next one settles.
+
+<Example id="effects/tunnel/zoom" description="Four short lines on warm paper, Slow down, Breathe in, Look closer, Stay a while, flown through one after another as you scroll." aspect="16 / 9" scroll="200vh" show={['html']} controls={['blur', 'depth', 'perspective']} variants={[]} />
+
+### Event details on a spiral
+
+`style="spiral"` strings the phrases along a helix that turns as the camera travels, so each line swings round the axis and rights itself as it arrives. `twist` sets how far the helix turns from one phrase to the next. Short phrases, such as a date, a time and a place, read best this way.
+
+```html
+<div class="details" data-dio="tunnel" data-dio-style="spiral" data-dio-twist="70">
+  <p>Friday</p>
+  <p>23:00</p>
+  <p>Warehouse 9</p>
+  <p>Bring friends</p>
+</div>
+```
+
+## Notes
+
+The phrases are flat cards in real depth, seen through a camera an element's height in front of them, divided by `perspective`. They take their colors from the text, one color per phrase if the page sets them, and the guide lines take the element's color; `color` paints both. Under reduced motion the effect does not run at all.
+
+A fast scroll streaks the letters away from the middle, the way the camera's speed would blur them. The streaks fade with the scroll speed, and the page draws no frames at rest.
+
+Without a pinned section around it, the scroll through the viewport drives the camera: it starts as the element's middle passes 85% of the viewport height and reaches the last phrase at 25%.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does; such phrases stay as they are, with a warning in development.
+
+`style` rebuilds the effect; `depth`, `perspective`, `fade`, `blur`, `streak`, `twist`, `lines` and `color` change live.

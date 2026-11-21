@@ -1,0 +1,30 @@
+---
+interface Link {
+  readonly url: string
+  readonly label: string
+}
+interface Props {
+  readonly prev?: Link
+  readonly next?: Link
+}
+const { prev, next } = Astro.props
+---
+
+{
+  (prev || next) && (
+    <nav class="pn" aria-label="Previous and next pages">
+      {prev && (
+        <a href={prev.url} rel="prev">
+          <span>Previous</span>
+          {prev.label}
+        </a>
+      )}
+      {next && (
+        <a class="next" href={next.url} rel="next">
+          <span>Next</span>
+          {next.label}
+        </a>
+      )}
+    </nav>
+  )
+}

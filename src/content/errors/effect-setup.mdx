@@ -1,0 +1,48 @@
+---
+code: EFFECT_SETUP
+level: error
+message: '{message}'
+summary: The setup function of an effect threw or rejected, so that instance failed and its element shows plain DOM.
+---
+
+The message is the message of the error that `setup` threw, and that error is the `cause`. Other effects on the same element keep running.
+
+## Why it happens
+
+- `setup` throws, or the promise it returns rejects. An error that is not an `EffectError` is wrapped as `EFFECT_SETUP`. An `EffectError` thrown inside setup keeps its own code, such as `EFFECT_TARGET` from `ctx.map`.
+- Setup awaits `ctx.texture()` or `ctx.model()` and the load fails. The asset error (`ASSET_LOAD`, `ASSET_PARSE`) is reported as well, under `asset:<url>`.
+- `ctx.texture()` or `ctx.model()` runs in an app without the `assets` plugin. The message then reads `"{effect}" loads {url}: it needs the assets plugin`. `start()` includes `assets`, so this happens only with `createApp`.
+- An async setup reads `ctx.surface`, `ctx.map` or calls `ctx.place()` after the instance was disposed. The message then reads `instance disposed`. Inside an aborted setup this is expected and not reported.
+- In `@dioramajs/glsl`, a texture source or `applyShader` fails (`texture {url} failed`, `applyShader failed`), or `shaderNode` names a param the effect does not declare.
+
+When setup fails, its scope closes, its surface transforms are removed and the instance becomes `failed`. The element gets `data-dio-state="failed"` once every effect on it has failed.
+
+## How to fix
+
+<Steps>
+
+1. Expand the reported error in the console and read the `cause`: its stack points into your setup.
+2. Fix the cause, or catch the failure that the effect can live without.
+3. Start the instance again. A failed instance does not retry by itself: remove its token from `data-dio` and add it back, or reload. In development, HMR replaces the definition and the instance retries.
+
+</Steps>
+
+An optional model can fail without failing the effect. The asset error still prints under `asset:<url>`:
+
+```ts
+import { effect } from 'dioramajs'
+
+export default effect(async ({ model, place }) => {
+  const lamp = await model('/models/lamp.glb').catch(() => undefined)
+  if (lamp) place(lamp, { fit: 'contain' })
+})
+```
+
+## Related
+
+- `EFFECT_UPDATE`
+- `EFFECT_TARGET`
+- `ASSET_LOAD`
+- `ctx.model()`
+- `ctx.texture()`
+- `data-dio-state`

@@ -1,0 +1,102 @@
+---
+effect: compare
+example:
+  description: Two renders of one hotel room, before and after its renovation, split by a line with a round handle that you drag.
+  aspect: 16 / 10
+  caption: Drag the line, or tab to the box and press the arrow keys. Switch mode, by and direction for the other ways to compare; by scroll needs a pinned section, as in the recipe below.
+related:
+  - learn/every-visitor
+---
+
+## Recipes
+
+### Give the box a static split
+
+`compare` reads two images and a range inside a container, and the site's CSS lays them out. Stack the images in one grid cell and clip the second at the middle: that is the split readers see before the engine loads and without WebGL, and it matches the effect at rest. The range stays focusable for keyboards and screen readers.
+
+```css
+.compare {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 10;
+}
+.compare > img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.compare > img + img {
+  clip-path: inset(0 0 0 50%);
+}
+.compare > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+/* Only once the effect is known to be off: before it loads,
+   Tab must still reach the range. */
+.compare[data-dio-state="off"] > input {
+  display: none;
+}
+```
+
+### Retouching under a lens
+
+A photo lab or an upscaling service shows its work best in a lens: the reader moves a circle over the original and sees the processed version inside it, on the details they care about. `mode="lens"` with `by="hover"` follows the pointer without a press.
+
+<Example id="effects/compare/lens" description="A 1939 slide of a road through a copper basin, flat and faded, with a lens at the pointer that shows the same slide in deeper color." show={['html']} controls={['radius', 'softness', 'thickness']} variants={[]} />
+
+### A renovation that opens as you scroll
+
+With `by="scroll"` the line crosses the box while a pinned section scrolls past, from `start` to `end` of its progress. Mark the section with `data-dio-section` and make its stage sticky; here the box pins under the header for a screen and a half of scroll.
+
+<Example id="effects/compare/scroll" description="Room 7 before and after its renovation, with the line sweeping from right to left while the section scrolls." aspect="16 / 10" scroll="150vh" show={['html']} controls={['start', 'end']} variants={[]} />
+
+```html
+<section
+  class="renovation"
+  data-dio-section
+  style="height: 250vh"
+>
+  <div style="position: sticky; top: 0; height: 100vh">
+    <figure
+      class="compare"
+      data-dio="compare"
+      data-dio-by="scroll"
+    >…</figure>
+  </div>
+</section>
+```
+
+### Then and now from the same spot
+
+When both photos were taken from the same place, such as an archive print and today's view of a harbor, a line would cut through the same building twice. `mode="fade"` crossfades the whole box instead, from the second image at position 0 to the first at 1.
+
+```html
+<figure
+  class="compare"
+  data-dio="compare"
+  data-dio-mode="fade"
+  style="touch-action: pan-y"
+>
+  <img src="/img/harbor-1910.avif" />
+  <img src="/img/harbor-today.avif" />
+  <input
+    type="range"
+    min="0"
+    max="100"
+    value="50"
+    aria-label="The harbor in 1910 and today"
+  />
+</figure>
+```
+
+## Notes
+
+Keep captions such as Before and After outside the container or above the canvas with a `z-index` of 2: inside the box the copy draws over them.
+
+Write `touch-action: pan-y` on the container for a vertical line, `pan-x` for `direction="y"`, so a finger can drag the line while the page still scrolls the other way. Without it a tap still moves the line to the point.
+
+Each image keeps its own `object-fit` and `object-position`, so two photos of one scene line up when they share an aspect ratio and framing. Nothing draws until both have loaded: keep the second file as light as the first.

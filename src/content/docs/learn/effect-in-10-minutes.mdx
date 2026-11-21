@@ -1,0 +1,268 @@
+---
+title: Your own effect in 10 minutes
+label: Your own effect in 10 minutes
+description: Write a light that follows the pointer over a product photo, with smoothing, a fade, touch support, reduced motion and a color set in markup.
+section: learn
+order: 8
+template: article
+---
+
+In this tutorial you write `lamp`, an effect for a product page. While the pointer is over the photo, the photo dims and a soft light follows the pointer, as if someone moved a lamp over the product. By the end the light trails the pointer smoothly, fades in and out, follows a finger without blocking the scroll, keeps still for visitors who prefer reduced motion and takes its color from markup. The finished file is about 40 lines long.
+
+You need a site with Diorama and an effects folder; [Install with Vite](/docs/start/vite) or the page for your framework sets both up. The steps use `src/effects/`, which is `app/effects/` in Nuxt.
+
+## 1. Light the photo at the pointer
+
+An effect is a file in the effects folder whose default export is `effect()`. The file name is the effect name: `src/effects/lamp.ts` is `lamp`. The first argument of `effect()` holds the params and their defaults. The second is the setup function, which runs once per element and describes how its picture changes.
+
+```ts title="src/effects/lamp.ts" twoslash
+import { effect } from 'dioramajs'
+import { mix, smoothstep, vec3, vec4 } from 'three/tsl'
+
+export default effect(
+  { radius: 160, dim: 0.5, strength: 1.5, color: '#fff1dc' },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      // Distance to the pointer in CSS px, so the light stays round.
+      const distance = box.sub(u.pointer).mul(u.size).length()
+      const lit = smoothstep(0, u.radius, distance).oneMinus()
+      // The rest of the photo dims, the lamp lights in its color.
+      const lamp = u.color.mul(u.strength)
+      const light = mix(vec3(u.dim.oneMinus()), lamp, lit)
+      return vec4(color.rgb.mul(mix(vec3(1), light, u.hover)), color.a)
+    })
+  },
+)
+```
+
+`surface.color()` takes a function that gets the color of each pixel of the photo and returns a new one. It is written in TSL, the shading language of three.js, and runs on the GPU. `u` holds the params and the built-in inputs as values the GPU reads.
+
+- `{ box }`, the second argument of the color function, holds the position of the pixel, 0 to 1 across and from bottom to top. `u.pointer` is the pointer in the same units and `u.size` is the size of the photo in CSS px, so `distance` is in px.
+- `lit` is 1 under the pointer and falls to 0 at `radius` px from it.
+- `light` is what the pixel is multiplied by: `1 - dim` far from the pointer, `u.color` times `u.strength` under it. A strength above 1 makes the lit part brighter than the photo, so even a black camera body catches the light.
+- `u.hover` rises from 0 to 1 while the pointer is over the photo and falls back when it leaves, so the light fades in and out.
+
+Put the effect on the photo with `data-dio`.
+
+```html title="product.html"
+<img
+  src="/products/camera.jpg"
+  alt="A black rangefinder camera with worn brass edges"
+  width="900"
+  height="600"
+  data-dio="lamp"
+/>
+```
+
+<Example id="lamp-pointer" description="A camera on a pale backdrop that dims while the pointer is over it, except for a warm circle at the pointer." controls={[]} />
+
+Move the pointer over the photo. The light works, but it is glued to the pointer and jerks with every move of the mouse. Two other problems are harder to see. Under reduced motion `u.hover` stays at 0, so those visitors never see the light. And reading `u.pointer` makes every pointer move anywhere on the page draw a frame while the photo is on screen.
+
+## 2. Ease the lamp with `chase` and `approach`
+
+Smoothing needs a value that carries over from one frame to the next, which is a job for JavaScript. Setup can return an update function: it runs in every frame Diorama draws while the photo is on screen, gets the inputs as numbers and writes uniforms, the values the shader reads.
+
+```ts title="src/effects/lamp.ts" twoslash {2-4,6-8,13-15,17,21,24-35}
+import { effect } from 'dioramajs'
+import { approach, chase } from 'dioramajs/kit'
+import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
+import { Vector2 } from 'three/webgpu'
+
+// Seconds to cover most of the way to the pointer, and of a fade.
+const LAG = 0.12
+const FADE = 0.3
+
+export default effect(
+  { radius: 160, dim: 0.5, strength: 1.5, color: '#fff1dc' },
+  ({ surface, u }) => {
+    // The lamp in CSS px from the bottom left, and how far it is on.
+    const at = uniform(new Vector2())
+    const on = uniform(0)
+    surface.color((color, { box }) => {
+      const distance = box.mul(u.size).sub(at).length()
+      const lit = smoothstep(0, u.radius, distance).oneMinus()
+      const lamp = u.color.mul(u.strength)
+      const light = mix(vec3(u.dim.oneMinus()), lamp, lit)
+      return vec4(color.rgb.mul(mix(vec3(1), light, on)), color.a)
+    })
+
+    const aim = { x: 0, y: 0 }
+    return (input) => {
+      aim.x = input.pointer.x * input.width
+      aim.y = input.pointer.y * input.height
+      const target = input.over ? 1 : 0
+      // Off, the lamp jumps to the pointer instead of sliding in.
+      const lag = on.value === 0 ? 0 : LAG
+      const moving = chase(at.value, aim, lag, input.delta, 0.5)
+      on.value = approach(on.value, target, input.delta / FADE)
+      // true asks for the next frame, until the lamp settles.
+      return moving || on.value !== target
+    }
+  },
+)
+```
+
+- `at` is the lamp's position in px from the bottom left of the photo, and `on` is how far the lamp is on, from 0 to 1. The shader reads them in place of `u.pointer` and `u.hover`.
+- `input.pointer` is the pointer in the same units as `u.pointer`, and `input.over` is true while the pointer is over the photo.
+- `chase()` moves `at.value` toward `aim` and covers most of the way in `LAG` seconds at any frame rate. Within 0.5 px it lands on `aim` and returns `false`. The 0.5 is optional, as in `damp()`, but without it the lamp lands only on the exact spot, after seconds of frames that change nothing you can see. With 0 seconds it jumps, which the lamp does while it is off, so it lights up at the pointer instead of sliding in from where it went out.
+- `approach()` moves `on` toward its target by `input.delta / FADE` per frame, so a fade takes 0.3 seconds at any frame rate.
+
+`chase()` and `approach()` come from `dioramajs/kit`, the helpers the built-in effects are written with.
+
+The update returns whether the lamp still moves. Diorama draws a frame only when something asks for one, and `true` from the update asks for the next frame. While the lamp moves or fades, each frame asks for the next; once it settles, the update returns `false` and the frames stop. The answer also takes the place of the clocks: reading `input.delta` counts as reading a clock, and an update that reads it and returns nothing draws every frame while the photo is on screen. Return `true` or `false` on every path of the update.
+
+<Example id="lamp-ease" description="The camera photo with a warm light that trails the pointer and fades in and out with it." controls={[]} highlight={{ effect: '2-4,6-8,13-15,17,21,24-35' }} />
+
+The light trails the pointer a little and catches up when the pointer stops. It fades in where the pointer enters and fades out where it leaves.
+
+## 3. Follow a finger with `follow`
+
+`input.pointer` and `input.over` describe one pointer for the whole page. `follow()` from `dioramajs/kit` listens to this photo only, the way a light wants it:
+
+- a mouse or a pen while it is over the photo;
+- the first finger while it is pressed on the photo. When the finger starts a scroll, the browser takes it with `pointercancel`, the lamp goes out and the page scrolls as usual.
+
+```ts title="src/effects/lamp.ts" twoslash {2,12-13,25-26,28,31}
+import { effect } from 'dioramajs'
+import { approach, chase, follow } from 'dioramajs/kit'
+import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
+import { Vector2 } from 'three/webgpu'
+
+// Seconds to cover most of the way to the pointer, and of a fade.
+const LAG = 0.12
+const FADE = 0.3
+
+export default effect(
+  { radius: 160, dim: 0.5, strength: 1.5, color: '#fff1dc' },
+  (ctx) => {
+    const { surface, u } = ctx
+    // The lamp in CSS px from the bottom left, and how far it is on.
+    const at = uniform(new Vector2())
+    const on = uniform(0)
+    surface.color((color, { box }) => {
+      const distance = box.mul(u.size).sub(at).length()
+      const lit = smoothstep(0, u.radius, distance).oneMinus()
+      const lamp = u.color.mul(u.strength)
+      const light = mix(vec3(u.dim.oneMinus()), lamp, lit)
+      return vec4(color.rgb.mul(mix(vec3(1), light, on)), color.a)
+    })
+
+    // A mouse over the photo or a finger pressed on it.
+    const pointer = follow(ctx)
+    return (input) => {
+      const target = pointer.over ? 1 : 0
+      // Off, the lamp jumps to the pointer instead of sliding in.
+      const lag = on.value === 0 ? 0 : LAG
+      const aim = pointer.box(input)
+      const moving = chase(at.value, aim, lag, input.delta, 0.5)
+      on.value = approach(on.value, target, input.delta / FADE)
+      // true asks for the next frame, until the lamp settles.
+      return moving || on.value !== target
+    }
+  },
+)
+```
+
+`follow()` takes the context and returns the pointer it follows. `pointer.over` is true while a mouse is over the photo or a finger is pressed on it. `pointer.box(input)` is its position in px from the bottom left of the photo, the units of `at`. It is measured from the box of this frame, so the lamp stays under a still pointer while the page scrolls. Each move asks for a frame by itself.
+
+The setup function now takes the whole context as `ctx`, because `follow()` needs its element, its abort signal and `invalidate()`. The listeners go when the effect leaves the element: the signal aborts and removes them. The effect no longer reads the page's pointer, so a pointer that moves elsewhere on the page draws nothing for this photo.
+
+A pressed finger lights the photo where it touches, and a drag scrolls the page. To let a finger drag the lamp across the photo instead, add `style="touch-action: none"` to the image. The page then does not scroll from a drag that starts on the photo.
+
+## 4. Respect reduced motion
+
+`input.reducedMotion` is true when the visitor asked the system for less motion. The light is not motion, but the trail and the fade are. With the setting on, the lamp jumps to the pointer and turns on and off at once.
+
+```ts title="src/effects/lamp.ts" twoslash {29-31,34-35}
+import { effect } from 'dioramajs'
+import { approach, chase, follow } from 'dioramajs/kit'
+import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
+import { Vector2 } from 'three/webgpu'
+
+// Seconds to cover most of the way to the pointer, and of a fade.
+const LAG = 0.12
+const FADE = 0.3
+
+export default effect(
+  { radius: 160, dim: 0.5, strength: 1.5, color: '#fff1dc' },
+  (ctx) => {
+    const { surface, u } = ctx
+    // The lamp in CSS px from the bottom left, and how far it is on.
+    const at = uniform(new Vector2())
+    const on = uniform(0)
+    surface.color((color, { box }) => {
+      const distance = box.mul(u.size).sub(at).length()
+      const lit = smoothstep(0, u.radius, distance).oneMinus()
+      const lamp = u.color.mul(u.strength)
+      const light = mix(vec3(u.dim.oneMinus()), lamp, lit)
+      return vec4(color.rgb.mul(mix(vec3(1), light, on)), color.a)
+    })
+
+    // A mouse over the photo or a finger pressed on it.
+    const pointer = follow(ctx)
+    return (input) => {
+      const target = pointer.over ? 1 : 0
+      // Off, or under reduced motion, the lamp jumps to the pointer.
+      const still = input.reducedMotion
+      const lag = still || on.value === 0 ? 0 : LAG
+      const aim = pointer.box(input)
+      const moving = chase(at.value, aim, lag, input.delta, 0.5)
+      const step = still ? 1 : input.delta / FADE
+      on.value = approach(on.value, target, step)
+      // true asks for the next frame, until the lamp settles.
+      return moving || on.value !== target
+    }
+  },
+)
+```
+
+`chase()` with 0 seconds lands at once, and `approach()` with a step of 1 reaches 0 or 1 in one frame, so the update returns `false` in the same frame. Diorama reads the setting live, so the lamp changes as soon as the visitor turns it on. To try it, emulate `prefers-reduced-motion: reduce` in the Rendering panel of DevTools.
+
+## 5. Set the color in markup
+
+The lamp's color is a color param because its default, `'#fff1dc'`, is a CSS color. Every param is also an attribute, `data-dio-` plus its name, so each page can set its own lamp without touching the file. An amber light suits the brass of this camera.
+
+```html title="product.html" {7}
+<img
+  src="/products/camera.jpg"
+  alt="A black rangefinder camera with worn brass edges"
+  width="900"
+  height="600"
+  data-dio="lamp"
+  data-dio-color="#ffc27a"
+/>
+```
+
+<Example id="lamp" description="The camera photo with the finished lamp in amber, with sliders for radius, dim and strength and a color picker for the light." highlight={{ html: '7' }} />
+
+Move the pointer over the photo, then drag the sliders. All four params are uniforms, so a new value draws one frame and compiles nothing.
+
+A color param also takes a custom property of the site, such as `data-dio-color="var(--brand)"`, and `currentColor`. Both are read from the photo's computed style, and again in every frame the lamp draws, so a theme switch shows in the next one.
+
+## What it costs
+
+- The file is its own chunk. It loads with the engine, and only when an element with `lamp` nears the viewport. The helpers from `dioramajs/kit` load with it, never with the script every page runs.
+- For each pixel the GPU reads the photo once, as it does without the effect, and does a few multiplications.
+- At rest the effect draws nothing. A pointer moving over the photo draws one frame per move, the trail and the fade draw for a fraction of a second after it, and then the frames stop. [Frames and time](/docs/learn/frames) shows how to count them.
+- Where the engine does not run, such as a browser without WebGPU and WebGL 2, the visitor sees the plain photo.
+
+## Compare with the built-in
+
+Diorama ships the same idea as [`spotlight`](/docs/effects/spotlight), with a softness param, a resting dim, a blur style and a reveal style that shows a second picture in the light. Copy its source into your effects folder to read it next to `lamp`.
+
+<Run command="dioramajs add spotlight" />
+
+```sh frame="terminal"
+$ npx dioramajs add spotlight
+wrote src/effects/_media/slots.ts
+wrote src/effects/spotlight.ts, which replaces the built-in "spotlight"
+```
+
+It follows the pointer with `follow()`, `chase()` and `approach()` as `lamp` does, shapes the fade with `ease()` and returns from its update whether the light still moves. The copy replaces the built-in on your site; `--as` gives it another name and leaves the built-in in place.
+
+## Next steps
+
+- [Write an effect](/docs/guides/custom-effect): the rest of the effect API, from `surface.uv()` to your own three.js objects.
+- [How a frame is decided](/docs/concepts/frames): what asks for a frame and when the loop sleeps.
+- [Inputs](/docs/api/inputs): every value in `u` and `input`.
+- [`dioramajs/kit`](/docs/api/diorama-kit): the other helpers, such as `damp()`, `palette()` and `inView()`.

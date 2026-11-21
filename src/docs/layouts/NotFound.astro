@@ -1,0 +1,53 @@
+---
+import Sidebar from '../components/Sidebar.astro'
+import Base from './Base.astro'
+---
+
+<Base title="Page not found" description="This address has no page. Results for its words are below." noindex>
+  <div class="dl">
+    <Sidebar current="" />
+    <main id="content" class="dl-main wide">
+      <article class="prose">
+        <h1>Page not found</h1>
+        <p class="lede">This address has no page. Here is what the docs have for its words.</p>
+        <doc-search-page class="sr-results">
+          <p class="kicker" data-status aria-live="polite"></p>
+          <div data-results></div>
+        </doc-search-page>
+        <p>Or go to <a href="/docs">the docs home</a> and press <kbd>/</kbd> to search.</p>
+      </article>
+    </main>
+  </div>
+</Base>
+
+<script>
+  import { DocSearchPage } from '../client/search.ts'
+
+  if (!customElements.get('doc-search-page')) customElements.define('doc-search-page', DocSearchPage)
+</script>
+
+<style is:global>
+  .sr-results .sr-item > a {
+    display: flex;
+    gap: var(--s-3);
+    padding: var(--s-2) 0;
+    text-decoration: none;
+  }
+  .sr-results .sr-text {
+    display: grid;
+  }
+  .sr-results .sr-title {
+    font-weight: 600;
+  }
+  .sr-results .sr-excerpt {
+    color: var(--text-muted);
+    font-size: 0.89em;
+  }
+  .sr-results .sr-head {
+    margin-top: var(--s-5);
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>

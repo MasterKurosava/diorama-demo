@@ -1,0 +1,16 @@
+.mq-band {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+}
+.mq-band .mq-ticker {
+  margin: 0;
+  padding: 0.18em 0;
+  overflow: hidden;
+  white-space: nowrap;
+  background: #16130f;
+  color: #f4efe6;
+  font: 800 clamp(2.4rem, 11cqi, 6.5rem) / 1 var(--font-text);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}

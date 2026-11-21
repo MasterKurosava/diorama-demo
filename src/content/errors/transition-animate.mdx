@@ -1,0 +1,49 @@
+---
+code: TRANSITION_ANIMATE
+level: error
+message: 'animate failed'
+summary: The animate function of a page transition threw or its promise rejected, so every copy landed at once.
+---
+
+The error of `animate` is the `cause`. The transition calls `finish()`, which lands every flight and ends every fade, and it still ends with `status: 'done'`.
+
+## Why it happens
+
+- `animate` throws, or the value it returns rejects. That value is usually a GSAP timeline or a promise.
+
+In development builds the same code also prints as a warning in two cases, and the transition calls `finish()` there too:
+
+- The value `animate` returned did not settle within `timeout`, 10 s by default: `animate did not settle in {seconds} s`.
+- Every flight has landed and nothing was written to `flights`, `leaving` or `entering` for 2 frames, but the value never settled: `animate never settled: ended after its last write`. A killed GSAP timeline does this, since its promise never resolves.
+
+## How to fix
+
+Read the `cause` and fix the choreography. Return a value that settles: a GSAP timeline resolves when it completes, so let it complete instead of killing it.
+
+```ts
+import { gsap } from 'gsap'
+import { type App, transition } from 'dioramajs'
+
+export function go(app: App, swap: () => Promise<void>) {
+  return transition(app, swap, {
+    leave: 0.4,
+    enter: 0.6,
+    animate: ({ flights, leaving, entering }) =>
+      gsap
+        .timeline()
+        .to(leaving, { presence: 0, duration: 0.4 }, 0)
+        .to(
+          flights,
+          { progress: 1, duration: 1.1, ease: 'expo.inOut' },
+          0.1,
+        )
+        .to(entering, { presence: 1, duration: 0.6 }, 0.7),
+  })
+}
+```
+
+## Related
+
+- `TRANSITION_TIMEOUT`
+- `TRANSITION_SWAP`
+- `transition()`

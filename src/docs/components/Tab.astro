@@ -1,0 +1,10 @@
+---
+interface Props {
+  readonly label: string
+  /** Value within the sync group; required inside synced Tabs. */
+  readonly value?: string
+}
+const { label, value } = Astro.props
+---
+
+<div role="tabpanel" data-label={label} data-value={value ?? label.toLowerCase()} tabindex="0"><slot /></div>

@@ -1,0 +1,81 @@
+---
+effect: stars
+example:
+  description: An event card for a public night at an observatory, with a twinkling starfield and the odd shooting star beside the date and times.
+  aspect: 16 / 8
+  caption: Move the pointer over the sky to see the nearer stars lean, or switch motion to warp.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A night sky behind a hero
+
+Put the stars on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`, so the heading sits over the sky. The element's CSS background is what visitors see before the engine draws and without WebGL, so give it the same color as `background` and a few fixed dots.
+
+```html
+<header class="hero">
+  <div
+    class="hero-sky"
+    aria-hidden="true"
+    data-dio="stars"
+    data-dio-background="#04060f"
+  ></div>
+  <h1>Orbit, launch week</h1>
+  <a class="cta" href="/keynote">Watch the keynote</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+}
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(1px 1px at 30% 40%, #fff 50%, transparent), #04060f;
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+### A warp for a countdown or a launch
+
+`motion="warp"` flies through the field: stars rush out of the center and stretch into trails. More stars and a higher `speed` make it feel faster; a fast scroll speeds it up further, by `warp`.
+
+<Example id="effects/stars/warp" description="A dark strip where stars rush out from the center and stretch into trails." aspect="16 / 5" show={['html']} controls={['count', 'speed', 'scale']} variants={[]} />
+
+### A calm sky for a long page
+
+For a background that sits behind reading, turn the shooting stars off, lower `twinkle` and keep `depth` small. With `motion="still"` the stars draw no frames at all and only lean as the page scrolls.
+
+```html
+<div
+  class="night"
+  aria-hidden="true"
+  data-dio="stars"
+  data-dio-motion="still"
+  data-dio-shooting="0"
+  data-dio-depth="0.3"
+  data-dio-background="#0b1026"
+></div>
+```
+
+## Notes
+
+The docs canvas sits above the page, so the examples here keep text beside the stars instead of over them. Put text over the sky with `canvas: 'behind'`, as in the first recipe.
+
+Every star is one quad of a single instanced draw, so `count` changes live without a rebuild. Nearer stars are larger, brighter, drift faster and lean further with the pointer, and they move less with the scroll than far ones, which gives the sky its depth.
+
+It draws up to `fps` frames a second while it is on screen and none off screen; the pointer and scroll draw at full rate while they move the stars. On the low tier it draws at most 300 stars at 24 frames a second.
+
+`motion` and `seed` rebuild the effect when they change. The colors, count, speeds and rates change live.

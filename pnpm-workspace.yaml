@@ -1,0 +1,20 @@
+# Three weeks. three and @types/three 0.187.0 are younger, but the library needs r187.
+minimumReleaseAge: 30240
+minimumReleaseAgeExclude:
+  - three
+  - "@types/three"
+overrides:
+  rolldown: 1.2.15
+  expressive-code-twoslash>expressive-code: 0.44.3
+  expressive-code-twoslash>@expressive-code/core: 0.44.3
+peerDependencyRules:
+  allowedVersions:
+    expressive-code-twoslash>typescript: "6"
+    expressive-code-twoslash>expressive-code: "0.44"
+    expressive-code-twoslash>@expressive-code/core: "0.44"
+    "@ec-ts/twoslash>typescript": "6"
+    "@ec-ts/twoslash-vue>typescript": "6"
+    "@ec-ts/vfs>typescript": "6"
+allowBuilds:
+  esbuild: false
+  sharp: false

@@ -1,0 +1,58 @@
+---
+effect: hotspots
+example:
+  description: "A rangefinder camera with four callouts whose leader lines follow their features as it turns; the ones behind it fade."
+  aspect: 3 / 2
+  caption: "Drag the camera, or press Tab to move through the callouts. Each one turns the camera to its feature: the eyepiece is on the back. The ones behind it fade."
+  controls: [face]
+  variants: [occlude]
+related:
+  - guides/models
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Put the labels next to the model
+
+`hotspots` goes on an element that holds both the `model` element and the labels. Not on the model element itself: once the model draws, its element is hidden with everything inside it. The labels can sit in a list, with any markup, and stay buttons or links the page styles and handles.
+
+```html
+<figure class="product" data-dio="hotspots">
+  <div class="viewer" data-dio="model" data-dio-src="/models/speaker.glb"><img src="/models/speaker.png" alt="Desk speaker" /></div>
+  <ul>
+    <li><button type="button" data-dio-at="Knob">Volume knob</button></li>
+    <li><button type="button" data-dio-at="0 0.12 0.072">Fabric grille</button></li>
+  </ul>
+</figure>
+```
+
+### Find a point
+
+`data-dio-at` takes either the name of a node in the file, whose center the label follows, or a point in the file's own units. To get a point, hold Alt and click the model in development: the console logs a ready `data-dio-at` for the spot under the pointer, with the name of the mesh it hit.
+
+### Labels on an exploded view
+
+Name the nodes, and the labels move with their parts as [explode](/docs/effects/explode) takes the model apart.
+
+```html
+<div class="product" data-dio="hotspots">
+  <div class="viewer" data-dio="model explode" data-dio-src="/models/speaker.glb" data-dio-mode="extras"><img src="/models/speaker.png" alt="Desk speaker" /></div>
+  <button type="button" data-dio-at="Battery">12 hour battery</button>
+  <button type="button" data-dio-at="Driver">50 mm driver</button>
+</div>
+```
+
+### Rooms and hollow shapes
+
+`occlude="normal"` hides a point that faces away from the viewer, measured from the center of the model, which suits rounded products. In a room, a building or a car interior that guess is wrong: `occlude="ray"` tests whether the model covers each point. It costs a ray test against the model for two labels per frame, and for all of them a moment after the model stops. Give a point its own facing with `data-dio-normal="x y z"` when it sits on a flat face.
+
+## Notes
+
+The labels move by `transform` only, written once per frame and only when they move; the page never lays out again for them. A label turned away gets `data-dio-away`, `opacity: 0` and no pointer events. Add `transition: opacity 0.2s` to fade it. A focused label always shows, so the focus ring never hides behind the model.
+
+The canvas draws over the page, so the labels get a `z-index` one above it. A sticky stage around them starts its own stacking context below the canvas; give it a `z-index` above the canvas (2 with the default) or the model covers the labels. In development a note names the element.
+
+Without WebGL, before the model loads and for screen readers, the labels are what they are in the markup: a list of buttons next to the poster. Write them so that list reads well.
+
+A label is centered on its point. The callouts above are CSS only: the button is the dot on the point, its `::before` draws the leader line, and a `<span>` inside is the card at the end of it. The effect lays the cards out: each label gets `data-dio-side="left"` or `"right"`, the side of the model its point is on, `--dio-reach`, how far out its card goes to clear the model while staying inside the element, and `--dio-shift`, how far up or down so the cards on one side never overlap. The leader line is `width: hypot(var(--dio-reach), var(--dio-shift))` turned by `atan2()` of the two. The callouts switch on once the model draws, with `.product:has(> .camera[data-dio-state="drawn"])`, so the list stays a list without WebGL.

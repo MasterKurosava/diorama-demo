@@ -1,0 +1,215 @@
+---
+// The dialog survives ClientRouter swaps, so Pagefind loads once per session.
+---
+
+<doc-search transition:persist="docs-search">
+  <dialog class="sd" aria-modal="true" aria-label="Search the docs">
+    <div class="sd-box">
+      <div class="sd-field">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+        <input
+          type="search"
+          role="combobox"
+          aria-label="Search the docs"
+          aria-expanded="true"
+          aria-controls="sd-list"
+          aria-autocomplete="list"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Search effects, guides, API, errors"
+        />
+        <button type="button" class="sd-chip" data-filter hidden></button>
+        <button type="button" class="sd-esc" data-close aria-label="Close search">Esc</button>
+      </div>
+      <p class="sd-status" data-status aria-live="polite"></p>
+      <div id="sd-list" class="sd-list" role="listbox" aria-label="Results" tabindex="0"></div>
+    </div>
+  </dialog>
+</doc-search>
+
+<script>
+  import { DocSearch } from '../client/search.ts'
+
+  if (!customElements.get('doc-search')) customElements.define('doc-search', DocSearch)
+</script>
+
+<style is:global>
+  .sd {
+    width: min(720px, calc(100vw - 24px));
+    max-height: min(640px, calc(100vh - 80px));
+    margin: 8vh auto auto;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-panel);
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: var(--shadow-paper);
+  }
+  .sd::backdrop {
+    background: rgb(11 10 32 / 0.45);
+  }
+  .sd-box {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    max-height: inherit;
+  }
+  .sd-field {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .sd-field input {
+    flex: 1;
+    min-width: 0;
+    min-height: 36px;
+    border: 0;
+    background: none;
+    font-size: 1.05em;
+    outline: none;
+  }
+  .sd-field input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .sd-chip,
+  .sd-esc {
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: none;
+    font: 500 11.5px var(--font-mono);
+    cursor: pointer;
+  }
+  .sd-status {
+    margin: 0;
+    padding: var(--s-2) var(--s-4) 0;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-height: 1.6em;
+  }
+  .sd-list {
+    overflow-y: auto;
+    padding: var(--s-2) var(--s-2) var(--s-4);
+    outline-offset: -2px;
+  }
+  .sr-group,
+  .sr-pinned {
+    margin-top: var(--s-2);
+  }
+  .sr-head {
+    display: flex;
+    justify-content: space-between;
+    margin: var(--s-3) var(--s-3) var(--s-1);
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .sr-item {
+    position: relative;
+    border-radius: var(--radius-paper);
+  }
+  .sr-item > a {
+    display: flex;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .sr-item[aria-selected="true"],
+  .sr-item:hover {
+    background: var(--bg-code);
+  }
+  .sr-item[aria-selected="true"] {
+    box-shadow: inset 2px 0 0 var(--link);
+  }
+  .sr-item.sub > a {
+    padding-left: var(--s-7);
+    font-size: 0.92em;
+  }
+  .sr-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .sr-title {
+    font-weight: 600;
+  }
+  .sr-excerpt {
+    color: var(--text-muted);
+    font-size: 0.86em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .sr-excerpt mark,
+  .sr-results mark {
+    background: var(--mark);
+    color: inherit;
+  }
+  .sr-sig {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font: 400 0.8em var(--font-mono);
+    color: var(--text-muted);
+  }
+  .sr-level {
+    font: 500 11px var(--font-mono);
+    text-transform: uppercase;
+    color: var(--warning);
+  }
+  .sr-media {
+    position: relative;
+    flex: none;
+    width: 64px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: var(--radius-paper);
+    background: var(--bg-code);
+  }
+  .sr-media img,
+  .sr-media video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sr-del {
+    position: absolute;
+    top: 50%;
+    right: var(--s-2);
+    translate: 0 -50%;
+    min-width: 24px;
+    min-height: 24px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .sr-clear,
+  .sr-more,
+  .sr-fix {
+    border: 0;
+    background: none;
+    color: var(--link);
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+  }
+  .sr-more {
+    margin: var(--s-1) var(--s-3);
+    font-size: 0.86em;
+  }
+  .sr-typo,
+  .sr-empty {
+    margin: var(--s-3);
+  }
+</style>

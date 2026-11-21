@@ -1,0 +1,25 @@
+.coast {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+.coast a {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+}
+.coast a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.coast img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}

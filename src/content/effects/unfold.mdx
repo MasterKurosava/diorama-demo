@@ -1,0 +1,55 @@
+---
+effect: unfold
+example:
+  description: A letterpress studio's headline that unrolls out of a folded paper packet line by line, each strip swinging down in perspective with its shadow on the page.
+  caption: Switch the style to see the accordion, the letter cards and the origami squares, or move the sliders; Replay plays it again.
+  aspect: 16 / 8
+  controls: [angle, duration, stagger, shade]
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Letter cards for an event title
+
+`style="cards"` gives every letter its own little card, hinged at the bottom of its line. Before it opens each card lies face down below its line, showing the paper back with the letter faintly through it; then the cards flip up one after another, standing out of the page halfway and casting a shadow, and land as the title. `paper` sets the color of the backs: a warm cream reads as card stock.
+
+<Example id="effects/unfold/cards" description="A pop-up book exhibition called Paper Week, whose coral letters flip up on cream cards one after another." aspect="16 / 7" show={['html']} controls={['duration', 'stagger']} variants={[]} />
+
+### An accordion sale banner
+
+`style="accordion"` cuts the text into upright panels folded like a paper fan. Closed, the panels stand in a tight zig-zag with the letters squeezed between the folds; opening, they stretch apart sideways, the panels facing the light brighten and the others darken, until the banner lies flat. A heading with `text-align: center` opens from its middle, otherwise from the side it is aligned to. `bands` sets the number of panels.
+
+<Example id="effects/unfold/sale" description="A summer sale banner in black capitals on a yellow band that stretches open like an accordion." aspect="16 / 6" show={['html']} controls={['bands', 'duration']} variants={[]} />
+
+### Menu labels that fold under the pointer
+
+With `data-dio-trigger="hover"` the text stays flat and real until the pointer moves over it; then the pieces nearest the pointer fold up a little toward the viewer and lie back down when it moves on. With cards that is a wave of letters following the pointer. On a phone a tap folds the letters under the finger for a moment.
+
+```html
+<nav>
+  <a href="/shop"><span data-dio="unfold" data-dio-style="cards" data-dio-trigger="hover">Shop</span></a>
+  <a href="/journal"><span data-dio="unfold" data-dio-style="cards" data-dio-trigger="hover">Journal</span></a>
+</nav>
+```
+
+### Origami squares scrubbed by the scroll
+
+`data-dio-trigger="scroll"` ties the opening to the scroll position: it starts when `threshold` of the heading is in view and is flat when the heading reaches the middle of the viewport, and it folds back up when you scroll back. With `style="origami"` each line becomes a row of squares as tall as the line, each folded corner to center.
+
+```html
+<h2 data-dio="unfold" data-dio-style="origami" data-dio-trigger="scroll">Studio Kami</h2>
+```
+
+## Notes
+
+The paper is real geometry: each piece is a flat panel turning on its hinge in 3D, and the pieces that hang from it turn with it, seen with the perspective of the heading's own box. The light comes from the top left. Faces turned toward it brighten and faces turned away darken, the inside of every fold darkens toward its crease, and the raised paper casts a soft shadow on the page that grows wider the higher the paper is. `shade` scales all of that shading; at 0 the paper keeps flat colors.
+
+The fronts of the pieces take the color of the page behind the heading, so when they lie flat they disappear into it and only the letters remain. When the heading sits on a picture or a gradient instead, the fronts are clear and turn to paper only while they are lifted. Put a background on a wrapper rather than on the heading itself: while the paper is drawn the heading's own background is hidden with its text.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. A heading on the first screen is hidden until the folded paper is drawn and then opens; one further down waits folded until `threshold` of it is in view. Frames run only while the paper moves; once it lies flat the DOM text is back and nothing is drawn. Under reduced motion the effect is off and the heading stays flat text.
+
+Leave some room around the heading: paper standing out of the page and its shadow reach past the heading's box. The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does: an element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `mode` and `bands` rebuild the effect when they change; the other params change live.

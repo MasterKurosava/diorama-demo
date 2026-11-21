@@ -1,0 +1,283 @@
+---
+title: GSAP and Lenis
+description: Pass your GSAP, ScrollTrigger and Lenis to start() so tweens, smooth scroll and the canvas move in the same frame.
+section: guides
+order: 4
+related: [guides/routers, guides/components, concepts/scroll]
+---
+
+GSAP and Lenis stay yours: Diorama never imports or creates them, it joins their frame. Pass the objects to `start()` and three things line up in every frame: GSAP tweens, the Lenis scroll step and the canvas. Any copy of `gsap` 3.12 or later works, including one from a CDN, and `lenis` 1.3.
+
+## Connect them
+
+Register ScrollTrigger as usual, create Lenis yourself and hand all three to `start()`.
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
+
+gsap.registerPlugin(ScrollTrigger)
+export const lenis = new Lenis()
+
+export const app = start({ gsap, ScrollTrigger, lenis })
+```
+
+With this:
+
+- Diorama draws from `gsap.ticker`, after the tweens of the same tick, so a value a tween writes is drawn in that frame.
+- Only Diorama advances Lenis, once per frame and before drawing, so scroll, ScrollTrigger and the canvas move together.
+- Effects inside a pinned ScrollTrigger get its progress in the `pin` input without code.
+- A page at rest runs no `requestAnimationFrame` at all.
+
+Pass `ScrollTrigger` explicitly. Without it Diorama looks it up in `gsap.core.globals()` by its methods, since a minified build renames the class; if nothing turns up within 60 frames, development builds warn with `GSAP_SCROLLTRIGGER`. Either object works alone: `gsap` with native scroll, or `lenis` with frames from `requestAnimationFrame`.
+
+## Drop the sync code
+
+The usual setup from the Lenis and GSAP readmes keeps working, and none of it is needed any more.
+
+```ts
+// Redundant with start({ gsap, ScrollTrigger, lenis }), and harmless:
+const lenis = new Lenis({ autoRaf: true })
+lenis.on('scroll', ScrollTrigger.update)
+gsap.ticker.add((time) => lenis.raf(time * 1000))
+gsap.ticker.lagSmoothing(0)
+```
+
+- Other calls to `lenis.raf`, from your own loop, from `gsap.ticker` or from `autoRaf`, are absorbed: Lenis still steps once per frame on Diorama's clock. The first one logs the note `LENIS_RAF_ABSORBED` in development.
+- `autoRaf: true` is switched off while Diorama drives Lenis and restored when Diorama releases Lenis, with the note `LENIS_AUTORAF`.
+- Diorama calls `ScrollTrigger.update()` from the Lenis scroll event itself.
+- `gsap.ticker.lagSmoothing()` affects your own animations only. Diorama measures frames with `performance.now()`.
+
+## Tween params
+
+Params on a handle or an instance are accessor properties, so GSAP tweens them like any object. Every write requests a frame, and the tween is drawn in the same tick.
+
+Services such as `app.effects` and `app.gsap` exist once the app runs. `app.attach()` works at once; for the rest, wait with `ready()` in code that runs at start.
+
+```ts
+import { ready } from 'dioramajs'
+
+// Markup: <img class="hero" src="/cover.jpg" data-dio="ripple" />
+await ready(app)
+const img = document.querySelector('.hero')!
+const ripple = app.effects.get(img, 'ripple')!
+gsap.to(ripple.params, {
+  strength: 2,
+  duration: 0.6,
+  ease: 'power2.out',
+})
+```
+
+A handle from `app.attach()` writes to every element it covers.
+
+```ts
+const swell = app.attach('.card img', 'swell', { amplitude: 0 })
+gsap.to(swell.params, { amplitude: 40, duration: 1 })
+```
+
+An effect's defaults are known before its module loads when its entry lists them: the built-in effects and GLSL shaders loaded through `?entry` do. A tween can then start right away and keeps its value once the effect loads. For an effect from your folder, wait for the definition first. `loaded()` imports only the effect module, not three.js.
+
+```ts
+const brighten = app.attach('.hero', 'brighten')
+await brighten.loaded()
+gsap.to(brighten.params, { strength: 2, duration: 1 })
+```
+
+A tuple param reads as a live vector, so its components tween one by one: `gsap.to(handle.params.center, { x: 0.3 })`. Write the whole tuple with `handle.set({ center: [0.3, 0.5] })`.
+
+### Follow the pointer and the scroll
+
+`quickTo` follows a fast-changing value.
+
+```ts
+const set = gsap.quickTo(ripple.params, 'strength', { duration: 0.4 })
+img.addEventListener('pointermove', (e) =>
+  set(e.offsetX / img.clientWidth),
+)
+```
+
+A scrubbed tween maps scroll to a param.
+
+```ts
+gsap.to(swell.params, {
+  amplitude: 60,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '.card',
+    start: 'top bottom',
+    end: 'bottom top',
+    scrub: true,
+  },
+})
+```
+
+For the pass of an element through the viewport no tween is needed: that is the built-in `progress` input, `u.progress` in TSL and `uProgress` in GLSL.
+
+### Clean up
+
+Revert the GSAP context and call the handle when the page or component goes away.
+
+```ts
+const ctx = gsap.context(() => {
+  gsap.to(swell.params, { amplitude: 40, repeat: -1, yoyo: true })
+})
+// Later, on unmount:
+ctx.revert()
+swell()
+```
+
+A tween that repeats forever keeps frames coming while it runs, which is what it asks for. An endless DOM tween without effects, such as a marquee, requests no frames from Diorama.
+
+### Write params from a ticker listener
+
+Writes from tweens, ScrollTrigger callbacks and event handlers are drawn in the same tick. A `gsap.ticker` listener added after Diorama runs too late for that frame and is drawn in the next one. Add it with priority instead.
+
+```ts
+gsap.ticker.add(update, false, true)
+```
+
+### Tween the DOM
+
+The canvas copy follows DOM tweens on its own: `gsap.from(img, { y: 100 })` moves the drawn picture, since an element with a `transform` is measured in every frame. For long JavaScript tweens that fire no events the copy can notice, add `data-dio-track="frame"` to the element.
+
+## Drive the pin input
+
+Effects inside the `pin` element of a ScrollTrigger get its progress as the `pin` input. Nothing else to write.
+
+```ts
+ScrollTrigger.create({
+  trigger: '#story',
+  pin: true,
+  start: 'top top',
+  end: '+=200%',
+  scrub: 1,
+})
+```
+
+- With `scrub`, `pin` follows the scrubbed animation, so the canvas trails the scroll the way the DOM does.
+- Without `scrub`, it is the trigger's `progress`.
+- With nested pins the deepest one wins.
+- Triggers created after start bind in the next frame. `kill()`, `gsap.matchMedia()` reverts and disabled triggers unbind without a jump.
+
+To choose the trigger, the elements and the progress yourself, call `app.gsap.pin()`. An explicit binding beats the automatic one; calling the returned function hands the elements back to it.
+
+```ts
+const st = ScrollTrigger.create({
+  trigger: '#gallery',
+  start: 'top center',
+  end: 'bottom center',
+})
+const off = app.gsap.pin(st, {
+  target: '#gallery img',
+  progress: 'scroll',
+})
+```
+
+`progress` is `'auto'` by default (the animation with `scrub`, the trigger otherwise), `'scroll'` or `'animation'`. Without `target` it takes the effect elements inside the trigger's `pin` or `trigger` element at the time of the call. After moving DOM nodes in a way the adapter cannot see, call `app.gsap.refresh()`.
+
+Limits:
+
+- `data-dio-track="layout"` does not work inside a pin, since the pinned element moves without layout events.
+- Elements of a horizontal track (`containerAnimation`) get the `pin` of their section, not a progress of their own.
+- `ScrollTrigger.normalizeScroll(true)` updates ScrollTrigger from its own `requestAnimationFrame`, so pins can lag a frame. Use Lenis to smooth touch scroll.
+- ScrollSmoother is not supported. Use Lenis.
+
+## Work with Lenis
+
+Keep your Lenis instance in a module and call its methods yourself: `lenis.scrollTo('#contacts')`, `lenis.stop()`, `lenis.resize()`. `app.lenis.lenis` is typed only by what Diorama needs, so its `scrollTo` takes no arguments in the types. Calls on your own instance go through Diorama's wrapper all the same and wake the frame loop.
+
+- `velocity` with Lenis is the smoothed Lenis velocity, in Diorama units: -1 to 1, where 3000 px a second is 1. A shader written for `lenis.velocity` in pixels per frame needs another factor.
+- Without `syncTouch`, Lenis leaves touch to native scroll, and the canvas trails it by a frame as without Lenis. `syncTouch: true` smooths touch and keeps it in sync.
+- `orientation: 'horizontal'` makes x the scroll axis for `velocity`, `progress` and `pin`.
+- With `infinite: true` the jump at the loop point causes no spike in `velocity`.
+- A Lenis `wrapper` element logs `LENIS_WRAPPER`: everything tracked must live inside the wrapper, and a fixed header outside it shifts.
+- For a modal, `lenis.stop()` and `lenis.start()`. A stopped Lenis requests no frames.
+- `lenis.destroy()` while the app runs returns Diorama to native scroll with the note `LENIS_DESTROYED`. Hand over a new instance with `app.lenis.use(new Lenis())`.
+- Lenis handles `prefers-reduced-motion` itself.
+
+`app.pause()` stops Diorama's frames but not Lenis, so the page keeps scrolling smoothly. Once the app is destroyed (hot reload, an unmount), Diorama keeps driving Lenis, so scroll never freezes, and a new app takes it over.
+
+### Lenis from React and Vue
+
+`ReactLenis` from `lenis/react` creates Lenis in an effect, after the app has started, and creates a new one when its options change. Diorama has to follow the current instance, which takes the Lenis plugin itself: install `@dioramajs/lenis` and add `lenisPlugin()` without an instance.
+
+```ts title="src/diorama.ts"
+import { lenisPlugin } from '@dioramajs/lenis'
+import { start } from 'dioramajs'
+
+export const app = start({ plugins: [lenisPlugin()] })
+```
+
+```tsx title="src/Layout.tsx"
+import { ready } from 'dioramajs'
+import { ReactLenis, useLenis } from 'lenis/react'
+import { type ReactNode, useEffect } from 'react'
+import { app } from './diorama'
+
+// Inside <ReactLenis root>: follows the
+// current instance, new ones included.
+function DioramaLenis() {
+  const lenis = useLenis()
+  useEffect(() => {
+    if (!lenis) return
+    let release: (() => void) | undefined
+    let live = true
+    void ready(app).then((app) => {
+      if (live) release = app.lenis.use(lenis)
+    })
+    return () => {
+      live = false
+      release?.()
+    }
+  }, [lenis])
+  return null
+}
+
+export function Layout({ children }: { children: ReactNode }) {
+  return (
+    <ReactLenis root>
+      <DioramaLenis />
+      {children}
+    </ReactLenis>
+  )
+}
+```
+
+The `autoRaf` that `ReactLenis` turns on by default is taken over, so the `gsap.ticker` setup from the `lenis/react` docs is not needed. A recreated Lenis releases the old one through its `destroy()`, and `use()` picks up the new one. `VueLenis` from `lenis/vue` works the same way: watch `useLenis()` and call `app.lenis.use(lenis)`; the function it returns stops following.
+
+## Change pages
+
+With one Lenis for the whole site, call `lenis.resize()` after the new page is in. If your router does not take the new page to the top, call `lenis.scrollTo(0, { immediate: true })` on forward navigation only: on Back it would undo the position the browser or the router restored.
+
+Astro's `ClientRouter` removes the Lenis classes from `<html>` on every swap, and without them `lenis.css` and the site's `scroll-behavior` break instant scroll writes. Stop Lenis during the swap, so an unfinished smooth scroll does not land on the new page, and put the classes back after it. Astro sets the scroll position itself, top on a new page and the old position on Back, and Lenis follows.
+
+```ts title="src/diorama.ts" twoslash
+import { start } from 'dioramajs'
+import Lenis from 'lenis'
+
+export const lenis = new Lenis()
+export const app = start({ lenis })
+
+document.addEventListener('astro:before-swap', () => lenis.stop())
+document.addEventListener('astro:after-swap', () => {
+  lenis.resize()
+  lenis.start()
+  lenis.rootElement.classList.add(...lenis.className.split(' '))
+})
+```
+
+Barba and Swup setups that create a new Lenis per page hand it over with `app.lenis.use(new Lenis())`; the old one releases itself on `destroy()`. For ScrollTrigger, kill the old triggers and call `ScrollTrigger.refresh()` after the new page is in, as usual. Automatic pins let go of released effects themselves. Recipes for the page change itself are in [Page transitions with routers](/docs/guides/routers).
+
+## Read the warnings
+
+| Code                  | Level               | When                                                               | What to do                                        |
+| --------------------- | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
+| `GSAP_SCROLLTRIGGER`  | warning, development | Pins are on, no ScrollTrigger found in `gsap.core.globals()` within 60 frames | Pass `ScrollTrigger` to `start()`        |
+| `LENIS_AUTORAF`       | note, development   | `autoRaf: true` was taken over                                     | Nothing; you can remove `autoRaf`                 |
+| `LENIS_RAF_ABSORBED`  | note, development   | A `lenis.raf` call from elsewhere was absorbed                     | Nothing; you can remove the call                  |
+| `LENIS_DESTROYED`     | note, development   | `lenis.destroy()` returned Diorama to native scroll                | Hand over a new Lenis with `app.lenis.use()`      |
+| `LENIS_WRAPPER`       | warning             | Lenis scrolls an element, not the window                           | Keep tracked elements inside the wrapper          |
+| `LENIS_UNSYNCED`      | warning             | The frame driver changed on top of Lenis after start               | Set the driver when the app is created            |
+| `LENIS_SHARED_DRIVER` | warning             | A second app uses the same Lenis with another frame driver         | One driver per Lenis                              |

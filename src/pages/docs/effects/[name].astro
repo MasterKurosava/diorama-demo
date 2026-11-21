@@ -1,0 +1,33 @@
+---
+import { render } from 'astro:content'
+import { components } from '../../../docs/components/mdx.ts'
+import Effect from '../../../docs/layouts/Effect.astro'
+import { type EffectPage, effectPages } from '../../../docs/lib/effect-pages.ts'
+import { relatedEffects } from '../../../docs/lib/effects.ts'
+import { docPages, urlOfEntry } from '../../../docs/lib/pages.ts'
+import { isStrict } from '../../../docs/lib/strict.ts'
+
+export async function getStaticPaths() {
+  const pages = await effectPages()
+  return pages.map((page) => ({ params: { name: page.info.name }, props: { page } }))
+}
+
+const { page } = Astro.props as { page: EffectPage }
+const { Content, headings } = await render(page.entry)
+const all = (await effectPages()).map((p) => p.info)
+const docs = await docPages()
+const guides = (page.entry.data.related ?? []).map((id) => {
+  const url = urlOfEntry(id.replace(/^\/?docs\//, '').replace(/^\//, ''))
+  return { url, label: docs.find((p) => p.url === url)?.title ?? id }
+})
+// A written page has its recipes; a stub says so in its frontmatter.
+if (!page.entry.data.stub && !headings.some((h) => h.depth === 2 && h.text === 'Recipes')) {
+  const message = `src/content/effects/${page.entry.id}.mdx: no "## Recipes" section (or mark it stub: true)`
+  if (isStrict()) throw new Error(message)
+  console.error(`[docs] ${message}`)
+}
+---
+
+<Effect page={page} headings={headings} related={relatedEffects(page.info, all)} guides={guides}>
+  <Content components={components} />
+</Effect>

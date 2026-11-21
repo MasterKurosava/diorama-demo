@@ -1,0 +1,39 @@
+---
+import { findSymbol } from '../lib/api.ts'
+import Doc from './Doc.astro'
+import Members from './Members.astro'
+import Signature from './Signature.astro'
+import Tokens from './Tokens.astro'
+
+interface Props {
+  /** '<module>:<name>[.<member>]': 'diorama:start', 'effects:EffectContext.surface'. */
+  readonly symbol: string
+  readonly part?: 'signature' | 'summary' | 'members' | 'full'
+  /** Prefix of member anchors, when two member tables share a page. */
+  readonly prefix?: string
+}
+const { symbol: ref, part = 'signature', prefix } = Astro.props
+const { symbol, member } = findSymbol(ref)
+const self = Astro.url.pathname.replace(/\.html$/, '')
+---
+
+{
+  member ? (
+    <Fragment>
+      {part !== 'summary' &&
+        (member.kind === 'method' ? (
+          member.signatures.map((s) => <Signature signature={s} self={self} />)
+        ) : (
+          <pre class="api-sig"><code>{member.name}{member.optional ? '?' : ''}: <Tokens tokens={member.type} self={self} /></code></pre>
+        ))}
+      {part !== 'signature' && <Doc md={member.summary} self={self} />}
+    </Fragment>
+  ) : (
+    <Fragment>
+      {(part === 'signature' || part === 'full') &&
+        (symbol.signatures.length ? symbol.signatures.map((s) => <Signature signature={s} self={self} />) : <Signature tokens={symbol.declaration} self={self} />)}
+      {(part === 'summary' || part === 'full') && <Doc md={symbol.summary} self={self} />}
+      {(part === 'members' || part === 'full') && <Members members={symbol.members} self={self} prefix={prefix} />}
+    </Fragment>
+  )
+}

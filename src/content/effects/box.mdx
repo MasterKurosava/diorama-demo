@@ -1,0 +1,68 @@
+---
+effect: box
+example:
+  description: A green tea carton with rolling hills on its front, turned a little to show its printed side; under the pointer it turns further and leans toward the pointer.
+  aspect: 4 / 3
+  caption: Move the pointer over the box, drag it to see the back and the top, or focus it and press the arrow keys. Pick a motion to open it.
+  controls: [depth, yaw, pitch, swing, open, tilt, spin, shadow]
+  variants: [motion]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A carton from its front and one side
+
+Most packaging is printed from a flat dieline, so the pictures already exist: export each face as its own image. The front image is the front of the box and sets its width and height. A side picture sets the depth by its own proportions: a side 240 px wide next to an 800 px tall front makes a box 0.3 of its height deep. Faces you leave out borrow from their pair, or take the color of the matching edge of the front.
+
+```html
+<img
+  src="/shop/tea-front.webp"
+  width="600"
+  height="800"
+  data-dio="box"
+  data-dio-right="/shop/tea-side.webp"
+  data-dio-top="/shop/tea-top.webp"
+  data-dio-back="/shop/tea-back.webp"
+  data-dio-yaw="20"
+/>
+```
+
+### A gift box that lifts its lid
+
+`motion="lift"` raises a lid that covers the top fifth of the box. Hover opens it by `open`, a click or Enter all the way. `inside` colors the bare board inside, which shows once the lid is off.
+
+<Example id="effects/box/gift" description="A burgundy gift box with a gold ribbon; under the pointer its lid lifts and tilts back, showing a cream board inside." aspect="4 / 3" show={['html']} controls={['open', 'depth']} variants={[]} />
+
+### A sleeve with a tray
+
+`motion="drawer"` slides a tray out of its sleeve to the right, as on a box of chocolates or a phone. `motion="flap"` swings back the top flap of a folding carton instead.
+
+<Example id="effects/box/drawer" description="A navy sleeve of pralines; under the pointer a brown tray slides out of its right end." aspect="16 / 9" show={['html']} controls={['open', 'yaw']} variants={[]} />
+
+### Real proportions from the size
+
+Without a side picture `depth` is `auto` and comes out at 0.3 of the width; give it as a share of the front width instead: a box 18 × 24 × 6 cm has a front 18 cm wide, so `depth` is 6 / 18, about 0.33.
+
+```html
+<img
+  src="/games/harbor-front.webp"
+  width="800"
+  height="800"
+  data-dio="box"
+  data-dio-depth="0.25"
+  data-dio-spin="18"
+/>
+```
+
+## Notes
+
+At rest the front is drawn exactly where the image is, so nothing jumps when the engine takes over, and the plain image with its `alt` text stays for screen readers and without WebGL.
+
+The box draws only while it moves: a hover, a drag, the lean, the lid or the idle `spin`. The faces are flat pictures with a simple light, so a box costs its pictures and nothing else to download.
+
+A box inside a link keeps the link's click; it still opens on hover and turns under a drag. On touch screens a tap opens and closes it, and a finger turns it only when the image has `touch-action: pan-y` or `none`.
+
+`motion` and the face pictures rebuild the effect; every other param changes live.

@@ -1,0 +1,30 @@
+.member {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 8px;
+  min-height: 100%;
+  padding: 28px 36px;
+  box-sizing: border-box;
+  background: #15130f;
+  font-family: var(--font-text);
+  color: #efe8da;
+}
+.badge {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c9962c, #8a6114);
+  color: #1d1505;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.member h3 {
+  margin: 8px 0 0;
+  font-size: 1.4rem;
+}
+.member p {
+  margin: 0;
+  color: #b5ab97;
+}

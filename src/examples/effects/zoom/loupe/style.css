@@ -1,0 +1,16 @@
+.shots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+  background: #ece8e0;
+}
+.shots img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border-radius: 3px;
+}

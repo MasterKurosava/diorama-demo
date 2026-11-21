@@ -1,0 +1,10 @@
+.ex-root:has(> img.pralines) {
+  display: grid;
+  place-items: center;
+  background: #e9e7f0;
+}
+.ex-root > img.pralines {
+  width: min(52%, 460px);
+  height: auto;
+  aspect-ratio: 2 / 1;
+}

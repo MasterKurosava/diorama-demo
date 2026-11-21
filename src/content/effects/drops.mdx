@@ -1,0 +1,67 @@
+---
+effect: drops
+example:
+  description: A café guide hero behind a rainy window; drops land on the glass, run down in fits and starts and leave wet trails that dry.
+  aspect: 16 / 7
+  caption: The text and the button under the rain stay real and clickable. Try a thaw instead of rain, or turn the trails off.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A frozen page that thaws
+
+Put `frost` and `drops` on one fixed element over the page. Raise the frost's `cover` to freeze the window; lower it and fire the drops with the same point and duration, and the meltwater appears behind the thaw front and runs down the glass.
+
+```html
+<div
+  class="window"
+  data-dio="frost drops"
+  data-dio-frost-cover="0"
+  data-dio-drops-motion="thaw"
+  data-dio-drops-trigger="manual"
+  style="position: fixed; inset: 0; pointer-events: none"
+></div>
+```
+
+```ts
+const pane = document.querySelector('.window')
+// Freeze.
+pane.dataset.dioFrostCover = '1'
+// Thaw from a point, 30% from the left and 60% from the top.
+for (const effect of ['frost', 'drops']) {
+  pane.setAttribute(`data-dio-${effect}-x`, '0.3')
+  pane.setAttribute(`data-dio-${effect}-y`, '0.6')
+}
+pane.dataset.dioFrostCover = '0'
+pane.dataset.dioDropsFire = String(Number(pane.dataset.dioDropsFire ?? 0) + 1)
+```
+
+### Condensation on a cold drink
+
+`speed="0"` keeps every drop where it landed and `rate="0"` stops new ones, so the glass is beaded once and the beads evaporate slowly.
+
+```html
+<figure
+  class="drink"
+  data-dio="drops"
+  data-dio-rate="0"
+  data-dio-count="160"
+  data-dio-speed="0"
+  data-dio-dry="12"
+>
+  <img src="/menu/lemonade.avif" alt="Iced lemonade in a tall glass" />
+</figure>
+```
+
+## Notes
+
+Nothing behind the drops is read: each drop is drawn as a small lens, darker at its top and lit at its bottom, with a crisp rim and one highlight, so it looks like water over any page. The element is never hidden, and clicks go through.
+
+Small drops rest and evaporate after a while; heavy ones run, faster as they grow, swallow the beads in their way and leave a thin trail that dries over `dry` seconds. After a thaw the glass ends clean.
+
+Frames are drawn while drops run or a thaw spreads, at 15 a second while only beads and trails dry, and none once the glass is dry. On the low tier there are fewer drops at 30 frames a second. Under reduced motion it does not load at all.
+
+`motion`, `trigger` and `seed` rebuild the effect; the other params change live.

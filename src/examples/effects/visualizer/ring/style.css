@@ -1,0 +1,48 @@
+.vz-radio {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(60% 70% at 50% 45%, #13233d 0%, #070b14 75%);
+  color: #e8f4ff;
+  font: 400 14px / 1.3 var(--font-text);
+}
+.vz-radio .vz-ring {
+  position: absolute;
+  inset: 6% 0 16%;
+  width: auto;
+  height: auto;
+}
+.vz-radio .vz-play {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 10%;
+  border: 0;
+  border-radius: 50%;
+  background: #ff7a45;
+  color: #1a0b04;
+  font: 700 15px / 1 var(--font-text);
+  cursor: pointer;
+}
+.vz-radio .vz-play:focus-visible {
+  outline: 3px solid #7fd3ff;
+  outline-offset: 4px;
+}
+.vz-radio .vz-now {
+  position: absolute;
+  inset: auto 0 6%;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  text-align: center;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7fd3ff;
+}
+.vz-radio .vz-now span {
+  font: 400 14px / 1.3 var(--font-text);
+  letter-spacing: 0;
+  text-transform: none;
+  color: #c9d8ea;
+}

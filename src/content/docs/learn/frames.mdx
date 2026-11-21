@@ -1,0 +1,128 @@
+---
+title: Frames and time
+label: 4. Frames and time
+description: Animate an effect with the time input, count the frames it draws and make it run only while the pointer is over the image.
+section: learn
+order: 4
+---
+
+In this step you write `shimmer`, a band of light that sweeps across an image, and count the frames the page draws. You see the difference between `u.time`, which runs while the image is on screen, and `u.hoverTime`, which runs only while the pointer is over it.
+
+## Count the frames
+
+Diorama draws a frame only when something on the canvas changes. To watch that, add a counter to the page and show `app.loop.stats.frames`, the number of frames run since the start.
+
+```html title="index.html"
+<p>Frames: <output class="frames">0</output></p>
+```
+
+```ts title="src/main.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start()
+
+const meter = document.querySelector('.frames')
+setInterval(() => {
+  if (meter) meter.textContent = String(app.loop.stats.frames)
+}, 250)
+```
+
+Leave the pointer still and the counter stops. Scroll, or move the pointer, and it grows by a few frames for each move: every pointer move and scroll step can change what an effect sees, so each one runs a frame.
+
+## Animate with time
+
+`u.time` is the number of seconds the element has been on screen. Use it to move a light band across the image once every four seconds.
+
+```ts title="src/effects/shimmer.ts" twoslash
+import { effect } from 'dioramajs'
+import { fract, smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { speed: 0.25, width: 0.15 },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      // Where the band is, from -0.5 to 1.5, so it enters and leaves fully.
+      const at = fract(u.time.mul(u.speed)).mul(2).sub(0.5)
+      const d = box.x.add(box.y).mul(0.5).sub(at).abs()
+      const band = smoothstep(0, u.width, d).oneMinus().mul(0.35)
+      return vec4(color.rgb.add(band), color.a)
+    })
+  },
+)
+```
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="shimmer"
+/>
+```
+
+<Example id="shimmer-time" description="A photo with a light band that sweeps across it all the time, next to a counter of the frames the page draws." aspect="16 / 9" controls={[]} show={['html', 'effect', 'script']} caption="The counter counts every frame of this page, so another example on screen adds to it." />
+
+The band sweeps diagonally across the image, and the counter grows by about 60 a second, one frame per refresh of the display. Scroll the image off screen: the counter stops, and the band waits where it was. Switch to another tab: it stops too.
+
+## Run only on hover
+
+An image that shimmers all the time costs a frame on every refresh while it is visible. Replace `u.time` with `u.hoverTime`, which runs only while the pointer is over the box, and multiply the band by `u.hover` so it fades out when the pointer leaves.
+
+```ts title="src/effects/shimmer.ts" twoslash {8,10-12}
+import { effect } from 'dioramajs'
+import { fract, smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { speed: 0.25, width: 0.15 },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      const at = fract(u.hoverTime.mul(u.speed)).mul(2).sub(0.5)
+      const d = box.x.add(box.y).mul(0.5).sub(at).abs()
+      const band = smoothstep(0, u.width, d)
+        .oneMinus()
+        .mul(u.hover, 0.35)
+      return vec4(color.rgb.add(band), color.a)
+    })
+  },
+)
+```
+
+<Example id="shimmer-hover" description="The photo with a band that sweeps only while the pointer is over it, next to the frame counter that stands still at rest." aspect="16 / 9" controls={[]} show={['html', 'effect', 'script']} highlight={{ effect: '8,10-12' }} caption="The counter counts every frame of this page, so another example on screen adds to it." />
+
+Now the counter stands still while the pointer rests outside the image. Over the image it grows by about 60 a second even when the pointer stops, and it stops a moment after the pointer leaves, once the band has faded out.
+
+## Choose the frame policy yourself
+
+Diorama picks the frame policy from the inputs the effect reads: `u.time` means `'visible'`, `u.hoverTime` means `'hover'`, and neither means `'input'`. An update function that returns `true` or `false` decides instead, as in [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes). To set it yourself, pass the `animate` option between the params and the setup function. A shimmer does not need 60 frames a second; 30 is enough.
+
+```ts title="src/effects/shimmer.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { fract, smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { speed: 0.25, width: 0.15 },
+  { animate: { fps: 30 } },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      const at = fract(u.time.mul(u.speed)).mul(2).sub(0.5)
+      const d = box.x.add(box.y).mul(0.5).sub(at).abs()
+      const band = smoothstep(0, u.width, d).oneMinus().mul(0.35)
+      return vec4(color.rgb.add(band), color.a)
+    })
+  },
+)
+```
+
+The band moves as before, and the counter grows by about 30 a second while the image is on screen. Frames caused by scrolling or the pointer still run at the full rate.
+
+## Why it works
+
+Diorama runs frames on demand. A frame runs when something calls for it: an input event, a param write, a fading input, or an effect whose policy asks for frames. When nothing asks, the loop sleeps and the GPU does no work. Each effect on screen asks according to its policy, and an effect off screen or in a hidden tab asks for nothing.
+
+`u.time` and `u.hoverTime` count only the seconds the effect runs, so an animation continues where it stopped instead of jumping ahead after a pause.
+
+## Related
+
+- [How a frame is decided](/docs/concepts/frames): every case, with a live counter.
+- [Performance and quality](/docs/guides/performance)
+- [Inputs](/docs/api/inputs): `time` and `hoverTime`.

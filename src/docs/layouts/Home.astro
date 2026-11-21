@@ -1,0 +1,93 @@
+---
+import Sidebar from '../components/Sidebar.astro'
+import { FRAMEWORKS } from '../lib/commands.ts'
+import { docPages } from '../lib/pages.ts'
+import popular from '../search/popular.json'
+import Base from './Base.astro'
+
+interface Props {
+  readonly title: string
+  readonly description: string
+}
+const { title, description } = Astro.props
+const pages = await docPages()
+const titleOf = (url: string) => pages.find((p) => p.url === url)?.label
+const entries = [
+  {
+    href: '/docs/start',
+    label: 'Get started',
+    text: 'Install Diorama in Vite, Astro, Nuxt, Next.js or a plain HTML page.',
+  },
+  {
+    href: '/docs/start/first-effect',
+    label: 'Your first effect',
+    text: 'Write an effect file and put it on an image with one attribute.',
+  },
+  {
+    href: '/docs/api',
+    label: 'API',
+    text: 'Every export of every package, with types and source links.',
+  },
+  {
+    href: '/docs/errors',
+    label: 'Errors',
+    text: 'What each console code means and how to fix it.',
+  },
+]
+const links = popular.flatMap((url) => {
+  const label = titleOf(url)
+  return label ? [{ url, label }] : []
+})
+---
+
+<Base title="Docs" description={description}>
+  <div class="dl">
+    <Sidebar current="/docs" />
+    <main id="content" class="dl-main wide">
+      <article class="prose home">
+        <div data-pagefind-body>
+          <span hidden data-pagefind-filter="kind:guide"></span>
+          {FRAMEWORKS.map((f) => <span hidden data-pagefind-filter={`framework:${f.value}`}></span>)}
+          <p class="kicker">Docs</p>
+          <h1>{title}</h1>
+          <p class="lede">{description}</p>
+          <figure class="home-cover">
+            <img src="/media/ridges.jpg" alt="Paper ridges of the Diorama landing at dusk" width="1600" height="900" data-dio="image" data-dio-key="docs-cover" />
+          </figure>
+          <slot />
+          <nav class="cards" aria-label="Start here">
+            {entries.map((e) => (
+              <a href={e.href}>
+                <strong>{e.label}</strong>
+                <span>{e.text}</span>
+              </a>
+            ))}
+          </nav>
+          <h2 id="popular">Popular pages</h2>
+          <ul>
+            {links.map((l) => (
+              <li>
+                <a href={l.url}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+    </main>
+  </div>
+</Base>
+
+<style>
+  .home-cover {
+    margin: var(--s-6) 0;
+  }
+  .home-cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-paper);
+    box-shadow: var(--shadow-paper);
+  }
+</style>

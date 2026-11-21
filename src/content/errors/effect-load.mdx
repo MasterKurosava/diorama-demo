@@ -1,0 +1,42 @@
+---
+code: EFFECT_LOAD
+level: error
+message: 'the engine failed to load'
+summary: A lazy chunk did not download, either the engine with three.js or the module of one effect.
+---
+
+## Why it happens
+
+- The engine chunk did not import: the page is offline, a Content Security Policy blocks the script, or an old chunk returns 404 after a deploy. The report target is `engine`, and `app.effects.status` becomes `unavailable`. Instances go back to waiting without `data-dio-state`, so the page shows its DOM.
+- The module of one effect did not import. The message is then the error of the import, the target is `effect:<name>`, and it prints once per name. Every instance of that effect becomes `failed`.
+- An effect module loads but has no default export that is an effect. The message then reads `module has no default effect export`.
+
+The engine gets one more attempt, on `app.effects.load()` or when the next effect element nears the viewport. A second failure is final until the page reloads.
+
+## How to fix
+
+<Steps>
+
+1. Open the network panel and find the chunk that failed. A 404 after a deploy means the page still references chunks of the previous build: keep old chunks on the server for a while, or reload the page on this error.
+2. If a Content Security Policy blocks the chunk, allow the origin your chunks load from in `script-src`.
+3. For an effect module, export the effect as the default export.
+
+</Steps>
+
+```ts
+import { effect } from 'dioramajs'
+
+export default effect({ strength: 1 }, ({ surface }) => {
+  surface.uv((uv) => uv)
+})
+```
+
+An effect registered again under the same name gets a new attempt: `app.effects.register()` clears the failure, and its failed instances wait again.
+
+## Related
+
+- `EFFECT_UNKNOWN`
+- `RENDER_UNAVAILABLE`
+- `app.effects.status`
+- `app.effects.load()`
+- `app.effects.register()`

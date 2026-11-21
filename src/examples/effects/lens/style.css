@@ -1,0 +1,45 @@
+.ln-page {
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 4cqi 7cqi;
+  background: #f4efe3;
+  color: #2a241c;
+}
+.ln-page .ln-entry {
+  max-width: 64ch;
+  outline-offset: 0.6cqi;
+}
+.ln-page .ln-entry p,
+.ln-page .ln-entry h3 {
+  margin: 0;
+}
+.ln-page .ln-kicker {
+  font: 600 max(10px, 1.3cqi) / 1.2 var(--font-text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a6d3b;
+}
+.ln-page .ln-title {
+  margin-top: 1cqi;
+  font:
+    700 max(22px, 3.6cqi) / 1.1 Georgia,
+    "Times New Roman",
+    serif;
+}
+.ln-page .ln-body {
+  margin-top: 1.6cqi;
+  font:
+    400 max(13px, 1.75cqi) / 1.6 Georgia,
+    "Times New Roman",
+    serif;
+}
+.ln-page .ln-fine {
+  margin-top: 1.4cqi;
+  font:
+    400 max(10px, 1.2cqi) / 1.5 Georgia,
+    "Times New Roman",
+    serif;
+  color: #5b5145;
+}

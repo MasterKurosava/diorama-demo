@@ -1,0 +1,47 @@
+---
+code: TRANSITION_KEY
+level: warning
+message: '"{key}" is on {count} new elements: the first one is the target'
+summary: Several new elements share one data-dio-key, so the flight lands on the first of them in document order.
+---
+
+This warning prints in development builds only, once per key.
+
+## Why it happens
+
+- After the swap, two or more new elements carry the same `data-dio-key`. A key pairs one source with one target, so the first new element in document order receives the flight and the others get none.
+- The new page shows the same item twice, for example in a hero and in a list below it, and both carry the key.
+- Responsive markup renders one element per breakpoint, and each carries the key.
+
+Only new elements count. A key that stays on the old page is not a duplicate, and on the old page the source is the first visible element with the key. Keys compare exactly.
+
+## How to fix
+
+Keep each key on one element per page, the one that should receive the flight. Give other elements their own keys or none:
+
+```html
+<!-- The list page -->
+<img
+  src="/img/aurora-thumb.avif"
+  data-dio="image"
+  data-dio-key="aurora"
+/>
+
+<!-- The project page -->
+<img
+  src="/img/aurora-cover.avif"
+  data-dio="image ripple"
+  data-dio-key="aurora"
+/>
+<img
+  src="/img/aurora-detail.avif"
+  data-dio="image"
+  data-dio-key="aurora-detail"
+/>
+```
+
+## Related
+
+- `data-dio-key`
+- `TRANSITION_SWAP`
+- `transition()`

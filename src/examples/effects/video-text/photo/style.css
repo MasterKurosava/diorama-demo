@@ -1,0 +1,23 @@
+.vt-shop {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.6cqi;
+  background: #f4efe6;
+  text-align: center;
+}
+.vt-shop .vt-word {
+  margin: 0;
+  font: 900 26cqi / 0.85 var(--font-text);
+  font-stretch: 75%;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: #b8862f;
+}
+.vt-shop p {
+  max-width: 36ch;
+  margin: 0;
+  font: 400 max(13px, 2cqi) / 1.45 var(--font-text);
+  color: #4a4238;
+}

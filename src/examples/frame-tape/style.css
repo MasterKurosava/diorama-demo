@@ -1,0 +1,45 @@
+.ex[data-id="frame-tape"] .policy {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ex[data-id="frame-tape"] .policy legend {
+  float: left;
+  margin-right: 4px;
+}
+.ex[data-id="frame-tape"] .tape {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: repeat(120, 1fr);
+  gap: 1px;
+  height: 28px;
+}
+.ex[data-id="frame-tape"] [data-reason] {
+  background: var(--border);
+}
+.ex[data-id="frame-tape"] [data-reason="invalidate"] {
+  background: var(--link);
+}
+.ex[data-id="frame-tape"] [data-reason="hold"] {
+  background: var(--perf);
+}
+.ex[data-id="frame-tape"] [data-reason="timed"],
+.ex[data-id="frame-tape"] [data-reason="always"],
+.ex[data-id="frame-tape"] [data-reason="step"] {
+  background: var(--warning);
+}
+.ex[data-id="frame-tape"] .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+}
+.ex[data-id="frame-tape"] .legend span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: -8px;
+}

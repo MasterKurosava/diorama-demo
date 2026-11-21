@@ -1,0 +1,47 @@
+.vz-player {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px 24px;
+  box-sizing: border-box;
+  background: radial-gradient(120% 90% at 50% 100%, #2a1838 0%, #0d0b18 70%);
+  color: #f4ecff;
+}
+.vz-player .vz-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+}
+.vz-player .vz-title {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font: 700 18px / 1.2 var(--font-text);
+}
+.vz-player .vz-title span {
+  font: 400 13px / 1.3 var(--font-text);
+  color: #b9a9d4;
+}
+.vz-player audio {
+  width: min(100%, 320px);
+  height: 40px;
+}
+/* A tap on the waveform seeks while vertical swipes still scroll the page. */
+.vz-player .vz-bars {
+  min-height: 0;
+  touch-action: pan-y;
+}
+@media (max-width: 560px) {
+  .vz-player {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .vz-player .vz-title span {
+    display: none;
+  }
+  .vz-player audio {
+    height: 32px;
+  }
+}

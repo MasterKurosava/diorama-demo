@@ -1,0 +1,98 @@
+---
+title: How a layer follows scroll
+label: Scroll
+description: How Diorama measures elements, computes progress and pin, reads scroll from the window, GSAP or Lenis, and keeps up with compositor scroll.
+section: concepts
+order: 2
+related: [concepts/frames, guides/gsap-lenis, guides/performance, guides/models]
+---
+
+The canvas is one fixed layer over the whole viewport, yet every copy on it sits exactly on its element while the page scrolls. This page explains how the boxes are measured, where the scroll position comes from, and what happens when the browser scrolls faster than JavaScript can draw.
+
+<Example id="scroll-follow" description="A photo drawn by Diorama next to a diagram of its DOM box, its plane and the compositor offset between two frames, with a slider for the scroll the compositor has done, a followScroll switch and a 50 ms stall per frame." controls={[]} show={['html']} caption="The diagram shows one moment before the next frame lands. The switches act on this whole page: turn on the stall and the photo trails its box while the page scrolls with the wheel, the keys or the buttons, unless followScroll is on." />
+
+## One canvas, many layers
+
+`start()` creates one canvas with `position: fixed` that covers the viewport, above the page by default and below it with `canvas: 'behind'`. Pointer events pass through it, so the page stays interactive.
+
+The camera is set so that at depth 0 one world unit is one CSS pixel. Each element with effects gets a layer, a group placed at the centre of the element's box and scaled to its size. Moving a copy to its element is a matter of writing the box into the layer every frame.
+
+## Measuring boxes
+
+Boxes are read in the `layout` stage of each frame, in one pass of reads before any write, so layout is forced at most once.
+
+- Visible layers are measured with `getBoundingClientRect` in every drawn frame. That covers transforms on the element and its ancestors, sticky and fixed positions and inline styles written by GSAP or a slider.
+- Layers within one viewport of the screen are measured as well, so a copy is in place the moment it scrolls in.
+- Layers further away keep their page position and only subtract the scroll.
+- A clipping ancestor (`overflow` other than `visible`, or `clip-path: inset()`) is measured with the element and clips the copy, so a mask reveal works on the canvas as it does in the DOM.
+
+`data-dio-track="layout"` switches an element to the cheap path for good: its page position is cached when layout changes and the scroll is subtracted. Use it for large grids of images that never move by themselves.
+
+A DOM change that fires no event, such as a CSS transition on a parent, would not wake the loop. A motion watcher covers it: for visible elements with a transform, `will-change`, a fixed position or opacity below 1, it compares boxes once per display frame and requests a frame only when one moved. It sleeps after a second without change and wakes on scroll, pointer, resize and the start of a CSS transition or animation.
+
+## Progress and pin
+
+Two scroll inputs come from the element's box, along the scroll axis.
+
+`progress` is 0 when the element's top enters at the bottom of the viewport and 1 when its bottom leaves at the top. It runs for any element.
+
+```text
+progress = clamp((viewportHeight - top) / (viewportHeight + height), 0, 1)
+```
+
+`pin` describes a tall element whose content sticks while it scrolls past: 0 while its top is below the viewport top, 1 once it has scrolled `height - viewportHeight` past it. An element no taller than the viewport switches from 0 to 1 as its top passes the viewport top; use `progress` for those.
+
+```text
+pin = clamp(-top / (height - viewportHeight), 0, 1)
+```
+
+CSS `position: sticky` needs nothing else. A ScrollTrigger pin wraps the section in a spacer and fixes it inline, which this formula reads only as 0 or 1. With `gsap` and `ScrollTrigger` passed to `start()`, effects inside a pinned trigger take its scrubbed progress as `pin` instead. For any other source, give an element its own.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+const app = start()
+declare const trigger: { readonly progress: number }
+// ---cut---
+const section = document.querySelector('#story')
+if (section) app.effects.pin(section, () => trigger.progress)
+```
+
+The function is read once per frame. Calling the returned function restores the built-in formula.
+
+## Where the scroll position comes from
+
+Without plugins, Diorama caches the position from window `scroll` events and requests a frame on each one. Plugins replace the source.
+
+| Setup                 | Frames come from                  | Scroll is read                                    |
+| --------------------- | --------------------------------- | ------------------------------------------------- |
+| Native scroll         | `requestAnimationFrame`           | from the last `scroll` event                      |
+| `gsap` in `start()`   | `gsap.ticker`, after the tweens   | live, inside the frame                            |
+| `lenis` in `start()`  | `requestAnimationFrame`, after `lenis.raf` | from Lenis                               |
+| Both                  | `gsap.ticker`, after `lenis.raf` and ScrollTrigger | from Lenis                       |
+
+In a browser frame, `requestAnimationFrame` callbacks run in order and then the page paints once. Diorama runs its frame in the same callback, after everything that moves the page: GSAP tweens, then Lenis, then ScrollTrigger pins and scrubs, then the Diorama frame. The canvas and the DOM end up in the same paint.
+
+`velocity` is the smoothed scroll speed from -1 to 1, where 1 is 3000 px a second downwards. A jump longer than the viewport, such as an anchor link or scroll restoration, is a jump rather than motion and does not flash the velocity.
+
+## Compositor scroll and followScroll
+
+Browsers scroll on a separate compositor thread for touch, the keyboard, the scrollbar and the wheel without smooth scrolling. The compositor moves the page at once, while a fixed canvas keeps showing the last frame the main thread drew. Until the next frame lands, copies trail their elements: up to 400 px on a slow integrated GPU. Lenis does not help with keys or the scrollbar, because it handles only the wheel.
+
+`followScroll`, on by default, closes the gap with a CSS scroll-driven animation. The canvas gets an animation on the root scroll timeline that moves it up by exactly the scroll offset, and the compositor applies it in each of its own frames. Each Diorama frame writes the opposite offset with `translate`, in the same task as the draw. At rest the two cancel out; between frames the canvas travels with the page.
+
+| Path, integrated GPU                      | Without | With followScroll |
+| ----------------------------------------- | ------- | ----------------- |
+| Wheel without Lenis                       | 400 px  | 0                 |
+| Keyboard with Lenis                       | 330 to 530 px | up to 8 px in single frames |
+| Scrollbar with Lenis                      | 440 px  | up to 1 px        |
+| Wheel and `scrollTo` with Lenis           | 0       | 0                 |
+
+The cost is that everything on the canvas moves with the page until the frame lands, including content fixed to the viewport. A strip of the same height stays empty at the viewport edge for that moment. A site with a full-screen scene and native scrolling turns it off with `stage({ followScroll: false })` in `plugins`.
+
+`followScroll` covers vertical page scroll only. It needs CSS scroll-driven animations, so browsers without them keep the earlier behavior. It leaves a canvas you pass yourself with `stage({ canvas })` alone, and it turns itself off if a stylesheet removes the animation, for example `* { animation: none !important }`.
+
+## Page swaps
+
+Routers such as Astro and Turbo replace the whole `<body>`. The canvas Diorama created moves into the new body in the same task, before the paint, with the same WebGL context. Size observers move to the new body and measure the new page, so the first frame of the new page is already in place.
+

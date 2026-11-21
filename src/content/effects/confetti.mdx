@@ -1,0 +1,74 @@
+---
+effect: confetti
+example:
+  description: A checkout card whose Place order button bursts confetti over the page when clicked.
+  aspect: 16 / 9
+  controls: [count, angle, spread, speed, gravity, decay, duration, scale]
+  variants: [motion, origin, shapes]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Celebrate a sign-up when the server says yes
+
+A click is too early for a form: the request can still fail. Use the `event` trigger and dispatch the event once your server answers, so the burst marks a sign-up that happened.
+
+<Example id="effects/confetti/signup" description="A free trial form that bursts confetti once the sign-up request succeeds." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+```ts title="src/signup.ts"
+const form = document.querySelector('form.signup') as HTMLFormElement
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault()
+  const response = await fetch('/api/signup', {
+    method: 'POST',
+    body: new FormData(form),
+  })
+  if (response.ok) form.dispatchEvent(new Event('signup:done'))
+})
+```
+
+### Rain on a donation thank-you page
+
+The `view` trigger fires the first time half the section is in view, and `rain` lets the pieces fall from above the whole viewport for a few seconds. With `once` it rains one time on the page, however often the visitor scrolls back.
+
+```html
+<section
+  class="thanks"
+  data-dio="confetti"
+  data-dio-trigger="view"
+  data-dio-motion="rain"
+  data-dio-count="300"
+  data-dio-once="true"
+>
+  <h1>Thank you. Your gift plants 40 trees.</h1>
+  <p>A receipt for your tax records is on its way to your inbox.</p>
+</section>
+```
+
+### Fireworks when a course is complete
+
+The `manual` trigger leaves the moment to your code: every increase of `fire` is one burst. Fire it when the last lesson is marked done, and let `fireworks` burst shells over the upper half of the viewport.
+
+<Example id="effects/confetti/course" description="The last lesson of a course marked complete, with fireworks bursting over the page." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+```ts
+import { app } from './diorama'
+
+const course = document.querySelector('.cf-course')
+const confetti = course && app.effects.get(course, 'confetti')
+if (confetti) confetti.params.fire++
+```
+
+## Notes
+
+Under reduced motion neither the module nor the engine loads for it, and the page stays as it is. Treat the burst as decoration: say what happened in the page itself, as the examples do in a status line.
+
+The effect never cancels the click. A form still submits and a link still opens; when the page changes right away, the pieces fade out with it during a page transition.
+
+The pieces are drawn in one instanced draw from a pool of 1200, and frames run only while pieces fly. The quality tier caps `count` at 80 on the low tier and 140 on the medium one, so markup that asks for 400 pieces gets 140 on a device at the medium tier.
+
+`trigger`, `motion`, `origin`, `shapes`, `colors` and `seed` rebuild the effect when they change. Counts, speeds and angles change live and apply to the next burst.

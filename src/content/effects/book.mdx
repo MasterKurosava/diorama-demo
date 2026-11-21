@@ -1,0 +1,49 @@
+---
+effect: book
+example:
+  description: A hardcover with a deep blue cover of white seaweed fronds; under the pointer it turns to show its spine and its cover opens a little.
+  aspect: 4 / 5
+  caption: Move the pointer over the book, drag it to see the back, or focus it and press the arrow keys. Raise pages for a thicker book.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A paperback with its own spine and back
+
+`spine` and `back` take an image URL or a CSS color. A spine image reads top to bottom, as on a shelf; make it as wide as the book is thick, about 0.06 of the cover height for 240 pages. Without them the spine takes the color of the cover's left edge, and the back takes the spine color.
+
+<Example id="effects/book/paperback" description="A cream paperback with a blue cyanotype, turned to show a spine with its title; a drag shows the back cover with a blurb." aspect="4 / 5" show={['html']} controls={['pages', 'yaw']} variants={[]} />
+
+### A shelf of covers
+
+Books in a grid each react on their own, and a book under the pointer rises above its neighbors. Lower `swing` and `open` when covers sit close together. Wrap each cover in a link to its page: the link keeps its focus ring, and keyboard focus turns the book as hover does.
+
+<Example id="effects/book/shelf" description="Three books in a row, a blue hardcover, a cream paperback and a brown hardcover, each turning a little toward its spine under the pointer." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### A course workbook
+
+`yaw` sets the rest pose. A book at rest turned 20 degrees shows its spine and thickness without any hover, which suits a course or ebook landing page where the book is a picture of the product.
+
+```html
+<img
+  src="/course/workbook.png"
+  width="900"
+  height="1350"
+  data-dio="book"
+  data-dio-style="paperback"
+  data-dio-pages="120"
+  data-dio-spine="#1d3b5a"
+  data-dio-yaw="20"
+/>
+```
+
+## Notes
+
+At rest the cover is drawn exactly where the image is, at its size, so nothing jumps when the engine takes over. Without WebGL the plain cover image stays.
+
+The book draws only while it moves: a hover, a drag, the lean or the easing back. The paper edges, the boards and the spine are built in code, so a book costs one cover image and nothing else to download.
+
+Give the image the aspect ratio of the cover. The thickness comes from `pages`, the way a printer counts them: 320 pages of a 6 × 9 inch book are about 16 mm thick.

@@ -1,0 +1,79 @@
+---
+title: Use without a build step
+label: HTML
+description: Start Diorama on a plain HTML page, Webflow or Tilda with one script tag from a CDN.
+section: start
+order: 5
+frameworks: [html]
+---
+
+The CDN build starts the app on its own with the image effects and page transitions, and loads three.js in separate chunks after the first paint.
+
+## Add the script
+
+```html title="index.html" fixture="html"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Diorama</title>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+    ></script>
+  </head>
+  <body>
+    <img
+      src="/cover.jpg"
+      width="800"
+      height="450"
+      data-dio="ripple"
+    />
+  </body>
+</html>
+```
+
+If the page loads GSAP from a CDN, `window.gsap` and `window.ScrollTrigger` are picked up without code.
+
+## Pass options
+
+Options of `start()` go in `window.diorama`, set before the script tag.
+
+```html
+<script>
+  window.diorama = { canvas: 'behind' }
+</script>
+```
+
+Set `window.diorama = { manual: true }` to call `start()` yourself.
+
+## Write your own effect
+
+Your effect is a module that imports `effect` from the same address, so the page has one copy of Diorama.
+
+```js title="fx/brighten.js"
+import { effect } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((color) => color.mul(u.strength.add(1)))
+})
+```
+
+Register it in the options under the name you use in markup.
+
+```html
+<script>
+  window.diorama = { effects: { brighten: () => import('/fx/brighten.js') } }
+</script>
+<img
+  src="/cover.jpg"
+  data-dio="brighten"
+  data-dio-strength="2"
+/>
+```
+
+To keep a folder of effects, let the CLI write the registry for you. With a `.js` output, `dioramajs gen` writes a module that imports every effect file of the folder.
+
+<Run command="dioramajs gen --dir fx --out fx/registry.js" />
+
+See [the CLI](/docs/api/cli) for the other formats.

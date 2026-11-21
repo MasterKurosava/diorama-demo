@@ -1,0 +1,42 @@
+---
+code: TRANSITION_SWAP
+level: error
+message: 'the swap rejected'
+summary: The promise returned by the swap function of a page transition rejected, so the transition ended as failed.
+---
+
+The error of the swap is the `cause`. It is reported once, since a router recipe may not wait for `swapped`.
+
+## Why it happens
+
+- The swap passed to `transition()` or `app.transition()` returns a promise, usually the router's navigation, and that promise rejects. The next page failed to load, or the router threw while it replaced the DOM.
+
+The copies and veils of the transition are released, and the page shows its DOM. `transition.swapped` rejects with the same error, and the transition resolves with `status: 'failed'` and the error in `error`. The transition itself never rejects.
+
+A swap that throws synchronously is not reported with this code. The error is thrown back to the caller, which is the router hook.
+
+## How to fix
+
+Find the router error in the `cause` and handle failed navigations in the router. When the router cannot recover, fall back to a full page load:
+
+```ts
+import { type App, transition } from 'dioramajs'
+
+export async function go(
+  app: App,
+  url: string,
+  swap: () => Promise<void>,
+) {
+  const result = await transition(app, swap, { url })
+  if (result.status === 'failed') location.assign(url)
+}
+```
+
+Return `transition.swapped` to the router hook when the router expects a promise, so the router sees the failure too.
+
+## Related
+
+- `TRANSITION_TIMEOUT`
+- `TRANSITION_ANIMATE`
+- `transition()`
+- `app.transition()`

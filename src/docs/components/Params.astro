@@ -1,0 +1,183 @@
+---
+import { effectMetas } from '../lib/effect-pages.ts'
+/**
+ * Params table of a library effect, from its metadata. Rows
+ * carry #param-<name> anchors; a choice lists what each value does when its description says so.
+ *
+ * <Params effect="reveal" />            every param in definition order
+ * <Params effect="reveal" only={['style', 'duration']} />
+ */
+import { paramRows, valueNotes } from '../lib/effects.ts'
+import Doc from './Doc.astro'
+
+interface Props {
+  readonly effect: string
+  readonly only?: readonly string[]
+}
+const { effect, only } = Astro.props
+const meta = effectMetas().find((e) => e.name === effect)
+if (!meta) throw new Error(`Params: no effect "${effect}" in the metadata`)
+const rows = paramRows(meta).filter((r) => !only || only.includes(r.name))
+const notes = Object.fromEntries(meta.params.map((p) => [p.name, valueNotes(p)]))
+const self = `/docs/effects/${effect}`
+---
+
+{
+  rows.length === 0 ? (
+    <p>It has no params.</p>
+  ) : (
+    <div class="table-wrap params" data-pagefind-weight="0.4">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Param</th>
+            <th scope="col">Type</th>
+            <th scope="col">Default</th>
+            <th scope="col">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const values = Object.entries(notes[r.name] ?? {})
+            return (
+              <tr id={r.id}>
+                <th scope="row" data-label="Param">
+                  <a class="p-name" href={`#${r.id}`}>
+                    <code>{r.name}</code>
+                  </a>
+                  {r.rebuild && (
+                    <span class="p-rebuild" title="Changing it rebuilds the effect">
+                      rebuilds
+                    </span>
+                  )}
+                  <code class="p-attr">{r.attribute}</code>
+                </th>
+                <td data-label="Type">
+                  <code class="p-type">{r.type}</code>
+                  {r.range && <span class="p-range">{r.range}</span>}
+                </td>
+                <td data-label="Default">
+                  <code>{r.default}</code>
+                </td>
+                <td data-label="Description">
+                  {values.length ? (
+                    <ul class="p-values">
+                      {values.map(([v, note]) => (
+                        <li>
+                          <code>{v}</code> <Doc md={note} self={self} inline />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <Doc md={r.description} self={self} inline />
+                  )}
+                  {r.caps && <span class="p-caps">At most {r.caps} by quality tier.</span>}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      {rows.some((r) => r.rebuild) && (
+        <p class="p-foot" data-pagefind-ignore>Params marked rebuilds re-run the effect's setup when they change, so set them before the element shows.</p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .params table {
+    font-size: 0.86em;
+  }
+  .params th[scope='row'] {
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .params tr:target {
+    background: var(--mark);
+  }
+  .p-name {
+    text-decoration: none;
+  }
+  .p-name code {
+    font-weight: 600;
+  }
+  .p-attr,
+  .p-range,
+  .p-caps {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.86em;
+    color: var(--text-muted);
+  }
+  .p-attr {
+    background: none;
+    padding: 0;
+  }
+  .p-type {
+    overflow-wrap: anywhere;
+  }
+  .p-rebuild {
+    margin-left: var(--s-2);
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font: 500 0.72em var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    vertical-align: 1px;
+  }
+  .p-values {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .p-values li + li {
+    margin-top: var(--s-1);
+  }
+  .p-foot {
+    margin: var(--s-2) 0 0;
+    font-size: 0.82em;
+    color: var(--text-muted);
+  }
+  /* Narrow screens: each param is a card with labelled cells. */
+  @media (max-width: 640px) {
+    .params table,
+    .params tbody,
+    .params tr,
+    .params th,
+    .params td {
+      display: block;
+    }
+    .params thead {
+      display: none;
+    }
+    .params tr {
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .params th[scope='row'],
+    .params td {
+      padding: 2px 0;
+      border: 0;
+      white-space: normal;
+    }
+    .params td[data-label='Type']::before,
+    .params td[data-label='Default']::before {
+      content: attr(data-label) ' ';
+      font: 500 0.8em var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .params td[data-label='Type'] .p-range {
+      display: inline;
+      margin-left: var(--s-2);
+    }
+    .params .p-attr {
+      display: inline;
+      margin-left: var(--s-2);
+    }
+  }
+</style>

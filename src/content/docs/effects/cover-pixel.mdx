@@ -1,0 +1,78 @@
+---
+title: Pixel cover
+label: Pixel cover
+description: A page transition where the old page breaks into growing blocks and the new page resolves from them, at random, on a diagonal or from the click.
+section: effects
+order: 3
+related: [guides/page-covers, effects/cover-curtain, effects/cover-ink, guides/routers]
+---
+
+Blocks grow from the middle of each cell of a grid until they meet and hide the old page. Once the router has swapped the page, the blocks shrink away and the new page shows through. It suits playful brands, games, music and tech sites.
+
+![Dark blocks of different sizes growing over the studio page of a site](/media/covers/pixel.webp)
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({ transitions: { cover: 'pixel' } })
+```
+
+The [page covers guide](/docs/guides/page-covers) explains how the cover works with your router, the timing options and what visitors with reduced motion see.
+
+## Recipes
+
+### A mosaic of brand colors
+
+`palette` adds up to three colors. Each block takes one of them or `color`, so the page turns into a mosaic of your palette. `order: 'diagonal'` sweeps it from the top left corner.
+
+```ts
+start({
+  transitions: {
+    cover: {
+      name: 'pixel',
+      order: 'diagonal',
+      cell: 64,
+      color: '#1b1a17',
+      palette: '#e4572e #2f6690',
+    },
+  },
+})
+```
+
+![A mosaic of dark, orange and blue blocks covering a studio site](/media/covers/pixel-palette.webp)
+
+### Out from the click
+
+`order: 'origin'` starts with the blocks around the link the visitor clicked and moves outward. Small cells read as a dissolve.
+
+```ts
+start({
+  transitions: {
+    cover: {
+      name: 'pixel',
+      order: 'origin',
+      cell: 32,
+      color: '#2f6690',
+    },
+  },
+})
+```
+
+![Blue blocks shrinking away from the top right corner of a studio page, the farthest still large](/media/covers/pixel-origin.webp)
+
+## Options
+
+| Option    | Default     | What it does |
+| --------- | ----------- | ------------ |
+| `cell`    | `48`        | Block size in CSS pixels |
+| `order`   | `'random'`  | Which blocks go first: `'random'`, `'diagonal'` or `'origin'` (from the click) |
+| `color`   | `'#0e0e10'` | Any CSS color |
+| `palette` | none        | Up to three more CSS colors, separated by spaces |
+| `spread`  | `0.6`       | 0 to 0.95, the share of each half over which the blocks start |
+| `seed`    | `1`         | Another number gives another random order and colors |
+
+`duration`, `ease`, `wait`, `timeout`, `links` and `arrive` are shared by every cover and described in the [guide](/docs/guides/page-covers#options).
+
+## Notes
+
+The blocks are drawn in your colors, not from the pixels of the page: a browser can't read the pixels of HTML into the canvas without rasterizing the page first. A low `spread` makes the blocks start almost together; a high one makes them start one after another.

@@ -1,0 +1,74 @@
+---
+effect: scrub
+example:
+  description: A short film of a gold pocket watch whose crystal and bow lift away while the frame stays pinned and you scroll.
+  caption: Scroll the page. The frame holds still while the film plays forward, and scrolling up plays it back.
+  scroll: 200vh
+related:
+  - concepts/scroll
+  - guides/performance
+  - guides/gsap-lenis
+---
+
+## Recipes
+
+### Turn a product on scroll
+
+The usual page is a tall section with a sticky stage the height of the screen, and the video in the stage. `scrub` follows the pin of that section, so 400vh gives the film three screens of scroll. An `end` below 1 reaches the last frame early and holds it while the reader takes in the heading.
+
+```html
+<section class="turn" data-dio-section style="height: 400vh">
+  <div class="stage" style="position: sticky; top: 0; height: 100vh">
+    <video src="/film/turn.mp4" poster="/film/turn.webp" muted playsinline preload="auto" aria-label="The headphones, turning to show the hinge" data-dio="scrub" data-dio-end="0.85"></video>
+  </div>
+</section>
+```
+
+### Encode the file for scrubbing
+
+A browser seeks by decoding from the keyframe before the wanted time. Files from a phone or an editor have a keyframe every few seconds, so every step back decodes dozens of frames and the picture stops while you scroll. Encode the film with a keyframe every few frames, without sound, at most 1080p and with the index at the start of the file:
+
+```sh
+ffmpeg -i turn.mov -an -c:v libx264 -g 5 -crf 20 -pix_fmt yuv420p -movflags +faststart turn.mp4
+ffmpeg -i turn.mov -an -c:v libvpx-vp9 -g 5 -crf 34 -b:v 0 turn.webm
+```
+
+With `-g 1` every frame is a keyframe: the smoothest scrub at about twice the size. Keep the film short, 3 to 6 seconds is plenty for a turn or a teardown. The film in the example is 4 seconds at 30 frames a second, 720 px, with a keyframe every 5 frames: 660 KB as WebM. A few frames stretched over a long scroll step however they blend, so give the scroll as many frames as it has screens times 30 or so.
+
+The effect asks for the next time only when the last seek is done, so seeks never pile up, and each frame the browser decodes crossfades from the one before for as long as the frames take to come, at most `blend`. A slow seek then shows as a short dissolve instead of a stop, and quick seeks stay sharp.
+
+### Part of a longer film
+
+`from` and `to` pick the seconds that scroll plays through, so one film can serve several sections.
+
+```html
+<video src="/film/assembly.mp4" muted playsinline preload="auto" data-dio="scrub" data-dio-from="2" data-dio-to="6"></video>
+```
+
+### Driven by your own code
+
+With `by` set to `manual`, `position` from 0 to 1 picks the moment, for a slider or a GSAP tween.
+
+```html
+<video class="film" src="/film/assembly.mp4" muted playsinline preload="auto" data-dio="scrub" data-dio-by="manual"></video>
+<input class="at" type="range" min="0" max="1" step="0.001" value="0" aria-label="Assembly step" />
+```
+
+```ts
+const film = app.effects.get(document.querySelector('.film'), 'scrub')
+document.querySelector('.at').addEventListener('input', (e) => {
+  film?.set({ position: Number(e.target.value) })
+})
+```
+
+## Notes
+
+`scrub` or `sequence`: a video is one file that the browser streams and decodes on the GPU, so it is smaller and quicker to start than a hundred images. A `sequence` of images steps without any seek and suits short loops and atlases. Pick `scrub` when the film is longer than a few dozen frames.
+
+The video never plays: the effect pauses it whenever something starts it. It needs `muted` and `playsinline` like any inline video, and `preload="auto"`, which the effect sets if it is missing.
+
+The poster is what people with reduced motion and without WebGL see, so make it the first frame or the one that tells the most.
+
+A video from another origin needs `crossorigin="anonymous"` and a server that sends `Access-Control-Allow-Origin`, or the effect stops with [`EFFECT_CORS`](/docs/errors/effect-cors).
+
+`resolution` rebuilds the effect when it changes. Set it in the markup.

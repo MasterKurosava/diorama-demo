@@ -1,0 +1,67 @@
+---
+title: Install with Vite
+label: Vite
+description: Add Diorama to a Vite site with the plugin that finds your effects and writes their types.
+section: start
+order: 1
+frameworks: [vite]
+---
+
+The Vite plugin turns every file in `src/effects/` into an effect that loads on demand and writes the types of those effects to `src/diorama.gen.d.ts`. It works with any framework that builds with Vite.
+
+## Install the packages
+
+<Install packages="dioramajs three" />
+
+## Add the plugin
+
+Add `diorama()` to the plugins in `vite.config.ts`.
+
+```ts title="vite.config.ts" fixture="vite" twoslash
+import { diorama } from 'dioramajs/vite'
+
+export default { plugins: [diorama()] }
+```
+
+## Start the app
+
+Call `start()` once in the module every page loads.
+
+```ts title="src/main.ts" fixture="vite" twoslash
+import { start } from 'dioramajs'
+
+export const app = start()
+```
+
+## Put an effect on an image
+
+Add `data-dio` with an effect name to an element. The `ripple` effect comes with `start()`.
+
+```html title="index.html" fixture="vite"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Diorama</title>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <img
+      src="/cover.jpg"
+      width="800"
+      height="450"
+      data-dio="ripple"
+    />
+  </body>
+</html>
+```
+
+Run the dev server and move the pointer over the image. Rings spread from the pointer, and the image keeps its place in the layout while you scroll.
+
+<Callout kind="note">
+The plugin writes `src/diorama.gen.d.ts` whenever the effects folder changes. Commit it, so `app.attach()` checks effect names and params in CI as well.
+</Callout>
+
+## Plugin options
+
+<Api symbol="diorama-vite:DioramaPluginOptions" part="members" />

@@ -1,0 +1,32 @@
+.kc-launch {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(10px, 2.4cqi, 22px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  text-align: center;
+  background:
+    radial-gradient(60% 80% at 50% 0%, #ffffff 0%, transparent 70%),
+    linear-gradient(180deg, #ecebe7 0%, #dddbd5 100%);
+  color: #1d1f24;
+}
+.kc-launch .kc-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.4cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b6f78;
+}
+.kc-launch .kc-title {
+  margin: 0.2em 0;
+  font: 800 clamp(2.4rem, 8cqi, 5.6rem) / 1.1 var(--font-text);
+  color: #1d1f24;
+}
+.kc-launch .kc-line {
+  max-width: 46ch;
+  margin: 0;
+  font: 400 max(13px, 1.7cqi) / 1.45 var(--font-text);
+  color: #4d515a;
+}

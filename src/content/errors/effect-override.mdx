@@ -1,0 +1,67 @@
+---
+code: EFFECT_OVERRIDE
+level: warning
+message: '{source} replaces the built-in effect "{name}"; rename yours or mark it override: true'
+summary: An effect of your site has the name of a built-in one, so it replaces the built-in everywhere on the page.
+---
+
+This warning prints in development builds only, once per name, when `start()` runs. A production build says nothing.
+
+## Why it happens
+
+Your effects win over the built-in ones: an effect with the name of a built-in replaces it for every element with that token. That is allowed, but it also happens by accident, since new versions of Diorama add built-in effects. The source in the message names where yours comes from:
+
+- `the effects folder`: a file such as `src/effects/glow.ts` (`app/effects/` with Nuxt) whose name is the name of a built-in effect.
+- `start({ effects })`: an entry with a loader or an effect under a built-in name, such as `start({ effects: { glow: () => import('./glow') } })`.
+
+A patch never raises it. `start({ effects: { ripple: { when: 'all' } } })` changes the built-in `ripple` and keeps its code.
+
+## How to fix
+
+If you did not mean to replace the built-in, rename your effect. Rename the file, or the key in `start()`:
+
+```ts title="src/effects/soft-glow.ts"
+import { effect } from 'dioramajs'
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((c) => c.mul(u.strength.add(1)))
+})
+```
+
+and the token in your markup:
+
+```html
+<img src="/img/cover.avif" data-dio="soft-glow" />
+```
+
+If you meant it, mark the replacement as intended. In a file of the effects folder, export `override`:
+
+```ts title="src/effects/glow.ts"
+import { effect } from 'dioramajs'
+
+export const override = true
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((c) => c.mul(u.strength.add(1)))
+})
+```
+
+In `start()`, add `override: true` to the entry:
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({
+  effects: {
+    glow: { load: () => import('./effects/glow'), override: true },
+  },
+})
+```
+
+A GLSL file in the effects folder cannot export anything, so mark it from `start()` with a patch: `start({ effects: { glow: { override: true } } })`.
+
+## Related
+
+- `start()`
+- `EFFECT_UNKNOWN`
+- `EFFECT_DEFINITION`

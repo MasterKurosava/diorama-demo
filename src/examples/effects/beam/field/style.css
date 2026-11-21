@@ -1,0 +1,40 @@
+.signup {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) auto;
+  gap: 12px;
+  place-content: center;
+  align-items: center;
+  background: #0b1020;
+  font-family: var(--font-text);
+}
+.signup h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  color: #e8ecf8;
+}
+.field {
+  display: block;
+  border: 1px solid #263049;
+  border-radius: 999px;
+  background: #11182b;
+}
+.field input {
+  width: 100%;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+.signup button {
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #4f46e5;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+}

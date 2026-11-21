@@ -1,0 +1,87 @@
+---
+effect: waves
+example:
+  description: A trail card whose map is drawn as brown contour lines on paper, slowly changing shape, next to the route's distance, climb and time.
+  aspect: 16 / 7
+  caption: Switch style to waves for flowing lines or to stripes for filled bands.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Contours behind a hero
+
+Put the lines on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`. The element's CSS background is what visitors see before the engine draws and without WebGL, so give it the same color as `background`.
+
+```html
+<header class="hero">
+  <div
+    class="hero-bg"
+    aria-hidden="true"
+    data-dio="waves"
+    data-dio-color="#2f5d50"
+    data-dio-background="#0d1f1a"
+  ></div>
+  <h1>Trails for every season</h1>
+  <a class="cta" href="/maps">Browse the maps</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #0d1f1a;
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+### Flowing lines in a fintech footer
+
+The `waves` style runs the lines across the element in soft swells. More lines and a low `warp` give a calm, technical texture for a footer or a dashboard header, and `scroll` moves them as the footer comes into view.
+
+```html
+<footer class="site-footer">
+  <div
+    class="footer-bg"
+    aria-hidden="true"
+    data-dio="waves"
+    data-dio-style="waves"
+    data-dio-lines="28"
+    data-dio-warp="0.4"
+    data-dio-color="#24406b"
+    data-dio-background="#0a1428"
+    data-dio-scroll="0.6"
+  ></div>
+  <p>Ledger, money for teams</p>
+</footer>
+```
+
+### Bold stripes for a campaign band
+
+`stripes` fills every other band, for a loud poster look on a sale or festival page.
+
+<Example id="effects/waves/stripes" description="Orange and peach wavy bands across a wide strip, slowly changing shape." aspect="16 / 5" show={['html']} controls={['lines', 'warp', 'speed']} variants={[]} />
+
+## Notes
+
+The docs canvas sits above the page, so the examples here keep text beside the lines instead of over them. Put text over the lines with `canvas: 'behind'`, as in the first recipe.
+
+Lines keep their width in CSS pixels wherever they run. Where they crowd together they blend into an even tone, and where the relief is flat they fade, so the picture never flickers or blots.
+
+It draws up to `fps` frames a second while it is on screen and none off screen; scroll draws at full rate while it moves the lines. On the low tier it draws at most 15 frames a second. Set `fps` to 0 for lines that move only with scroll.
+
+`style` and `seed` rebuild the effect when they change. The colors, line count and speeds change live.

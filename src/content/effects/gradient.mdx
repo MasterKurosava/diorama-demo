@@ -1,0 +1,109 @@
+---
+effect: gradient
+example:
+  description: A launch card whose cover is four soft blobs of navy, violet, coral and gold drifting into one another under a light film grain.
+  aspect: 16 / 8
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Behind a SaaS hero
+
+Put the gradient on an empty `aria-hidden` element that fills the hero, and start the app with `canvas: 'behind'` so the heading and buttons sit over the canvas. The element's CSS background is what visitors see until the engine draws, and all the time without WebGL, so give it the same colors.
+
+```html
+<header class="hero">
+  <div
+    class="hero-bg"
+    aria-hidden="true"
+    data-dio="gradient"
+    data-dio-color1="#0a1a3f"
+    data-dio-color2="#3d5afe"
+    data-dio-color3="#00c2a8"
+    data-dio-color4="#e8f0ff"
+  ></div>
+  <h1>Payroll that runs on the 25th, every month</h1>
+  <a class="cta" href="/signup">Start a free trial</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #0a1a3f, #3d5afe 55%, #00c2a8);
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+Keep the hero itself without a background color, or it covers the canvas behind it.
+
+### Aurora over a dark hero
+
+The `aurora` style turns the first color into a night sky and the other three into curtains of light. Pick a near-black first color and three bright ones: it suits a night, travel or developer brand on a dark page.
+
+<Example id="effects/gradient/aurora" description="Green, blue and violet curtains of light waving over a dark navy sky." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### Film grain for a studio intro
+
+Raise `grain` to around 0.08 for a printed, filmic surface, and `speed` a little so the blobs visibly travel on the first screen of a portfolio.
+
+```html
+<section class="intro">
+  <div
+    class="intro-bg"
+    aria-hidden="true"
+    data-dio="gradient"
+    data-dio-color1="#1b1410"
+    data-dio-color2="#7a3b2e"
+    data-dio-color3="#d9a066"
+    data-dio-color4="#f2e3c9"
+    data-dio-grain="0.08"
+    data-dio-speed="0.2"
+  ></div>
+  <h1>Halden Studio, interiors and objects</h1>
+</section>
+```
+
+### A calm backdrop for a long page
+
+With `fps` at 0 the blobs stay where they are and move only as the page scrolls, so a long article or a pricing page gets a background that never draws at rest. Turn the grain off as well when text sits right over it.
+
+```html
+<div
+  class="backdrop"
+  aria-hidden="true"
+  data-dio="gradient"
+  data-dio-color1="#f4efe6"
+  data-dio-color2="#e7d8f5"
+  data-dio-color3="#cfe7e1"
+  data-dio-color4="#fbe3c8"
+  data-dio-fps="0"
+  data-dio-scroll="0.6"
+  data-dio-grain="0"
+></div>
+```
+
+## Notes
+
+The docs canvas sits above the page, so the examples here draw nothing over the gradient: with the canvas above, the gradient covers whatever is inside its box. Put text over a gradient with `canvas: 'behind'`, as in the first recipe.
+
+Colors are any CSS colors, `oklch()` included. The effect mixes them in OKLab, so two hues meet through a clean middle instead of a gray band, and it dithers every pixel, so dark ramps show no steps.
+
+It draws up to `fps` frames a second while it is on screen and none off screen. The pointer and scroll draw at full rate while they move it. On the low tier it draws at most 15 frames a second with one layer of noise, which keeps it cheap on phones.
+
+`style`, `octaves` and `seed` rebuild the effect when they change. The colors, speeds and grain change live.

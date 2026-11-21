@@ -1,0 +1,44 @@
+---
+effect: inflate
+example:
+  description: A candy shop's summer headline in pink balloon letters on a pastel background, puffing up one letter after another.
+  caption: Press the letters and drag across them to squish them. Switch the style and the trigger, or move the sliders.
+  aspect: 16 / 8
+  controls: [depth, gloss, squish, tilt]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Button labels that puff up on hover
+
+With `trigger="hover"` the label stays plain text until the pointer or keyboard focus reaches the button, then its letters inflate in a quick wave and go flat again when it leaves; on a phone a tap inflates the label and the next tap lets it go. Put the effect on the text inside the button, not on the button: the effect draws the element it sits on in its place, so the button's background, border and padding stay as they are. Shorter `duration` and `stagger` keep the wave quick.
+
+<Example id="effects/inflate/button" description="Two pill buttons on a cream background, Order a box and See flavors, whose labels inflate when hovered." aspect="16 / 4" show={['html']} controls={[]} variants={[]} />
+
+### Matte clay for a craft studio
+
+`style="soft"` turns the letters into matte clay: a broad soft light, no sharp highlight, and a darker seam where each letter meets the page. A lower `gloss` takes away the last of the sheen. It suits a wide, heavy font.
+
+<Example id="effects/inflate/clay" description="A pottery class poster on a pale gray background with the name Mud Club in orange clay letters." aspect="16 / 7" show={['html']} controls={['gloss', 'depth']} variants={[]} />
+
+### Gummy candy in its own color
+
+`style="jelly"` makes the letters translucent: clear and bright at the rims, deeper in color where they are thick, and the page shows through them. `color` overrides the text color for the letters and their shadow.
+
+```html
+<h2 data-dio="inflate" data-dio-style="jelly" data-dio-color="#19b48a">Gummy bears</h2>
+```
+
+## Notes
+
+The letters are built in 3D, not painted. A distance field of the glyphs is built once on the CPU, and the letters are inflated like a membrane under pressure, so straight strokes become round tubes, dots become domes and the joints of strokes bulge a little. Each letter is a mesh raised by that height and seen through the page camera, so it leans in perspective, and the normals of the surface take a studio light with a highlight and a soft shadow on the page. `depth` scales the height: 1 is round, larger is taller than wide.
+
+The pointer dents the skin where it rests and deeper where it presses, the skin around the dent rises a little, and letters near it lean toward it. Everything springs back with a wobble when the pointer leaves or lets go. `squish` and `tilt` at 0 turn the dent and the lean off.
+
+The text stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the letters are drawn the DOM text is hidden without being removed. With `trigger="hover"` the element is plain text at rest. Frames run only while letters inflate or go flat and while the dent and the lean move; at rest the effect draws nothing. Under reduced motion the letters are round from the start and do not move.
+
+The effect looks best on bold or display fonts at 48 px and larger; hairlines of a thin serif inflate too, as fine glossy tubes. The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does: an element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `trigger` and `color` rebuild the effect when they change; the other params change live.

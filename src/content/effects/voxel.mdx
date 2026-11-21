@@ -1,0 +1,54 @@
+---
+effect: voxel
+example:
+  description: A toy store's headline in yellow cubes on a blue background that fall in from above, bounce into place and settle into the text.
+  caption: Switch the style and the trigger, or move the sliders; with the hover trigger and with pixels, move the pointer across the heading.
+  aspect: 16 / 8
+  controls: [depth, drop, bounce, duration, stagger]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Retro voxels for a game launch
+
+`style="pixels"` draws flat-faced voxels with crisp edges and no bevel, and keeps them: once the heading is built it stays as voxels instead of turning back into text. A larger `depth` makes long blocks whose sides show in perspective, more so away from the middle of the screen. Voxels that stay pop out toward the viewer under the pointer, lean out of the bump, cast a soft shadow on the cubes around them and spring back when it moves on. Scroll down to this example to see it build, then move the pointer across it.
+
+<Example id="effects/voxel/arcade" description="A dark purple game teaser with the words Press start in green voxels that pop out under the pointer." aspect="16 / 6" show={['html']} controls={['radius', 'depth']} variants={[]} />
+
+`radius` sets how far the pointer reaches, in CSS pixels; 0 turns the pop-out off. The text stays real for screen readers, search and selection, but it shows as voxels, so keep this style for a short display line.
+
+### Toy bricks for a kids' brand
+
+`style="bricks"` pairs neighboring cells into bricks two cells wide, laid in a running bond like a wall, with dark mortar lines between them and a round stud on top of each cell. Bricks read best with a larger `cell`, so the studs have room; `studs="false"` leaves plain bricks.
+
+```html
+<h1 data-dio="voxel" data-dio-style="bricks" data-dio-cell="12" data-dio-bounce="1.5">Toy box</h1>
+```
+
+### A heading that builds as you scroll
+
+With `data-dio-trigger="scroll"` the cubes fall into place as the heading rises toward the middle of the viewport, the text holds there as plain DOM text, and as it moves on toward the top it turns back into cubes that drop away down the page. Scrolling back plays it in reverse. A higher `drop` makes the cubes fall from further up.
+
+```html
+<h2 data-dio="voxel" data-dio-trigger="scroll" data-dio-drop="400">Step by step</h2>
+```
+
+### Blocks to poke in a navigation or a hero
+
+`data-dio-trigger="hover"` skips the build and shows the heading as cubes from the start, for the pointer to poke. Under reduced motion it stays plain text, unless the style is pixels.
+
+```html
+<h2 data-dio="voxel" data-dio-trigger="hover" data-dio-radius="160">Play with us</h2>
+```
+
+## Notes
+
+The cubes are real boxes in the 3D space of the page, seen through the same camera, one instanced draw for all of them. Each samples the color of the text under its cell of the grid, so mixed colors inside the heading carry over. They are lit by a fixed key light from the upper left: cubes get a beveled edge that catches the light, bricks a gloss on their studs, and the sides of a cube are darker where a neighbor sits beside it and toward the page, a cheap kind of ambient occlusion between neighbors.
+
+Each cube starts above and behind the page, tumbles around its own axis on the way down, lands with a hop and a squash, and wobbles still. The wave runs from left to right with lower rows first, so the letters stack up. Once a column has landed the cubes flatten into the face of the text and the real text fades in over them; when the last column is in the element is plain, selectable DOM text. Text on screen when the page opens is hidden until the effect is ready and then builds, as with `assemble`.
+
+`cell` sets the size of the grid in CSS pixels: 8 suits headings of 80 to 160 px, 5 or 6 smaller ones, and 12 or more gives chunky toy blocks. The grid widens when a heading would need more than 9,000 cubes, fewer on slower devices. Frames run only while cubes move; at rest the effect draws nothing, voxels that stay included. Under reduced motion cubes and bricks show the text as it is, and pixels show still voxels. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `mode`, `cell` and `seed` rebuild the effect when they change.

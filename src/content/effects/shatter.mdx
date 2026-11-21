@@ -1,0 +1,52 @@
+---
+effect: shatter
+example:
+  description: A glass studio headline on a dark page that breaks into lit glass shards where it is clicked, which tumble away and fly back together.
+  caption: Click the heading where you want it to break, or press Break it. Switch the style for stone or paper.
+  aspect: 16 / 8
+  controls: [strength, spin, gravity, depth, hold]
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Cracks under the pointer
+
+With `data-dio-trigger="hover"` the heading stays whole, but the pieces near the pointer lift toward the viewer and tilt, and a ripple of cracks runs out across the line from where the pointer came in. When the pointer leaves, the pieces settle back and the heading is plain text again. `strength` sets how high they lift and `spin` how far they tilt. On a touch screen a finger on the heading lifts the pieces under it. Move the pointer over the heading below.
+
+<Example id="effects/shatter/hover" description="A stoneware shop banner on a cream page whose heading cracks into stone pieces that lift under the pointer." aspect="16 / 6" show={['html']} controls={['strength', 'spin']} variants={[]} />
+
+### A notice that breaks for good
+
+With `data-dio-hold="0"` the click trigger never brings the text back: the pieces fall away, the element is left empty with `data-dio-shatter="gone"`, and a `dio:shatter` event fires. The element still takes its space, so remove or collapse it then. Give a clickable element `role="button"` and `tabindex="0"`, so Enter breaks it too.
+
+```html
+<p class="notice" role="button" tabindex="0" data-dio="shatter" data-dio-style="stone" data-dio-hold="0">Offer expired. Click to dismiss.</p>
+```
+
+```js
+document.querySelector('.notice').addEventListener('dio:shatter', (e) => e.target.remove())
+```
+
+### A chapter heading that crumbles as it scrolls out
+
+With `data-dio-trigger="scroll"` the heading is whole while it sits in the viewport, and breaks apart as it rises past the top, scrubbed by the scroll in both directions. A heading that scrolls in from the bottom flies together on its way up. Stone suits a heavy, solid typeface.
+
+```html
+<h2 data-dio="shatter" data-dio-style="stone" data-dio-trigger="scroll" data-dio-pieces="30">Built to last</h2>
+```
+
+`data-dio-trigger="view"` plays the opposite once: the pieces fly in from around the page and lock together as the heading comes into view, a good opener for a launch or a portfolio.
+
+## Notes
+
+The pieces are cut from the heading's own text, drawn the way the browser laid it out, so every piece carries its part of the letters in their font, color and weight. The cuts are seeded Voronoi cells that crowd onto the letters; cells with no ink are left out. A click cuts the text again around the point of impact, with small pieces in rings close to it and larger ones farther out, like a struck pane, and the crack runs out from there so the far pieces let go a moment later.
+
+Each piece is a real slab seen through the page camera: glass is a thin clear pane with the text printed on its face, green along its edges where the light travels through more glass, with reflections and bright glints on the cut edges as it turns. Stone is a thick chunk whose walls follow the letters, rough and matte, and it breaks with a puff of dust. Paper is a sheet with torn, fibrous edges that bends and rocks as it flutters down and shows its blank back. Lifted pieces cast soft shadows on the page. `depth` scales the thickness; 0 gives flat pieces.
+
+`pieces` sets about how many pieces the text box is cut into: 40 suits a heading of two or three words, more makes finer shards. The drawing order follows the distance to the camera every frame, so pieces that fly toward the viewer pass in front of the others. Nothing is drawn at rest: the heading is plain DOM text before the break and once the pieces are back, and with the hover trigger once they have settled.
+
+Under reduced motion the click trigger fades the text out, and back in after `hold`; the other triggers keep the text as it is. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `trigger`, `pieces` and `seed` rebuild the effect when they change.

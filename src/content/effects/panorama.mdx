@@ -1,0 +1,100 @@
+---
+effect: panorama
+example:
+  description: A wood-paneled hotel lounge in 360°, with four hotspots on the sofa, the fireplace wall, the window and the billiard table.
+  caption: Drag to look around, or focus the view and use the arrow keys, + and -. Tab moves through the hotspots and turns the view to each.
+  aspect: 16 / 9
+  controls: [yaw, pitch, fov, range, spin, drag, zoom, gyro, marker, markerSize]
+related:
+  - guides/performance
+  - guides/loading
+---
+
+## Recipes
+
+### A room tour with a visible legend
+
+Hotspots outside the panorama make a legend people can read: hovering an item lights its ring, focusing it turns the view there, and `dio:marker` fires as either happens. Here `markers` names the list, so the panorama ignores every other `data-dio-yaw` on the page.
+
+<Example id="effects/panorama/legend" description="The hotel lounge in 360° over a list of five places in the room; each item turns the view to its spot." aspect="16 / 10.6" show={['html']} controls={[]} variants={[]} />
+
+On a real tour each item is a link to the next room. A click on a ring follows the link inside its item, and the keyboard reaches the same links in the list.
+
+```html
+<ul class="tour-legend" aria-label="Where to go next">
+  <li data-dio-yaw="50" data-dio-pitch="0">
+    <a href="/rooms/veranda">Through the window to the veranda</a>
+  </li>
+  <li data-dio-yaw="139" data-dio-pitch="-6">
+    <a href="/rooms/garden">Down the hall to the garden room</a>
+  </li>
+</ul>
+```
+
+### Show a preview first, then the full picture
+
+`preview` takes a small panorama of 1 to 2K that shows within a second; the full `src` replaces it with a cross-fade when it has decoded. JPEG, WebP and AVIF decode at up to `resolution`, 4096 px by default. For 8K, serve KTX2: it uploads as it is, without a long decode, and takes a quarter of the GPU memory.
+
+```html
+<div
+  class="tour"
+  data-dio="panorama"
+  data-dio-src="/pano/suite-8k.ktx2"
+  data-dio-preview="/pano/suite-1k.webp"
+  tabindex="0"
+  role="application"
+  aria-roledescription="360° view"
+  aria-label="Garden suite, 360° view"
+  style="touch-action: pan-y"
+>
+  <img src="/img/suite.avif" />
+</div>
+```
+
+### Steer it by tilting the phone
+
+With `gyro` on, a phone looks around as the visitor turns it. iOS asks for permission on the first tap, so say in the label that a tap starts it.
+
+```html
+<div
+  class="tour"
+  data-dio="panorama"
+  data-dio-src="/pano/terrace.webp"
+  data-dio-gyro="true"
+  tabindex="0"
+  role="application"
+  aria-roledescription="360° view"
+  aria-label="The terrace, 360° view. Tap, then tilt your phone to look around."
+  style="touch-action: pan-y"
+>
+  <img src="/img/terrace.avif" />
+</div>
+```
+
+### A slow turn behind a heading
+
+`spin` turns it by itself in degrees per second until the visitor drags it. With `drag` and `zoom` off, it becomes a moving backdrop that leaves the wheel and the pointer to the page. It turns at most `fps` frames a second, 20 on the `low` tier.
+
+```html
+<div
+  class="hero"
+  data-dio="panorama"
+  data-dio-src="/pano/field.webp"
+  data-dio-spin="3"
+  data-dio-drag="false"
+  data-dio-zoom="false"
+  aria-hidden="true"
+>
+  <img src="/img/field.avif" />
+</div>
+```
+
+## Notes
+
+A 4096 × 2048 picture takes about 45 MB of GPU memory with mipmaps, and 8192 × 4096 about 179 MB. The `low` tier decodes at most 2048 px, which is what this page's panorama uses: 114 KB as WebP, with a 29 KB preview.
+
+`zoom` takes Ctrl or ⌘ with the wheel, a pinch and the + and - keys. Turn it off and Ctrl with the wheel zooms the page as usual. With `touch-action: pan-y` a finger turns the view sideways and vertical swipes scroll the page; with `none` a finger turns it both ways and a pinch zooms.
+
+A panorama is an application for assistive technology: give the element `role="application"`, `aria-roledescription="360° view"`, a label that says how to use it, and `tabindex="0"` for the keys. Hotspots inside the element are hidden with it but keep their focus; Tab reaches them, the view turns to each, and the effect draws the focus ring on the sphere.
+
+Under reduced motion it does not spin or coast after a drag, and turning to a hotspot is instant.

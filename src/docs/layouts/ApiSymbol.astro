@@ -1,0 +1,169 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Badge from '../components/Badge.astro'
+import Doc from '../components/Doc.astro'
+import Members from '../components/Members.astro'
+import Signature from '../components/Signature.astro'
+import Tokens from '../components/Tokens.astro'
+import { type ApiSymbol, api, importLine } from '../lib/api.ts'
+import { firstSentence } from '../lib/md.ts'
+import Article from './Article.astro'
+
+interface Props {
+  readonly symbol: ApiSymbol
+}
+const { symbol: s } = Astro.props
+const mod = api().modules.find((m) => m.slug === s.module)
+const lede = firstSentence(s.summary)
+const description = lede
+  ? lede.endsWith('.')
+    ? lede
+    : `${lede}.`
+  : `The ${s.kind} ${s.name} of ${s.specifier}.`
+const rest = s.summary.slice(s.summary.indexOf(lede) + lede.length).trim()
+const headings = [
+  ...(s.signatures.some((sig) => sig.params.length)
+    ? [{ depth: 2, slug: 'parameters', text: 'Parameters' }]
+    : []),
+  ...(s.examples.length ? [{ depth: 2, slug: 'examples', text: 'Examples' }] : []),
+  ...(s.members.length ? [{ depth: 2, slug: 'members', text: 'Members' }] : []),
+]
+const self = s.url
+---
+
+<Article
+  title={s.name}
+  description={description}
+  url={s.url}
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'API', href: '/docs/api' }, { label: mod?.specifier ?? s.module, href: `/docs/api/${s.module}` }, { label: s.name }]}
+  headings={headings}
+  kind="api"
+  meta={{ signature: s.signature.slice(0, 160), module: s.specifier }}
+  wide
+>
+  <h1 slot="heading">{s.name}{' '}<Badge text={s.kind} />{s.deprecated && <Fragment>{' '}<Badge text="deprecated" /></Fragment>}</h1>
+  <Code code={importLine(s)} lang="ts" />
+  {rest && <Doc md={rest} self={self} />}
+  {s.signatures.map((sig) => <Signature signature={sig} self={self} />)}
+  {!s.signatures.length && s.declaration && <Signature tokens={s.declaration} self={self} />}
+  {
+    s.signatures.some((sig) => sig.params.length) && (
+      <section>
+        <h2 id="parameters">Parameters</h2>
+        {s.signatures.map((sig) => (
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sig.params.map((p) => (
+                  <tr id={`param-${p.name}`}>
+                    <td><code>{p.name}{p.optional ? '?' : ''}</code></td>
+                    <td class="api-type"><code><Tokens tokens={p.type} self={self} /></code></td>
+                    <td>
+                      <Doc md={p.summary} self={self} />
+                      {p.default && <p class="api-default">Default <code>{p.default}</code>.</p>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+        {s.signatures.map((sig) => sig.returns.summary && <p>Returns <Doc md={sig.returns.summary} self={self} inline /></p>)}
+      </section>
+    )
+  }
+  {
+    s.throws.length > 0 && (
+      <ul>
+        {s.throws.map((t) => (
+          <li>
+            Throws <Doc md={t} self={self} inline />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    s.examples.length > 0 && (
+      <section>
+        <h2 id="examples">Examples</h2>
+        {s.examples.map((e) => <Doc md={e} self={self} />)}
+      </section>
+    )
+  }
+  {
+    s.members.length > 0 && (
+      <section>
+        <h2 id="members">Members</h2>
+        <Members members={s.members} self={self} />
+      </section>
+    )
+  }
+  {s.also.length > 0 && <p>Also exported from {s.also.map((a, i) => <Fragment>{i ? ', ' : ''}<a class="code-link" href={`/docs/api/${a.replace(/^@dioramajs\//, '').replace(/^dioramajs(?=\/|$)/, 'diorama').replaceAll('/', '-')}`}><code>{a}</code></a></Fragment>)}.</p>}
+  {s.source && <p class="api-source">Defined in <a href={s.source.url}>{s.source.file}</a>.</p>}
+</Article>
+
+<style is:global>
+  .api-sig {
+    margin: var(--s-5) 0;
+    padding: var(--s-4) var(--s-5);
+    overflow-x: auto;
+    background: var(--bg-code);
+    border-radius: var(--radius-panel);
+    font: 400 var(--code-size) / 1.6 var(--font-mono);
+    white-space: pre;
+  }
+  .api-sig code,
+  .api-type code {
+    background: none;
+    padding: 0;
+    font: inherit;
+  }
+  .api-type {
+    font: 400 0.86em var(--font-mono);
+  }
+  .api-type .api-sig {
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
+    font-size: 1em;
+  }
+  .api-sig a,
+  .api-type a {
+    color: var(--link);
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 currentColor;
+  }
+  .tk-k {
+    color: var(--text-muted);
+  }
+  .tk-s,
+  .tk-n {
+    color: var(--warning);
+  }
+  .tk-f {
+    font-weight: 600;
+  }
+  .tk-more {
+    display: inline;
+  }
+  .tk-more summary {
+    display: inline;
+    cursor: pointer;
+    color: var(--link);
+  }
+  .api-default,
+  .api-source {
+    color: var(--text-muted);
+    font-size: 0.89em;
+  }
+  .api-members td > p:last-child {
+    margin-bottom: 0;
+  }
+</style>

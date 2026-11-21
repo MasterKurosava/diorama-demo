@@ -1,0 +1,135 @@
+---
+import { FRAMEWORKS } from '../lib/commands.ts'
+import { frameworkPages, sidebar } from '../lib/pages.ts'
+import NavTree from './NavTree.astro'
+
+interface Props {
+  readonly current: string
+}
+const { current } = Astro.props
+const groups = await sidebar(current)
+const targets = await frameworkPages(current)
+---
+
+<div class="ds-backdrop" data-backdrop></div>
+<doc-nav class="ds" id="docs-nav">
+  <nav aria-label="Docs">
+    <div class="ds-framework">
+      <label for="framework">Framework</label>
+      <select id="framework" data-framework-select data-pages={JSON.stringify(targets)} aria-describedby="framework-hint">
+        {FRAMEWORKS.map((f) => <option value={f.value}>{f.label}</option>)}
+      </select>
+      <p id="framework-hint" class="ds-hint">Sets code tabs and search results on every page.</p>
+    </div>
+    <NavTree groups={groups} current={current} />
+  </nav>
+</doc-nav>
+
+<script>
+  import { navigate } from 'astro:transitions/client'
+  import { choose, current, EVENT } from '../client/sync.ts'
+
+  const KEY = 'dio.nav'
+  const read = (): Record<string, boolean> => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Record<string, boolean>
+    } catch {
+      return {}
+    }
+  }
+
+  class DocNav extends HTMLElement {
+    #off: (() => void)[] = []
+
+    connectedCallback(): void {
+      const state = read()
+      for (const details of this.querySelectorAll<HTMLDetailsElement>('details[data-nav]')) {
+        const id = details.dataset.nav ?? ''
+        const holdsCurrent = details.querySelector('[aria-current="page"]') !== null
+        if (!holdsCurrent && id in state) details.open = Boolean(state[id])
+        details.addEventListener('toggle', () => {
+          const next = read()
+          next[id] = details.open
+          try {
+            localStorage.setItem(KEY, JSON.stringify(next))
+          } catch {
+            // The state is a convenience.
+          }
+        })
+      }
+      this.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' })
+
+      const select = this.querySelector<HTMLSelectElement>('[data-framework-select]')
+      if (select) {
+        select.value = current('framework')
+        const pages = JSON.parse(select.dataset.pages ?? '{}') as Record<string, string>
+        select.addEventListener('change', () => {
+          choose('framework', select.value)
+          // On a page about one framework, the choice leads to the same page for the new one.
+          const target = pages[select.value]
+          if (target && target !== location.pathname) void navigate(target)
+        })
+        const onSync = () => {
+          select.value = current('framework')
+        }
+        document.addEventListener(EVENT, onSync)
+        this.#off.push(() => document.removeEventListener(EVENT, onSync))
+      }
+      this.#menu()
+    }
+
+    disconnectedCallback(): void {
+      for (const off of this.#off) off()
+      this.#off = []
+    }
+
+    /** The narrow-screen drawer: modal, traps focus, closes on Esc. */
+    #menu(): void {
+      const button = document.querySelector<HTMLButtonElement>('[data-menu]')
+      const backdrop = document.querySelector<HTMLElement>('[data-backdrop]')
+      if (!button) return
+      const close = (focus = true) => {
+        this.removeAttribute('data-open')
+        backdrop?.removeAttribute('data-open')
+        button.setAttribute('aria-expanded', 'false')
+        this.removeAttribute('aria-modal')
+        this.removeAttribute('role')
+        if (focus) button.focus()
+      }
+      const open = () => {
+        this.setAttribute('data-open', '')
+        backdrop?.setAttribute('data-open', '')
+        button.setAttribute('aria-expanded', 'true')
+        this.setAttribute('role', 'dialog')
+        this.setAttribute('aria-modal', 'true')
+        this.querySelector<HTMLElement>('select, a')?.focus()
+      }
+      const onClick = () => (this.hasAttribute('data-open') ? close() : open())
+      const onKey = (e: KeyboardEvent) => {
+        if (!this.hasAttribute('data-open')) return
+        if (e.key === 'Escape') close()
+        if (e.key !== 'Tab') return
+        const items = [...this.querySelectorAll<HTMLElement>('select, summary, a')].filter((el) => el.offsetParent !== null)
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last?.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first?.focus()
+        }
+      }
+      const onBackdrop = () => close(false)
+      button.addEventListener('click', onClick)
+      document.addEventListener('keydown', onKey)
+      backdrop?.addEventListener('click', onBackdrop)
+      this.#off.push(() => {
+        button.removeEventListener('click', onClick)
+        document.removeEventListener('keydown', onKey)
+        backdrop?.removeEventListener('click', onBackdrop)
+      })
+    }
+  }
+  if (!customElements.get('doc-nav')) customElements.define('doc-nav', DocNav)
+</script>

@@ -1,0 +1,29 @@
+---
+effect: sparkles
+example:
+  description: An upgrade panel on a deep violet page with a gold New badge that twinkles all the time and a Go Pro button that sparkles on hover.
+  caption: Switch the trigger and the style of the button's sparkles, or move the sliders. With trigger hover, point at Go Pro; with click, click it.
+  controls: [count, scale, spread, duration]
+  variants: [trigger, style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A reward when a level is done
+
+On a learning site for kids, `trigger="view"` bursts once the first time half of the heading is in view. Round `dot` sparkles in a soft color read as confetti for the very young; a larger `spread` lets them fly clear of the text.
+
+<Example id="effects/sparkles/badge" description="A Level 3 complete heading on a cream page that bursts with light blue dots as it comes into view." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+## Notes
+
+The element stays DOM and keeps every click: the sparkles draw over the page on the canvas, and the click goes on to the link, button or form. A click with the pointer bursts from where it landed; a keyboard click bursts from the element's edge. Keyboard focus starts the `hover` sparkles too.
+
+Nothing is drawn at rest with `hover`, `click` and `view`. With `loop` the sparkles twinkle at most `fps` frames a second while the element is on screen and stop while it is off screen or the tab is hidden, so keep `always` for one or two elements a page.
+
+Under reduced motion neither the module nor the engine loads for it, and the element stays as it is.
+
+`trigger`, `style` and `seed` rebuild the effect when they change; the other params change live.

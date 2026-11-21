@@ -1,0 +1,34 @@
+.ex-root > img.astrolabe {
+  margin: auto;
+  transition:
+    width 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    height 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-radius 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ex-root:has(> img.astrolabe) {
+  display: grid;
+}
+.ex-root > img.astrolabe.card {
+  width: 56%;
+  height: 78%;
+  border-radius: 18px;
+  object-position: 30% 50%;
+}
+.ex-root > img.astrolabe.round {
+  width: 62%;
+  height: 93%;
+  border-radius: 50%;
+}
+.ex-root > img.astrolabe.contain {
+  width: 50%;
+  height: 92%;
+  border-radius: 0;
+  object-fit: contain;
+  /* The element's box, so the bands of contain show. */
+  outline: 1px dashed var(--border-strong);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-root > img.astrolabe {
+    transition: none;
+  }
+}

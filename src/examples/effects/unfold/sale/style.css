@@ -1,0 +1,21 @@
+.fd-sale {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2.4cqi;
+  background: #ffd84d;
+  color: #1a1505;
+  text-align: center;
+}
+.fd-sale .fd-sale-title {
+  margin: 0;
+  font: 900 14cqi / 0.95 var(--font-text);
+  font-stretch: 80%;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.fd-sale p {
+  margin: 0;
+  font: 500 max(13px, 2cqi) / 1.4 var(--font-text);
+}

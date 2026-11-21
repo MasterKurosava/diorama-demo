@@ -1,0 +1,607 @@
+---
+title: Page transitions with routers
+label: Routers
+description: Pair elements across pages with data-dio-key and wire transition() into Astro, Next.js, Nuxt, Barba, Swup or your own history code.
+section: guides
+order: 3
+related: [start/first-transition, concepts/flights, guides/loading, guides/gsap-lenis]
+---
+
+A page transition keeps the canvas alive while a router swaps the page in place, and flies every keyed element to its partner on the new page. This guide shows how pairs are found, what `transition()` adds over the default, and the recipe for each router.
+
+## Pair elements with a key
+
+Give the element on the old page and the element on the new page the same `data-dio-key`. The source needs a drawn copy, so it carries at least one effect; the target may be any element.
+
+```html title="work.html"
+<a href="/work/aurora">
+  <img
+    src="/img/aurora-thumb.avif"
+    data-dio="image"
+    data-dio-key="aurora"
+  />
+</a>
+```
+
+```html title="work/aurora.html"
+<img
+  src="/img/aurora-cover.avif"
+  data-dio="image ripple"
+  data-dio-key="aurora"
+/>
+```
+
+Diorama looks for the target among elements that came in with the swap and takes the first one in document order. Two new elements with one key fly to the first, and development builds warn once with `TRANSITION_KEY`. Keys compare exactly: `aurora` and `Aurora` are different keys.
+
+<Example id="router-grid" description="Two small pages in a box, a grid of three thumbnails and a cover per work: a click swaps the page inside transition() and the thumbnail flies into its cover." aspect="16 / 11" controls={[]} show={['html', 'script']} />
+
+A target without effects, such as `<img data-dio-key="aurora">` with no `data-dio`, still receives the flight: the flying copy lands on it and fades into its DOM. A source without effects has no copy to fly. To let every keyed image fly, attach `image` to them once.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+const app = start()
+app.attach(
+  'img[data-dio-key]:not([data-dio]), video[data-dio-key]:not([data-dio])',
+  'image',
+)
+```
+
+### Keys from view-transition-name
+
+Inside `transition()`, an element without `data-dio-key` is keyed by its computed `view-transition-name`. Astro writes it for `transition:name`, so those elements pair without new markup. The values `none`, `auto` and `match-element` are not keys. Without `transition()`, only `data-dio-key` pairs: the style of a removed element can no longer be read.
+
+## Fly without code
+
+Transitions are on by default in `start()`. When a router removes a drawn keyed element and inserts its partner in the same task, the pair flies. Astro `ClientRouter`, Turbo Drive, the Next.js App Router, Vue without `mode="out-in"` and SvelteKit all work this way.
+
+When the pathname changes but the partner is not there yet (`loading.tsx`, Suspense, streaming), the copy waits invisibly for up to `grace` seconds, 1 by default, and flies when the partner arrives. A change of `?query` or `#hash` alone is not a navigation: cards removed by a filter leave with their DOM. A copy that was off screen in the last frame does not fly, so it never enters from beyond the viewport edge.
+
+While a copy flies, the DOM of its target is hidden with `data-dio-state="entering"`. Hold back a caption until the landing with the same attribute.
+
+```css
+figure:has([data-dio-state="entering"]) figcaption {
+  opacity: 0;
+}
+```
+
+## Wrap the swap in transition()
+
+`transition(app, swap, options)` gives you an exact snapshot, the right URL for the new page and control over timing. Call it with a function that changes the DOM.
+
+```ts twoslash
+import { start, transition } from 'dioramajs'
+
+const app = start()
+const next = new DOMParser().parseFromString(
+  '<main></main>',
+  'text/html',
+)
+// ---cut---
+const running = transition(app, () => {
+  document
+    .querySelector('main')
+    ?.replaceWith(next.querySelector('main') ?? '')
+})
+const result = await running
+console.log(result.status, result.flights)
+```
+
+It takes the drawn keyed copies in view, calls `swap` once and synchronously, then flies each copy to its partner. The rules that make it safe inside any router:
+
+- `swap` always runs, even when the app has not started yet, in server rendering or with an aborted `signal`. Without a running app the result is `skipped`.
+- A synchronous throw from `swap` is rethrown to the router. A swap may return a promise; the transition waits for it at most `timeout` seconds, 10 by default.
+- `await running` resolves with `{ status, flights }` and never rejects. The status is `done`, `superseded`, `aborted`, `failed` or `skipped`.
+- `running.swapped` settles with the swap, so a router hook can wait for it.
+
+Use the free function in router code rather than `app.transition()`. The service appears on the app only once it runs, and routers may navigate before that.
+
+### Tune the flight
+
+Defaults apply to every transition; pass them to `start()`. The same fields work for one call in the options of `transition()`.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+export const app = start({
+  transitions: {
+    duration: 0.9, // seconds, default 0.8
+    stagger: 0.04, // between flights, in document order of the targets
+    crossfade: 0.25, // fade over the target after landing, when needed
+    wait: 2, // seconds a landed copy waits for its target's picture
+    grace: 1, // seconds a copy waits for a late partner
+  },
+})
+```
+
+The default ease is cubic in-out. Any function from 0 to 1 works, GSAP eases included: `ease: gsap.parseEase('expo.inOut')`. `sources: 'follow'` makes taken copies track their elements while the router animates the old page out; the default `'hold'` keeps them where the user saw them. `auto: false` turns off pairing without `transition()`, and `transitions: false` turns transitions off.
+
+## Leave and enter
+
+Copies without a partner leave with their DOM, and new copies appear with theirs. Set `leave` or `enter` above 0 to give them time on the canvas: removed copies outlive their elements while `u.presence` goes from 1 to 0, and new copies in view go from 0 to 1.
+
+```ts twoslash
+import { start, transition } from 'dioramajs'
+
+const app = start()
+declare function swap(): void
+// ---cut---
+transition(app, swap, { leave: 0.3, enter: 0.5 })
+```
+
+By default an effect shows presence through opacity: the copy's alpha is multiplied by `u.presence`. An effect that declares `presence: 'custom'` reads `u.presence` itself, for a dissolve or scattering particles.
+
+For your own choreography pass `animate`. It receives the transition when the flights start; its result is awaited, so a GSAP timeline works. Writes to `progress`, `opacity` and `presence` request a frame.
+
+```ts
+transition(app, swap, {
+  // Non-zero leave and enter fill `leaving`
+  // and `entering`; the timeline times them.
+  leave: 0.4,
+  enter: 0.6,
+  animate: ({ flights, leaving, entering }) =>
+    gsap
+      .timeline()
+      .to(leaving, { presence: 0, duration: 0.4, stagger: 0.02 }, 0)
+      .to(
+        flights,
+        {
+          progress: 1,
+          duration: 1.1,
+          ease: 'expo.inOut',
+          stagger: 0.06,
+        },
+        0.1,
+      )
+      .to(entering, { presence: 1, duration: 0.6, stagger: 0.04 }, 0.7),
+})
+```
+
+With `animate`, `leave` and `enter` only set how long the fades take when the transition is cut short.
+
+## Interrupted and back navigation
+
+One transition runs per app. A new one, from a second click or Back in the middle of a flight, takes each key's visible copy from where it is now and flies it to the new target. A copy moving at speed keeps its velocity into the new flight, and a short way back takes a shorter time, so nothing jumps.
+
+- Back during a flight from the list to a project turns the flying thumbnail around towards its tile.
+- A copy in the air with no partner on the new page fades out where the click caught it.
+- A hidden tab finishes the transition at once: the copies land.
+- `running.finish()` lands everything now. `running.abort()` does the same and ends with `aborted`, as does an aborted `signal`.
+
+The source box is fixed in viewport pixels, so a router that scrolls to the top inside the swap does not move the flying copy. The target is tracked live, so when the router restores the scroll position on Back, the flight follows its target.
+
+Under reduced motion nothing flies: the old copy fades in place over 0.2 seconds and the new page shows its DOM until its own copies are ready.
+
+## Run code per page
+
+`app.transition.page` is the scope of the current page. Its cleanups run right after the next swap, before effects reconcile the new page, so rules of the old page never mount on elements of the new one. Handles from `attach()` work as cleanups.
+
+```ts twoslash
+import { ready, start } from 'dioramajs'
+
+const app = start()
+// ---cut---
+function enter(url: string): void {
+  if (!new URL(url).pathname.startsWith('/work')) return
+  app.transition.page.onDispose(app.attach('.gallery img', 'ripple'))
+}
+
+app.on('page:enter', ({ url }) => enter(url))
+// The first page gets no page:enter.
+void ready(app).then(() => enter(location.href))
+```
+
+`page:leave` comes before the old scope closes, `page:enter` after the new page is reconciled, and `transition:end` with the result. Without a recipe the scope turns when DOM is removed under a new pathname, not on `popstate`, because routers change the URL before the DOM.
+
+## Recipes
+
+Each recipe calls `transition()` at the moment the router replaces the page. The app comes from the module that calls `start()`; a second `start()` returns the same app.
+
+### Astro ClientRouter
+
+Without code the flights already work. The recipe takes the snapshot before Astro swaps, gives the page scope the new URL (Astro changes history only after the swap returns) and passes the browser view transition along.
+
+```ts title="src/diorama.ts" twoslash
+interface BeforeSwap extends Event {
+  swap: () => void
+  readonly to: URL
+  readonly viewTransition: ViewTransition
+}
+interface BeforePreparation extends Event {
+  loader: () => Promise<void>
+  readonly to: URL
+  readonly newDocument: Document
+}
+declare global {
+  interface DocumentEventMap {
+    'astro:before-swap': BeforeSwap
+    'astro:before-preparation': BeforePreparation
+    'astro:after-swap': Event
+  }
+}
+// ---cut---
+import { start, transition } from 'dioramajs'
+
+export const app = start()
+
+document.addEventListener('astro:before-swap', (event) => {
+  const swap = event.swap
+  event.swap = () =>
+    void transition(app, swap, {
+      url: event.to,
+      viewTransition: event.viewTransition,
+    })
+})
+
+// Decode the keyed covers of the next
+// page while the swap and the flight run.
+document.addEventListener('astro:before-preparation', (event) => {
+  const load = event.loader
+  event.loader = async () => {
+    await load()
+    // A failed load keeps the current document: nothing to preload.
+    if (event.defaultPrevented || event.newDocument === document) return
+    void app.assets?.preload(event.newDocument, { base: event.to })
+  }
+})
+```
+
+Import the module from a `<script>` in the layout. Astro bundles it and runs it once, so the listeners live across pages.
+
+```astro title="src/layouts/Layout.astro"
+<script>
+  import '../diorama'
+</script>
+```
+
+An element with `transition:persist` is the same node on both pages: its instance survives, and if it moved, its copy flies to the new place. Where Astro swaps without a browser view transition (no API, or the browser's own back-swipe animation), `event.viewTransition` holds a stand-in object, and unpaired copies leave with the DOM.
+
+#### Scroll position on the way back
+
+Back and Forward restore the scroll position. A link opens its page at the top, as in any browser, even a link back to the page the reader has left a moment ago, such as the logo back to the home page. The `restoreScroll` option of the integration changes that:
+
+```js title="astro.config.mjs"
+import diorama from 'dioramajs/astro'
+
+export default { integrations: [diorama({ restoreScroll: 'parents' })] }
+```
+
+- `'parents'`: a link up the address lands where the reader left that page, like Back: `/` from any page, `/work` from `/work/aurora`. A project opened from the list still starts at the top, where its cover flies in.
+- `'visited'`: a link to any page seen earlier in the tab lands where the reader left it.
+- `'history'`, the default: only Back and Forward, as browsers do.
+
+A link with a `#hash` still goes to its anchor, and a link to the page on screen or a form's answer opens at the top. Positions live in `sessionStorage`. The page moves before other `astro:after-swap` listeners run, so flights land on targets where the page ends up and Lenis goes on from there. Without the integration, call `restoreScroll('parents')` from `dioramajs/astro/client` in a layout script.
+
+<Callout kind="warning" title="Lenis and Back">
+Stop Lenis for the swap and start it again in `astro:after-swap`, but never call `lenis.scrollTo(0)` there. Astro restores the scroll position on Back before `astro:after-swap`, and a reset to the top undoes it. New pages open at the top without help.
+</Callout>
+
+```ts title="src/diorama.ts" twoslash
+interface BeforeSwap extends Event {
+  swap: () => void
+  readonly to: URL
+  readonly viewTransition: ViewTransition
+}
+interface BeforePreparation extends Event {
+  loader: () => Promise<void>
+  readonly to: URL
+  readonly newDocument: Document
+}
+declare global {
+  interface DocumentEventMap {
+    'astro:before-swap': BeforeSwap
+    'astro:before-preparation': BeforePreparation
+    'astro:after-swap': Event
+  }
+}
+// ---cut---
+import { start } from 'dioramajs'
+import Lenis from 'lenis'
+
+const lenis = new Lenis()
+export const app = start({ lenis })
+
+document.addEventListener('astro:before-swap', () => lenis.stop())
+document.addEventListener('astro:after-swap', () => {
+  // ClientRouter replaces the <html> attributes, including Lenis classes.
+  lenis.rootElement.classList.add(...lenis.className.split(' '))
+  lenis.resize()
+  lenis.start()
+})
+```
+
+### Next.js
+
+Without code the flights already work: a React commit removes the old page and inserts the new one in one task. With `loading.tsx` the fallback commits first, the thumbnail waits in the pool and flies when the cover arrives.
+
+For an exact snapshot, or to wait for the commit before your own choreography, wrap navigation in `transition()`. `Commit` lives in the root layout, which persists across navigations, and settles a promise when a route with another pathname has committed. The root `template.tsx` does not work for this: Next.js does not remount it between `/work` and `/work/aurora`.
+
+```tsx title="src/app/commit.tsx"
+'use client'
+import { usePathname } from 'next/navigation'
+import { useLayoutEffect } from 'react'
+
+let done: (() => void) | undefined
+
+/** Settles when a route with another pathname has committed, or after 3 s. */
+export const committed = (): Promise<void> =>
+  new Promise((resolve) => {
+    done = resolve
+    setTimeout(resolve, 3000)
+  })
+
+/** Rendered once in the root layout. */
+export function Commit(): null {
+  const pathname = usePathname()
+  useLayoutEffect(() => {
+    done?.()
+    done = undefined
+  }, [pathname])
+  return null
+}
+```
+
+```tsx title="src/app/fly-link.tsx"
+'use client'
+import { start, transition } from 'dioramajs'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { type ComponentProps, useRef } from 'react'
+import { committed } from './commit'
+
+export function FlyLink(props: ComponentProps<typeof Link>) {
+  const router = useRouter()
+  const anchor = useRef<HTMLAnchorElement>(null)
+  return (
+    <Link
+      {...props}
+      ref={anchor}
+      onNavigate={(event) => {
+        // The rendered href: a UrlObject keeps
+        // its query, a relative one is resolved.
+        const href = anchor.current?.href
+        if (!href) return
+        event.preventDefault()
+        // start() returns the app the root layout already started.
+        void transition(start(), () => {
+          const go = props.replace ? router.replace : router.push
+          go(href, { scroll: props.scroll ?? true })
+          return committed()
+        })
+      }}
+    />
+  )
+}
+```
+
+Render `<Commit />` in `src/app/layout.tsx` next to `{children}` and use `<FlyLink>` where a flight should start. `onNavigate` needs Next.js 15.3 or later; on older versions use `onClick` and skip modified clicks.
+
+### Nuxt
+
+Without code `<NuxtPage>` swaps pages in one render and the flights work. With `mode: 'out-in'` the old page leaves before the new one enters, so the recipe snapshots in the page transition hooks.
+
+```ts title="app/plugins/diorama.client.ts" twoslash
+declare function defineNuxtPlugin<T>(
+  setup: (nuxtApp: {
+    hook(name: 'app:error', run: () => void): void
+  }) => T,
+): T
+// ---cut---
+import { start, transition } from 'dioramajs'
+
+export default defineNuxtPlugin((nuxtApp) => {
+  const app = start()
+  let done: (() => void) | undefined
+  const finish = (): void => {
+    done?.()
+    done = undefined
+  }
+  nuxtApp.hook('app:error', finish)
+  return {
+    provide: {
+      // One-argument hooks: Vue keeps its own
+      // CSS timing and calls `done` itself.
+      dioPage: {
+        // The old page is still drawn: snapshot
+        // now, settle once the new one is in.
+        onBeforeLeave: () => {
+          finish()
+          void transition(
+            app,
+            () => new Promise<void>((resolve) => (done = resolve)),
+          )
+        },
+        onEnter: () => finish(),
+      },
+    },
+  }
+})
+```
+
+```vue title="app/app.vue"
+<template>
+  <NuxtPage :transition="{ name: 'page', mode: 'out-in', ...$dioPage }" />
+</template>
+```
+
+While the old page fades out, the thumbnails hold where they were; once removed they fly into the new page. The first navigation renders without a page transition, so the hooks do not run. A failed navigation settles the swap through `app:error`.
+
+### Barba
+
+Barba keeps a wrapper and swaps a container inside it. The recipe snapshots in `before` and settles the swap in `after`, when the old container is gone.
+
+```ts twoslash
+import { start, transition } from 'dioramajs'
+
+interface Data {
+  readonly current: { readonly container: HTMLElement }
+}
+declare const barba: {
+  hooks: { before(run: () => void): void; after(run: () => void): void }
+  init(options: {
+    transitions: {
+      name: string
+      leave(data: Data): unknown
+      enter(): void
+    }[]
+  }): void
+}
+// ---cut---
+const app = start()
+
+let swapped: (() => void) | undefined
+const settle = (): void => {
+  swapped?.()
+  swapped = undefined
+}
+
+barba.hooks.before(() => {
+  settle()
+  void transition(
+    app,
+    () => new Promise<void>((resolve) => (swapped = resolve)),
+  )
+})
+// The flights start after Barba's own transition, so a click during
+// them starts a new navigation instead of Barba's forced reload.
+barba.hooks.after(settle)
+
+barba.init({
+  transitions: [
+    {
+      name: 'dio',
+      leave: ({ current }) =>
+        current.container.animate({ opacity: [1, 0] }, 300).finished,
+      enter() {},
+    },
+  ],
+})
+```
+
+With `sync: true` both containers sit in the document at once. Put them in one grid cell so the new one does not push the old one down.
+
+```css
+[data-barba="wrapper"] {
+  display: grid;
+}
+[data-barba="container"] {
+  grid-area: 1 / 1;
+}
+```
+
+### Swup
+
+Without code Swup replaces the container in place and the flights work, but the snapshot is taken after the out animation, when the old page has already faded. The recipe snapshots before it.
+
+```ts twoslash
+import { start, transition } from 'dioramajs'
+
+declare const swup: {
+  hooks: {
+    before(hook: 'animation:out:start', run: () => void): void
+    on(hook: 'content:replace' | 'visit:end', run: () => void): void
+    on(
+      hook: 'page:load',
+      run: (
+        visit: unknown,
+        args: { page?: { url: string; html: string } },
+      ) => void,
+    ): void
+  }
+}
+// ---cut---
+const app = start()
+
+let done: (() => void) | undefined
+const settle = (): void => {
+  done?.()
+  done = undefined
+}
+
+swup.hooks.before('animation:out:start', () => {
+  settle()
+  void transition(
+    app,
+    () => new Promise<void>((resolve) => (done = resolve)),
+  )
+})
+swup.hooks.on('content:replace', settle)
+swup.hooks.on('visit:end', settle)
+
+// Decode the covers of the fetched page while the swap and the flight run.
+swup.hooks.on('page:load', (_visit, { page }) => {
+  if (!page) return
+  const next = new DOMParser().parseFromString(page.html, 'text/html')
+  void app.assets?.preload(next, { base: page.url })
+})
+```
+
+Read the HTML from the `page` argument: Swup fills `visit.to.document` only after the `page:load` handlers have run.
+
+### Turbo Drive
+
+Turbo replaces `<body>` in one task, so the flights work without code. Elements with `data-turbo-permanent` move to the new body as the same node and keep their instances.
+
+### Plain history
+
+With your own router, fetch the next page, then swap inside `transition()`. Handle Back with `popstate` and restore the scroll position inside the swap.
+
+```ts title="src/main.ts" twoslash
+import { start, transition } from 'dioramajs'
+
+export const app = start()
+history.scrollRestoration = 'manual'
+
+async function go(url: string, back = false): Promise<void> {
+  const html = await (await fetch(url)).text()
+  const next = new DOMParser().parseFromString(html, 'text/html')
+  void app.assets?.preload(next, { base: url })
+  await transition(
+    app,
+    () => {
+      if (!back) history.replaceState({ y: scrollY }, '')
+      document
+        .querySelector('main')
+        ?.replaceWith(next.querySelector('main') ?? '')
+      document.title = next.title
+      if (!back) history.pushState({ y: 0 }, '', url)
+      const state = history.state as { y?: number } | null
+      scrollTo(0, state?.y ?? 0)
+    },
+    { url },
+  )
+}
+
+document.addEventListener('click', (event) => {
+  const link = (event.target as Element).closest('a')
+  if (
+    !link ||
+    link.origin !== location.origin ||
+    event.metaKey ||
+    event.ctrlKey
+  )
+    return
+  event.preventDefault()
+  void go(link.href)
+})
+
+addEventListener('popstate', () => void go(location.href, true))
+```
+
+## Browser view transitions
+
+Astro, Swup's native mode and `experimental.viewTransition` in Next.js and Nuxt wrap the swap in `document.startViewTransition()`. Diorama names the canvas `dio-stage-1` so the browser keeps it live instead of fading a still of the old frame over the flight. Inside a view transition unpaired copies leave and new ones appear over 0.25 seconds, together with the browser's root crossfade.
+
+- A fixed header over the canvas needs its own `view-transition-name`. Otherwise the live canvas group draws above it during the transition.
+- With the canvas behind the page (`canvas: 'behind'`) the canvas is not named. Turn off the root crossfade instead, so the DOM changes at once and the flight stays clean.
+
+```css
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+```
+
+- For a view transition of your own, such as a theme switch with a circular reveal, remove the name for its duration: `html.theme-switch canvas[data-dio-vt] { view-transition-name: none }`.
+
+Cross-document view transitions (`@view-transition { navigation: auto }`) are not supported. A full page load starts a new canvas, so there is nothing to fly.

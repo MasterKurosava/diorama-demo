@@ -2,7 +2,7 @@
 // are cut in. A flat print catches the sun as a soft glare that slides as the eye turns, like a
 // print held in the hands.
 
-import type { EffectContext } from 'diorama'
+import type { EffectContext } from 'dioramajs'
 import {
   abs,
   clamp,

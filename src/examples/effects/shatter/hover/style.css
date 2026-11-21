@@ -1,0 +1,28 @@
+.sh-shop {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 2.4cqi;
+  padding: 0 8%;
+  background: #f4efe6;
+  color: #2b2621;
+}
+.sh-shop .sh-shop-tag {
+  margin: 0;
+  font: 500 max(11px, 1.4cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9a6b3f;
+}
+.sh-shop .sh-shop-title {
+  margin: 0;
+  font: 800 clamp(1.8rem, 9cqi, 5.4rem) / 1 var(--font-text);
+  letter-spacing: -0.03em;
+}
+.sh-shop .sh-shop-note {
+  margin: 0;
+  max-width: 46ch;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #5b5047;
+}

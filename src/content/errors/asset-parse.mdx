@@ -1,0 +1,33 @@
+---
+code: ASSET_PARSE
+level: error
+message: 'cannot decode {url}'
+summary: An asset downloaded, but its content could not be decoded or parsed, so its lease rejected.
+---
+
+## Why it happens
+
+- An image loaded, but `decode()` or `createImageBitmap()` failed: the file is broken, or the browser does not support its format.
+- A `.glb` or `.gltf` file is not glTF: `{url} is not glTF`. A server that answers a missing file with an HTML page and status 200, such as a single-page app fallback, causes this.
+- The three.js loader threw while it parsed a model or a KTX2 texture: `cannot parse {url}`. When the error looks like a refused worker or WebAssembly, the code is `ASSET_DECODER` instead.
+- A `json` asset is not valid JSON: `{url} is not JSON`.
+- An own loader threw an error that is not an `AssetError`. Diorama wraps it with this code and the error text as the message.
+
+Like `ASSET_LOAD`, the error is reported once per attempt with the target `asset:<url>`, and the lease's `ready` rejects.
+
+## How to fix
+
+<Steps>
+
+1. Open the URL from the message in the browser and check that the response is the file, not an HTML page.
+2. Check the `cause` in the console for the decoder or parser message.
+3. Export the file again from its source tool, or convert the image to a format your target browsers decode.
+
+</Steps>
+
+## Related
+
+- `ASSET_LOAD`
+- `ASSET_DECODER`
+- `EFFECT_MEDIA`
+- `app.assets.load()`

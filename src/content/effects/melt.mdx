@@ -1,0 +1,46 @@
+---
+effect: melt
+example:
+  description: A summer sale banner on a dark page whose orange headline Heatwave melts into glossy paint drips under the pointer.
+  caption: Point at the headline and move along it to melt it; it sets again when the pointer leaves. Switch the style or the trigger, or move the sliders.
+  aspect: 16 / 10
+  controls: [strength, speed, gloss]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Ice cream that drips once as it shows
+
+`trigger="view"` melts the heading once, the first time it comes into view, and keeps the melted look: the drips stay hanging and nothing more is drawn. A few more `drips` than the default suit a short, wide word. Leave room under the heading, since the drips run up to about two lines of its size below it, and keep other text to the side.
+
+<Example id="effects/melt/scoop" description="An ice cream parlor menu on a cream page, the pink title Soft serve dripping beside a list of four flavors with prices." aspect="16 / 7" show={['html']} controls={['strength']} variants={[]} />
+
+### Liquid chrome on a loop
+
+`style="chrome"` turns the letters into rippling mercury that mirrors a small studio, and `trigger="loop"` keeps it dripping: each drip grows, lets its drop fall and pulls back, at 30 frames a second while it is on screen and none off screen. It suits a title on a dark page, such as a music release or a launch.
+
+<Example id="effects/melt/chrome" description="An album announcement on a dark page with the title Quicksilver in liquid chrome that drips and ripples." aspect="16 / 8" show={['html']} controls={['gloss', 'speed']} variants={[]} />
+
+### A candle that slumps as the page scrolls
+
+`style="wax"` softens the letters into warm, translucent wax that sinks toward the baseline and pools under them, with a few short, thick drips. With `trigger="scroll"` it follows the page both ways: solid as the heading enters, fully melted as it nears the top of the viewport, and solid again when the page scrolls back. A heading on screen when the page opens starts solid where it is.
+
+```html
+<h2 data-dio="melt" data-dio-style="wax" data-dio-trigger="scroll">Slow burn</h2>
+```
+
+## Notes
+
+The shape of the liquid comes from a distance field of the text: every pixel knows how far it is from the nearest edge of a letter. The shader samples that field at shifted positions to make the letters sag, blends it toward a rounded copy of the text, and joins it smoothly with the drips, so edges stay smooth at every stage of the melt. The same distance gives the liquid a round edge for the light: highlights along the rims, reflections of a small studio that move with the page, and a soft shadow on the page below.
+
+Drips hang from the undersides of the letters near the baseline: feet of stems, bottoms of bowls and descenders. `seed` picks where they hang and how long they run, and `drips` sets how many there are. `strength` scales how far the letters sink and how long the drips get; at 0 the letters keep their shape and only turn glossy.
+
+With trigger hover and scroll the heading is plain DOM text at rest and draws no frames: it turns liquid only while melted. With view and loop the liquid copy stands in for the text, which stays in the DOM, hidden, so screen readers, search and find in page still work. With hover, keyboard focus melts the whole label and a tap on a touch screen melts the spot under the finger.
+
+Use a bold, large font: thin strokes leave little for the liquid to round off, and small counters fill as the letters soften. The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does, and an element with any of them keeps its text as it is, with a warning in development.
+
+`style`, `trigger`, `color`, `drips` and `seed` rebuild the effect when they change; `strength`, `speed` and `gloss` change live.

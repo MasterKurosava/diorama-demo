@@ -1,0 +1,92 @@
+---
+effect: clouds
+example:
+  description: A flight card with a blue daytime sky of soft drifting clouds beside the route, times and price.
+  aspect: 16 / 8
+  caption: Switch style to sunset or night, or move cover to clear the sky.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A travel hero
+
+Put the clouds on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`, so the heading sits over the sky. The element's CSS background is what visitors see before the engine draws and without WebGL: a gradient in the colors of the style.
+
+```html
+<header class="hero">
+  <div
+    class="hero-sky"
+    aria-hidden="true"
+    data-dio="clouds"
+    data-dio-cover="0.4"
+  ></div>
+  <h1>Fly to Lisbon from €49</h1>
+  <a class="cta" href="/flights">Find a flight</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+  color: #0b1f3a;
+}
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(0deg, #d6ecf8, #8ec4ec 45%, #3b7fd4);
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+The CSS fallbacks of the other styles are `linear-gradient(0deg, #ffb26e, #ee7d8c 45%, #37397f)` for `sunset` and `linear-gradient(0deg, #1e2e54, #101b38 45%, #050a19)` for `night`.
+
+### A night sky for a sleep app
+
+`night` draws a dark sky with stars and clouds lit by the moon. A low `cover` and a slow `speed` keep it calm.
+
+<Example id="effects/clouds/night" description="A dark blue night sky with stars, a small moon and a few moonlit clouds drifting slowly." aspect="16 / 7" show={['html']} controls={['cover', 'speed', 'sun']} variants={[]} />
+
+### Clouds that part on scroll
+
+`scroll` moves the layers apart as the section crosses the viewport, nearer ones more, so the sky has depth while visitors read. With `fps` at 0 the clouds move only with the scroll and draw nothing at rest.
+
+```html
+<section class="story">
+  <div
+    class="story-sky"
+    aria-hidden="true"
+    data-dio="clouds"
+    data-dio-style="sunset"
+    data-dio-scroll="0.8"
+    data-dio-fps="0"
+  ></div>
+  <h2>Evenings on the terrace</h2>
+</section>
+```
+
+## Readable text
+
+- `day`: dark navy text such as `#0b1f3a` reads on both the sky and the clouds while `cover` stays at 0.5 or below. Over heavy cloud, put the text on a card.
+- `sunset` and `night`: white text. Under `sunset`, keep the heading in the upper half, where the sky is darkest.
+- `sun` at 0 removes the bright glow when it sits right behind the heading.
+
+## Notes
+
+The docs canvas sits above the page, so the examples here keep text beside the sky. Put text over the clouds with `canvas: 'behind'`, as in the first recipe.
+
+The style chooses the whole palette: sky, cloud light and shade, and the sun or the moon. There are no color params yet.
+
+It draws up to `fps` frames a second while it is on screen and none off screen; the pointer and scroll draw at full rate while they shift the layers. On the low tier it draws one layer of clouds at most 15 frames a second, on the medium tier two layers at 24.
+
+`style`, `layers` and `seed` rebuild the effect when they change. Cover, speed, size, sun and parallax change live.

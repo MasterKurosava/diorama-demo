@@ -1,0 +1,27 @@
+.report {
+  height: 100%;
+  padding: 24px 28px;
+  box-sizing: border-box;
+  background: #fbf8f2;
+  color: #2c2a26;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.report-title {
+  margin: 0 0 12px;
+  line-height: 24px;
+  font-weight: 600;
+  font-size: 17px;
+}
+.meals {
+  width: 100%;
+  height: calc(100% - 36px);
+  border-collapse: collapse;
+}
+.meals th,
+.meals td {
+  padding: 4px 8px;
+  text-align: left;
+}
+.report table.meals {
+  margin: 0;
+}

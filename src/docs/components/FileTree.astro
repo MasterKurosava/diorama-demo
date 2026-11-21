@@ -1,0 +1,14 @@
+---
+interface Props {
+  readonly label?: string
+}
+const { label = 'Files' } = Astro.props
+const html = await Astro.slots.render('default')
+// A name ending in '/' is a folder; text after the first space is a comment.
+const tree = html.replace(/<li>([^<\s]+)(\s[^<]*)?/g, (_, name: string, note?: string) => {
+  const dir = name.endsWith('/')
+  return `<li><span class="${dir ? 'dir' : 'file'}">${name}</span>${note?.trim() ? ` <span class="note">${note.trim()}</span>` : ''}`
+})
+---
+
+<div class="tree" role="group" aria-label={label} set:html={tree} />

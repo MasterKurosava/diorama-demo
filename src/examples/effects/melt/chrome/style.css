@@ -1,0 +1,25 @@
+.mt-album {
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 2cqi;
+  box-sizing: border-box;
+  padding: 7cqi 6% 0;
+  background: radial-gradient(90% 80% at 50% 0%, #1d2330 0%, #07080b 70%);
+  text-align: center;
+}
+.mt-album .mt-label {
+  margin: 0;
+  font: 500 max(11px, 1.4cqi) / 1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8f9bb0;
+}
+.mt-album .mt-name {
+  margin: 0;
+  font: 900 clamp(2.4rem, 13cqi, 8rem) / 1 var(--font-text);
+  font-stretch: 110%;
+  letter-spacing: -0.01em;
+  color: #d9dee6;
+}

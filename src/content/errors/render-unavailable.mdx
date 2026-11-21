@@ -1,0 +1,49 @@
+---
+code: RENDER_UNAVAILABLE
+level: warning
+message: 'neither WebGPU nor WebGL 2 is available'
+summary: The browser has neither a WebGPU adapter nor WebGL 2, so effects stay off and nothing of the engine is downloaded.
+---
+
+This warning prints in development builds only, once per app. A production build says nothing: a visitor without a GPU is an expected case, not an error, so it never reaches `console.error`, `onError` or your error tracker.
+
+## Why it happens
+
+Before any effect module or the engine downloads, Diorama probes the GPU once per app. It asks `navigator.gpu.requestAdapter()` first, and when there is no adapter it asks a temporary canvas for a `webgl2` context. When both fail, effects are unavailable:
+
+- the GPU or its driver is on the browser blocklist;
+- hardware acceleration is off in the browser settings;
+- a headless browser, a virtual machine or a remote desktop runs without a GPU or a software renderer.
+
+`app.effects.status` becomes `unavailable`, every instance becomes `unavailable`, and each element with an effect stays plain HTML with `data-dio-state="off"`. Neither three.js nor any effect module is downloaded, including the idle-time prefetch.
+
+The probe runs with `enabled: 'auto'`, the default, and with `enabled: true`, which only skips the Save-Data rule. With `render: { forceWebGL: true }` a WebGPU adapter is not enough: the browser needs WebGL 2.
+
+## How to fix
+
+The page keeps working as plain HTML, so there is nothing to fix in code for these visitors. Make sure the DOM version of each effect element looks right on its own.
+
+On your own machine, turn hardware acceleration on in the browser settings. In automated tests, use a browser with a software WebGL 2 renderer, such as SwiftShader in Chromium.
+
+To style the page without 3D, use `data-dio-state="off"` in CSS, or follow the status in code:
+
+```ts
+import { ready, start } from 'dioramajs'
+
+const app = await ready(start())
+app.effects?.status.subscribe((status) => {
+  document.documentElement.classList.toggle(
+    'no-3d',
+    status === 'unavailable',
+  )
+})
+```
+
+Two related cases do not raise this code. Under Save-Data with `enabled: 'auto'`, and with `enabled: false`, the status is `off`, nothing downloads and nothing is printed. When the probe passes but the renderer still fails to start, the kernel reports `PLUGIN_SETUP` as an error.
+
+## Related
+
+- `RENDER_LOST`
+- `EFFECT_LOAD`
+- `app.effects.status`
+- `start()`

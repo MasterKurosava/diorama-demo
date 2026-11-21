@@ -1,0 +1,30 @@
+.vh-clip {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.4cqi;
+}
+.vh-clip a,
+.vh-clip p {
+  width: 64%;
+}
+.vh-clip img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.vh-clip p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font: 650 max(13px, 2cqi) / 1.2 var(--font-text);
+  color: var(--text);
+}
+.vh-clip span {
+  font: 400 max(11px, 1.5cqi) / 1.2 var(--font-mono);
+  color: var(--text-muted);
+}

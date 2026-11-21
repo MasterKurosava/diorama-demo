@@ -1,0 +1,142 @@
+---
+title: Performance and quality
+label: Performance
+description: What Diorama loads and when, which frames it draws, what costs GPU time and memory, and the options that trade quality for speed.
+section: guides
+order: 6
+related: [concepts/frames, concepts/scroll, guides/loading]
+---
+
+Diorama keeps the cost of a page near zero until an effect is about to be seen, and near zero again once nothing moves. This guide lists what each part costs and the options that change it.
+
+## What loads and when
+
+| Part                                          | Size, min+gzip | When it loads                                          |
+| --------------------------------------------- | -------------- | ------------------------------------------------------ |
+| `start()` with effects, transitions and cache | about 44 KB    | with your page script                                  |
+| CDN build `dioramajs/auto`                      | about 44 KB    | with the script tag                                    |
+| Engine: three.js and the Diorama runtime      | about 225 KB   | when the first effect element nears the viewport       |
+| One effect module                             | under 1 KB     | with the engine, when an element with it nears view    |
+| Decoders for Draco, Meshopt, KTX2             | per decoder    | only for a model file that uses that compression       |
+
+"Nears the viewport" means within one viewport height by default. After the window `load` event the engine also downloads in idle time, so it is usually cached before the first scroll. Change both in `start()`.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+export const app = start({
+  load: 'near', // 'eager' boots at start, 'manual' waits for app.effects.load()
+  margin: '50% 0px', // IntersectionObserver rootMargin, default '100% 0px'
+  prefetch: false, // no idle download after window load
+})
+```
+
+Some visitors never load the engine at all:
+
+- With `enabled: 'auto'`, the default, Save-Data turns the app off. A browser without WebGPU and WebGL 2 makes it unavailable, with `enabled: true` too, which only ignores Save-Data. The check runs before anything downloads, the idle-time prefetch included, and the page stays plain HTML.
+- An effect with `when: 'hover'` is skipped on touch devices, which never load the engine for it.
+- An effect with `reducedMotion: 'off'` is skipped for visitors who prefer reduced motion.
+
+In each case the element stays plain HTML with `data-dio-state="off"`, so CSS can tell these visitors apart.
+
+## Frames on demand
+
+The loop draws a frame only when something asks for one: a scroll, a pointer move over an effect, a param write, a resize, a flight. A page at rest draws 0 frames, and so does a hidden tab.
+
+Each effect has a frame policy. The default is derived from what the effect reads: `u.time` animates every frame while visible, `u.hoverTime` while hovered and while hover fades, and neither means input only. An update that returns `true` or `false` decides for itself. Set it yourself when you need less.
+
+```ts title="src/effects/drift.ts" twoslash
+import { effect } from 'dioramajs'
+import { sin } from 'three/tsl'
+
+export default effect(
+  { strength: 0.02 },
+  { animate: { fps: 30 } },
+  ({ surface, u }) => {
+    surface.uv((uv) => uv.add(sin(u.time).mul(u.strength)))
+  },
+)
+```
+
+`{ fps: 30 }` draws time-driven frames at most 30 times a second while visible; input frames still run at full rate. An element off screen is not updated or drawn, and a param write to it requests no frame. [How a frame is decided](/docs/concepts/frames) explains the rules.
+
+Check what the loop does from the console.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+const app = start()
+// ---cut---
+setInterval(() => {
+  const { frames, reason } = app.loop.stats
+  console.log(frames, reason, app.effects.stats())
+}, 1000)
+```
+
+`frames` counts every frame so far and `reason` says why the last one ran: `invalidate`, `hold`, `timed`, `always` or `step`. `app.effects.stats()` counts layers, instances and textures.
+
+## Pixels
+
+The canvas covers the viewport, so its cost grows with the screen. Two limits keep it in bounds.
+
+- The device pixel ratio is capped at 2.
+- The drawing buffer holds at most 4 million device pixels. On a 2560 by 1440 screen at ratio 2 that is about 14.7 million, so the ratio drops to about 1.04.
+
+Lower the budget for heavy effects, or cap the ratio at runtime, for example when frames get slow. The cap applies at the next frame.
+
+```ts twoslash
+import { start } from 'dioramajs'
+
+export const app = start({ render: { maxPixels: 2_000_000 } })
+
+// Once the engine runs:
+const render = app.effects.render
+if (render) render.maxPixelRatio.value = 1.5
+```
+
+`antialias: 'auto'`, the default in `start()`, turns on multisampling only when the pixel ratio at start is below 2. At higher ratios the extra memory buys little. Pass `render: { antialias: false }` to turn it off everywhere.
+
+## What costs GPU time and memory
+
+- Each element with effects is one layer: one plane drawn with one material that combines all its effects, plus whatever its effects place. A gallery of 40 images is 40 draws.
+- Every visible pixel of a layer runs the effect's shader. A full-screen layer or a large `bleed` costs more than a thumbnail.
+- An image decodes once per URL and is shared by every effect that shows it. Each element uploads its own texture, so 40 copies of one image take 40 textures of GPU memory.
+- A model's geometry, materials and textures load once and are shared by every instance.
+- The first frame of a new material compiles a GPU pipeline, which can hold the main thread for 50 to 100 ms on mid-range hardware.
+- Unused cache entries stay in memory up to 32 MB for reuse. Lower it with the `retain` option of `assets()`.
+
+<Callout kind="performance">
+Visible layers measure their element with `getBoundingClientRect` in every drawn frame, so they follow transforms, sticky and fixed positions. For hundreds of images that never move by themselves, add `data-dio-track="layout"`: the position is cached at layout changes and only scroll is subtracted.
+</Callout>
+
+```html
+<img
+  src="/img/tile-01.avif"
+  data-dio="image"
+  data-dio-track="layout"
+/>
+```
+
+## Scroll that keeps up
+
+The browser scrolls on the compositor thread for touch, keyboard, the scrollbar and the wheel without smooth scrolling, ahead of the main thread. `followScroll`, on by default, moves the canvas with the page on the compositor until the next frame lands, so copies stay on their elements even on a slow GPU. It costs a CSS animation and nothing on the GPU.
+
+While a frame is late, content fixed to the viewport moves with the page too. A site with a full-screen scene and native scrolling turns it off on the stage.
+
+```ts title="src/main.ts" twoslash
+import { stage, start } from 'dioramajs'
+
+export const app = start({ plugins: [stage({ followScroll: false })] })
+```
+
+[How a layer follows scroll](/docs/concepts/scroll) shows the mechanism.
+
+## Trade quality for speed
+
+Start from the cheapest change that helps.
+
+1. Limit time-driven effects with `animate: { fps }` or move them to `'hover'`.
+2. Lower `render.maxPixels` or `maxPixelRatio` on pages with full-screen effects.
+3. Keep heavy effects off touch devices with `when: 'hover'` or a media query of your own, such as `when: '(min-width: 64em)'`.
+4. Give the visitor a still frame with `reducedMotion: 'static'`, the default, rather than an animation they asked not to see.
+5. Turn an effect off everywhere for a session with `app.effects.disable('ripple')`. The returned function turns it back on.

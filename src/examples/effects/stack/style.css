@@ -1,0 +1,29 @@
+/* A card in the middle of the frame, with room around it for the pile. */
+.ex-root > .trips {
+  position: relative;
+  top: 12%;
+  width: auto;
+  height: 76%;
+  aspect-ratio: 3 / 4;
+  margin: 0 auto;
+  border-radius: 14px;
+  cursor: grab;
+}
+/* Without WebGL the cards are a strip that scrolls and snaps. */
+.trips {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.trips img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  scroll-snap-align: start;
+}
+.trips:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}

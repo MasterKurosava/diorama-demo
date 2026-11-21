@@ -1,0 +1,52 @@
+---
+effect: device
+example:
+  description: A phone built in 3D around a screenshot of a tide app, resting in a three-quarter view with a soft shadow, leaning toward the pointer.
+  aspect: 4 / 5
+  caption: Move the pointer over the phone. Switch frame to see the app's dashboard in a tablet, a laptop or a browser window, and try color and radius.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A dashboard in a browser window
+
+The `browser` frame adds a toolbar with the window buttons and an address field above the page, and no bezel at the sides, so a wide product screenshot keeps its size. `color` paints the toolbar: a light gray for a light app, a dark one for a dark app. A smaller `yaw` keeps a wide window readable.
+
+<Example id="effects/device/browser" description="A tide dashboard for lifeguards in a light browser window, turned slightly to the left over a dark blue background." aspect="16 / 11" show={['html']} controls={['yaw', 'pitch', 'tilt']} variants={[]} />
+
+### A laptop on a product page
+
+The `laptop` frame is an open laptop: a 16:10 screen in a thin lid with its camera, the keyboard and the trackpad on the deck, the whole machine tipped a little toward the viewer so the keyboard shows. A light `color` makes a silver one. Give it a wide box: the base needs room under the screen.
+
+<Example id="effects/device/laptop" description="A tide dashboard on a silver laptop, turned to show its right side, on a light warm background." aspect="16 / 11" show={['html']} controls={['yaw', 'pitch', 'tilt']} variants={[]} />
+
+### A screen recording that turns with the page
+
+A `<video>` works the same as an `<img>`: the screen plays it, and the effect draws only while a frame is new. `turn` turns the device by that many degrees while it crosses the viewport, so the laptop swings into view as the visitor scrolls.
+
+```html
+<video src="/media/tour.mp4" poster="/media/tour.jpg" autoplay muted loop playsinline data-dio="device" data-dio-frame="laptop" data-dio-color="#c8cad0" data-dio-turn="54"></video>
+```
+
+### Size the box for the whole device
+
+The device fits inside the element's box at `scale` of its size, bezels and base included, as it is seen in its rest pose: its near parts look larger in perspective, so it is measured with them and centered on what is drawn. Give the image the size the device should take on the page, with the aspect ratio of the screenshot, and the plain screenshot shows in the same box without WebGL.
+
+```css
+.app-shot {
+  width: auto;
+  height: min(80vh, 720px);
+  aspect-ratio: 1170 / 2532;
+}
+```
+
+## Notes
+
+Each frame keeps the screen of the real device. A phone or a tablet takes the aspect ratio of the element's box within the range of real ones, a phone from 16:9 to about 19.5:9 and a tablet from 4:3 to 16:10, upright or on its side as the box is. A laptop screen is always 16:10, and a browser window runs from 5:4 to 12:5. The picture covers the screen as with `object-fit: cover`, centered across and from the top down, so a tall screenshot in a laptop shows its top. Give each frame a screenshot of its shape, and render it at twice its size on the page or more, so the screen stays sharp on high-density displays.
+
+The device draws its own picture: text in the screenshot is not selectable and not read by assistive technology. Write what the screen shows in the `alt` text.
+
+The body is lit by the same studio environment as the [`model`](/docs/effects/model) effect, and the screen keeps the colors of the picture.

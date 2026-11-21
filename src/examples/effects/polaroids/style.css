@@ -1,0 +1,15 @@
+.pl-trip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 32px;
+  min-height: 420px;
+  align-content: center;
+}
+.pl-trip img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}

@@ -1,0 +1,27 @@
+.reward {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  background: #fff7e6;
+  font-family: var(--font-text);
+  color: #6b5a3a;
+  text-align: center;
+}
+.reward h3 {
+  margin: 0;
+  padding: 6px 16px;
+  font-size: 1.8rem;
+  color: #1d4ed8;
+}
+.reward p {
+  margin: 0 0 12px;
+}
+.reward .next {
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: #f97316;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}

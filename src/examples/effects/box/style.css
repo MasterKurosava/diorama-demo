@@ -1,0 +1,10 @@
+.ex-root:has(> img.tea) {
+  display: grid;
+  place-items: center;
+  background: #efe9dd;
+}
+.ex-root > img.tea {
+  width: min(34%, 260px);
+  height: auto;
+  aspect-ratio: 3 / 4;
+}

@@ -1,0 +1,19 @@
+/* The scene holds the background: the element that draws hides while it draws. */
+.tn-scene {
+  container-type: inline-size;
+  background: radial-gradient(70% 60% at 50% 50%, #161a24 0%, transparent 70%), #08090d;
+  color: #f2efe8;
+}
+.tn-story {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+.tn-story p {
+  margin: 0;
+  padding: 0 7%;
+  font: 800 clamp(1.6rem, 7cqi, 5.5rem) / 1.02 var(--font-text);
+  letter-spacing: -0.03em;
+}

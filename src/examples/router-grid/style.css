@@ -1,0 +1,23 @@
+.ex[data-id="router-grid"] .box {
+  padding: 20px;
+  box-sizing: border-box;
+}
+.ex[data-id="router-grid"] .grid img {
+  width: 150px;
+  height: 150px;
+}
+.ex[data-id="router-grid"] figure img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.ex[data-id="router-grid"] .grid {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex[data-id="router-grid"] figure {
+  margin: 0 0 10px;
+}

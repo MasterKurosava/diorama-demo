@@ -1,0 +1,63 @@
+---
+effect: ripple
+example:
+  description: A photo of a wave breaking over concrete sea steps that ripples in rings around the pointer.
+  caption: Move the pointer over the photo. The rings follow it and settle once it leaves.
+related:
+  - guides/performance
+---
+
+## Recipes
+
+### A portfolio grid under the pointer
+
+Put `ripple` on each cover of a project grid. Frames are drawn only while a cover is under the pointer and while its rings settle, so the grid costs nothing while the reader reads the page.
+
+<Example id="effects/ripple/grid" description="Three project covers in a row, each rippling while the pointer is over it." aspect="2 / 1" show={['html']} controls={[]} variants={[]} />
+
+### Every image of a gallery from code
+
+When the gallery comes from a CMS and you cannot add attributes, attach the effect by selector. The handle it returns changes every image under it at once.
+
+```ts
+import { start } from 'dioramajs'
+
+const app = start()
+const ripples = app.attach('.gallery img', 'ripple', { strength: 1.5 })
+
+// Later, a calmer gallery for the whole page.
+ripples.params.strength = 0.5
+```
+
+### A slow swell for a hero
+
+Fewer, slower rings read as a calm sea rather than a splash. Lower `frequency` and `speed` and raise `strength` a little, for a wide image the pointer crosses on its way down the page.
+
+```html
+<img
+  src="/img/bay.avif"
+  data-dio="ripple"
+  data-dio-frequency="14"
+  data-dio-speed="2.5"
+  data-dio-strength="1.4"
+/>
+```
+
+### Ripple and bend on one image
+
+Both effects share the param `strength`, so name the effect in the attribute: `data-dio-ripple-strength` sets only the ripple. The image ripples under the pointer and bows while the page scrolls.
+
+```html
+<img
+  src="/img/bay.avif"
+  data-dio="ripple bend"
+  data-dio-ripple-strength="0.8"
+  data-dio-bend-strength="0.6"
+/>
+```
+
+## Notes
+
+The rings start where the pointer is and fade with the distance from it, so on a wide image the far side stays nearly still.
+
+Use it on photos. On maps, charts or a picture of text, a moving surface makes the content harder to read while the pointer is over it, which is when the reader looks closest.

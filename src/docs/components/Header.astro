@@ -1,0 +1,81 @@
+---
+import { REPO } from '../site.ts'
+
+interface Props {
+  readonly path: string
+}
+const { path } = Astro.props
+const links = [
+  { label: 'Get started', href: '/docs/start' },
+  { label: 'Effects', href: '/docs/effects' },
+  { label: 'API', href: '/docs/api' },
+  { label: 'Errors', href: '/docs/errors' },
+]
+const current = (href: string) =>
+  path === href || path.startsWith(`${href}/`) ? 'page' : undefined
+---
+
+<header class="dh">
+  <button class="icon-btn dh-menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav" data-menu>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+  <a class="dh-brand" href="/">Diorama</a>
+  <a class="dh-brand" href="/docs"><span>Docs</span></a>
+  <nav class="dh-nav" aria-label="Main">
+    {links.map((l) => <a class="dh-link" href={l.href} aria-current={current(l.href)}>{l.label}</a>)}
+    <button class="btn dh-search" type="button" data-search-open aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+      <span class="dh-search-label">Search</span>
+      <kbd data-kbd>Ctrl K</kbd>
+    </button>
+    <doc-theme>
+      <button class="icon-btn" type="button" aria-label="Theme: system">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><path d="M12 7a5 5 0 0 1 0 10z" fill="currentColor"></path></svg>
+      </button>
+    </doc-theme>
+    <a class="icon-btn" href={REPO} aria-label="Diorama on GitHub">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2z"></path></svg>
+    </a>
+  </nav>
+</header>
+
+<script>
+  const MODES = ['system', 'light', 'dark'] as const
+  type Mode = (typeof MODES)[number]
+
+  class DocTheme extends HTMLElement {
+    connectedCallback(): void {
+      const button = this.querySelector('button')
+      if (!button) return
+      const read = (): Mode => {
+        const v = document.documentElement.getAttribute('data-theme')
+        return v === 'light' || v === 'dark' ? v : 'system'
+      }
+      const show = (mode: Mode) => button.setAttribute('aria-label', `Theme: ${mode}`)
+      show(read())
+      button.addEventListener('click', () => {
+        const next = MODES[(MODES.indexOf(read()) + 1) % MODES.length] ?? 'system'
+        try {
+          if (next === 'system') localStorage.removeItem('dio.theme')
+          else localStorage.setItem('dio.theme', next)
+        } catch {
+          // Without storage the choice lasts for this page.
+        }
+        if (next === 'system') document.documentElement.removeAttribute('data-theme')
+        else document.documentElement.setAttribute('data-theme', next)
+        show(next)
+      })
+    }
+  }
+  if (!customElements.get('doc-theme')) customElements.define('doc-theme', DocTheme)
+
+  const apple = /Mac|iPhone|iPad/.test(navigator.platform)
+  const label = () => {
+    for (const kbd of document.querySelectorAll('[data-kbd]')) kbd.textContent = apple ? '⌘K' : 'Ctrl K'
+    for (const kbd of document.querySelectorAll<HTMLElement>('[data-kbd-mod]')) {
+      kbd.textContent = apple ? '⌘' : 'Ctrl'
+    }
+  }
+  label()
+  document.addEventListener('astro:page-load', label)
+</script>

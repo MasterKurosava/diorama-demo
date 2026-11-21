@@ -1,0 +1,33 @@
+---
+code: EFFECT_COMPILE
+level: error
+message: '"{effect}" does not compile'
+summary: The surface material with an effect's transforms failed to compile, so the effect is dropped from the surface.
+---
+
+## Why it happens
+
+- A TSL node graph in `surface.position()`, `surface.uv()` or `surface.color()` does not compile, for example because of a type mismatch. Diorama catches the error that three.js prints or passes to `renderer.debug.onShaderError` (WebGL 2) and `renderer.onError` (WebGPU), and the `cause` holds it.
+- A transform function throws while Diorama assembles the material. The message then reads `a surface transform of "{effect}" threw`, and only that effect fails.
+
+The surface keeps its previous material, and the element is not marked as drawn. Effects added since the last good build become `failed`, and the surface rebuilds without them. When every effect of the failed build had compiled before, the failure prints as a warning and the old material stays.
+
+## How to fix
+
+Read the three.js message in the `cause`. Each transform returns the type it receives: `vec3` for `position`, `vec2` for `uv`, `vec4` for `color`.
+
+```ts
+import { effect } from 'dioramajs'
+import { vec4 } from 'three/tsl'
+
+export default effect({ dim: 0.8 }, ({ surface, u }) => {
+  surface.color((color) => vec4(color.rgb.mul(u.dim), color.a))
+})
+```
+
+After the fix, start the instance again: remove its token from `data-dio` and add it back, or reload. In development, HMR replaces the definition and the instance retries.
+
+## Related
+
+- `EFFECT_SETUP`
+- `ctx.surface`

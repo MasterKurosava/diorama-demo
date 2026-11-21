@@ -1,0 +1,39 @@
+/* The pictures are the ring's cards: their size in the layout is their size on the ring, so they
+   take most of the frame's height, with room under them for the reflection. */
+.ex-root > .coast {
+  position: relative;
+  top: 9%;
+  height: 62%;
+}
+/* Without WebGL the pictures are a row of links that scrolls and snaps. */
+.coast {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.coast li {
+  flex: 0 0 auto;
+  height: 100%;
+  scroll-snap-align: center;
+}
+.coast a {
+  display: block;
+  height: 100%;
+}
+.coast img {
+  display: block;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.coast a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}

@@ -1,0 +1,19 @@
+.cafes-stage {
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #10151f;
+}
+.cafes {
+  position: relative;
+  height: 100%;
+}
+.cafes ul {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

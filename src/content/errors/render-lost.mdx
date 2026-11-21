@@ -1,0 +1,30 @@
+---
+code: RENDER_LOST
+level: error
+message: 'the GPU device was lost'
+summary: The GPU device or WebGL context was lost, or rendering was disabled, so every effect switched off and the DOM shows again.
+---
+
+## Why it happens
+
+- WebGPU reports a lost device through `renderer.onDeviceLost`, for example after a driver reset or a crash of the browser's GPU process.
+- The canvas fires `webglcontextlost` on the WebGL 2 backend. Browsers drop contexts under memory pressure, after a driver reset, or when a page creates too many WebGL contexts.
+- The kernel disabled the `render` system after it failed 10 frames in a row and reported `SYSTEM_DISABLED`.
+
+The report prints once. In the same frame every instance becomes `unavailable`, its GL objects, textures and anchors are freed, and the page shows its DOM. `app.effects.status` becomes `unavailable`, and effects stay off until the page reloads.
+
+## How to fix
+
+<Steps>
+
+1. Look above this error in the console. If `SYSTEM_DISABLED` came first, fix the first error reported for the `render` system, under the code `SYSTEM`.
+2. Count the canvases with a WebGL context on the page, including those of other libraries, and remove the ones you do not need.
+3. Make sure the page reads well as plain DOM, since that is what visitors see after a loss.
+
+</Steps>
+
+## Related
+
+- `RENDER_UNAVAILABLE`
+- `app.effects.status`
+- `data-dio-state`

@@ -1,0 +1,57 @@
+---
+effect: scramble
+example:
+  description: An incident tool headline whose letters flicker through random glyphs and lock in from left to right.
+  aspect: 16 / 7
+  variants: [motion, by]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Navigation links that decode on hover
+
+With `data-dio-trigger="hover"` a link stays as plain text and scrambles each time the pointer or keyboard focus reaches it. Keep `duration` and `stagger` short so a short label settles before the visitor clicks. Hover the links below.
+
+<Example id="effects/scramble/nav" description="Four navigation links of a studio site that scramble when hovered or focused." aspect="16 / 3" show={['html']} controls={[]} variants={[]} />
+
+### A number that settles in a random order
+
+`motion="random"` shows every letter scrambled at once and locks them in a random order. With `chars="digits"` it suits a figure on a fintech or crypto page, such as a balance or a block height.
+
+```html
+<p
+  class="stat"
+  data-dio="scramble"
+  data-dio-motion="random"
+  data-dio-chars="digits"
+  data-dio-duration="0.4"
+>$4,812,330</p>
+```
+
+### A louder headline for a launch
+
+`motion="glitch"` adds a red and cyan split and a small jitter while letters scramble, and lets the split fade out as each one settles. Moving by word with a longer stagger keeps it readable.
+
+```html
+<h2
+  data-dio="scramble"
+  data-dio-motion="glitch"
+  data-dio-by="word"
+  data-dio-stagger="0.12"
+>Zero trust. Zero downtime.</h2>
+```
+
+## Notes
+
+`chars` takes a named set, `mixed`, `latin`, `upper`, `digits`, `hex`, `binary` or `symbols`, or any string of your own, such as `chars="01"` or `chars="▖▗▘▙▚▛▜▝▞▟"`. The random glyphs use the font and color of the element, and each one is narrowed a little to fit the slot of the letter it stands for, so the line does not shift while it plays.
+
+The element keeps its text as you wrote it, with no span per letter, so screen readers, search engines and find in page see the real words. While letters scramble a CSS filter hides the DOM text without removing it, and when the last one settles the element is real, selectable text again. Under reduced motion the effect is off and the text shows at once.
+
+Text on screen when the page opens is hidden until the effect is ready and then plays, as with `text-reveal`. In the scroll and hover modes it stays as it is instead.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke`, underlines or vertical writing modes the way the browser does. An element with any of the first four keeps its text as it is, and a warning in development names the reason; an underline is hidden while the letters scramble.
+
+Keep it to headings, labels and short lines: over 1500 letters it stays as plain text. `motion`, `by`, `trigger`, `chars` and `seed` rebuild the effect when they change.

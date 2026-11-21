@@ -1,0 +1,59 @@
+---
+effect: flare
+example:
+  description: "A green slope over the sea with a lens flare that follows the pointer, its ghosts strung along the line through the center."
+  caption: "Move the pointer over the photo. The light source follows it; switch the style to a glossy sweep or let the scroll drive it."
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A hero shot that catches the light
+
+For cars, watches, jewelry or any photo that should feel lit, the flare follows the pointer, and `rest` keeps a little of it when the pointer is away.
+
+```html
+<img
+  src="/cars/coupe.avif"
+  data-dio="flare"
+  data-dio-streak="0.4"
+  data-dio-rest="0.3"
+/>
+```
+
+### Light sliding over a product as the page scrolls
+
+`style="sweep"` draws a glossy band instead of a lens flare; with `by="scroll"` it slides across as the image passes through the viewport.
+
+```html
+<img
+  src="/watch/case.avif"
+  data-dio="flare"
+  data-dio-style="sweep"
+  data-dio-by="scroll"
+  data-dio-travel="1.2"
+  data-dio-glow="0.1"
+/>
+```
+
+### A low sun in the corner
+
+With `by="fixed"` the light stays where `position` puts it, for a landscape that should feel shot into the sun.
+
+```html
+<img
+  src="/trips/ridge.avif"
+  data-dio="flare"
+  data-dio-by="fixed"
+  data-dio-position="0.85 0.15"
+  data-dio-ghosts="6"
+/>
+```
+
+## Notes
+
+Keep the flare subtle on photos with text or faces. Under reduced motion the pointer light appears and moves without fades or smoothing, and with `by="scroll"` it stays at `position`.
+
+`style` and `by` rebuild the effect; the other params change live.

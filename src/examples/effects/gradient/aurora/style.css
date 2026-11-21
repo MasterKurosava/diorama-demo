@@ -1,0 +1,6 @@
+.gd-sky {
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(70% 45% at 40% 35%, rgb(43 213 154 / 0.45) 0%, transparent 70%),
+    radial-gradient(50% 40% at 75% 25%, rgb(180 92 255 / 0.35) 0%, transparent 70%), #050b1a;
+}

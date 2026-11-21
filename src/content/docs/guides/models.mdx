@@ -1,0 +1,208 @@
+---
+title: 3D models
+label: 3D models
+description: Load a GLB with Draco, Meshopt or KTX2 into an effect, place it in a section and turn it with scroll or a pinned section.
+section: guides
+order: 5
+related: [guides/loading, guides/performance, concepts/scroll, guides/gsap-lenis]
+---
+
+A model is an effect like any other: `ctx.model()` loads a glTF through the shared asset cache and `place()` glues it to the element's box. This guide builds a model that sits in a section, then turns it with scroll and with a pinned section.
+
+## Prepare the file
+
+Use binary glTF (`.glb`) and put it where the site serves static files, for example `public/models/lantern.glb`. Compress the meshes before you ship them. Diorama reads the file's `extensionsUsed` and loads a decoder only when the file needs one.
+
+| Extension in the file                            | Decoder                     |
+| ------------------------------------------------ | --------------------------- |
+| `KHR_draco_mesh_compression`                     | Draco, WebAssembly          |
+| `EXT_meshopt_compression`                        | Meshopt, WebAssembly        |
+| `KHR_texture_basisu`                             | Basis transcoder for KTX2   |
+
+A model without compression loads no decoder at all. The decoder files come from three.js itself through `import.meta.url`, so your bundler emits them next to your chunks and no CDN is involved.
+
+```sh frame="terminal"
+$ npx @gltf-transform/cli optimize lantern-source.glb public/models/lantern.glb --compress meshopt
+```
+
+## Write the effect
+
+`ctx.model(url)` resolves with a copy of the model's scene. The copy shares geometry, materials and textures with every other instance of the same file, so ten lanterns load and upload the file once. By default the copy is centred on its bounds and scaled so its largest side is 1, ready for `place(…, { fit: 'contain' })`.
+
+```ts title="src/effects/lantern.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { src: '' },
+  { presence: 'custom' },
+  async ({ params, model, place }) => {
+    const lantern = await model(params.src)
+    place(lantern, { fit: 'contain', replace: true })
+  },
+)
+```
+
+- `fit: 'contain'` scales the object by the smaller side of the box, so it keeps its proportions in any layout.
+- `replace: true` makes the model the element's picture on the canvas. Once the model draws, the element's own DOM hides; if WebGL is unavailable or the file fails, the DOM stays.
+- `presence: 'custom'` tells page transitions not to fade the copy through opacity. The model's materials are shared by every instance, so their opacity cannot change for one copy.
+
+String params rebuild the effect when they change, so a new `data-dio-src` loads the new file.
+
+## Put it on the page
+
+Give the element a size and a still image of the model. The image is what visitors see before the engine loads, without WebGL and in search previews.
+
+```html title="index.html"
+<img
+  class="lantern"
+  src="/models/lantern.avif"
+  width="800"
+  height="800"
+  data-dio="lantern"
+  data-dio-src="/models/lantern.glb"
+/>
+```
+
+<Example id="lantern-poster" description="A paper lantern model drawn over its still image in a square box; the image hides once the model draws." aspect="1 / 1" controls={[]} caption="The still image is a render of the same model, so the swap does not show. Without WebGL the image stays." />
+
+`start()` lights lit materials with an image-based room environment, made with the first model and freed with the last. Pass `render: { environment: 'none' }` to `start()` to turn it off and add your own lights with `place()`.
+
+## Turn it with scroll
+
+Return an update function from setup to change the model every frame the element is visible. `progress` goes from 0 as the element's top enters at the bottom of the viewport to 1 as its bottom leaves at the top.
+
+```ts title="src/effects/lantern.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { src: '' },
+  { presence: 'custom' },
+  async ({ params, model, place }) => {
+    const lantern = await model(params.src)
+    place(lantern, { fit: 'contain', replace: true })
+    return ({ progress }) => {
+      lantern.rotation.y = progress * Math.PI * 2
+    }
+  },
+)
+```
+
+The effect reads no time input, so it draws only while the page scrolls. At rest it costs no frames.
+
+## Pin it to a section
+
+For a model that stays on screen while a section scrolls past, make the section tall and keep its content in a sticky child. Put the effect on the section and read `pin`: it is 0 while the section's top is below the viewport top and reaches 1 when its bottom reaches the viewport bottom.
+
+```html title="index.html"
+<section
+  class="showcase"
+  data-dio="turntable"
+  data-dio-src="/models/lantern.glb"
+>
+  <div class="showcase-sticky">
+    <h2>Folded from one sheet</h2>
+  </div>
+</section>
+```
+
+```css
+.showcase {
+  height: 300vh;
+}
+.showcase-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+```
+
+The section's box is three viewports tall, so the model goes into `viewport` instead: a group centred on the viewport, in CSS pixels, that hides while the section is off screen.
+
+```ts title="src/effects/turntable.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { src: '' },
+  { presence: 'custom' },
+  async ({ params, model, viewport, app }) => {
+    const lantern = await model(params.src)
+    viewport.add(lantern)
+    return ({ pin }) => {
+      const size =
+        Math.min(app.stage.width.value, app.stage.height.value) * 0.6
+      lantern.scale.setScalar(size)
+      lantern.rotation.y = pin * Math.PI * 2
+      lantern.position.y = (0.5 - pin) * 80
+    }
+  },
+)
+```
+
+<Example id="lantern-pin" description="A section three viewports tall with a sticky heading: the lantern stays in the middle of the viewport and turns once while the section scrolls through." controls={[]} show={['html', 'effect']} caption="Scroll through the section: the lantern turns once and sinks a little on the way." />
+
+With GSAP, pin the section with ScrollTrigger instead of CSS. Pass `gsap` and `ScrollTrigger` to `start()`, and effects inside a pinned trigger get its scrubbed progress as `pin` without more code. [GSAP and Lenis](/docs/guides/gsap-lenis) covers the setup.
+
+## Play its animation
+
+The clips of the file are on the returned object's `animations`. Drive a three.js `AnimationMixer` from the update function and ask for a frame every time the model is visible.
+
+```ts title="src/effects/lantern.ts" twoslash
+import { effect } from 'dioramajs'
+import { AnimationMixer } from 'three/webgpu'
+
+export default effect(
+  { src: '' },
+  { presence: 'custom', animate: 'visible' },
+  async ({ params, model, place }) => {
+    const lantern = await model(params.src)
+    place(lantern, { fit: 'contain', replace: true })
+    const mixer = new AnimationMixer(lantern)
+    const clip = lantern.animations[0]
+    if (clip) mixer.clipAction(clip).play()
+    return (input, frame) => {
+      if (!input.reducedMotion) mixer.update(frame.delta)
+    }
+  },
+)
+```
+
+`animate: 'visible'` draws every frame while the element is on screen, and none once it scrolls away. Under reduced motion the policy asks for no frames, and the check keeps the clip still on the frames that do run.
+
+## Preload it
+
+Models load when the element nears the viewport. To have one ready when a visitor follows a link, name it in `data-dio-preload`: hovering for 65 ms, focusing or touching the link puts the file in the cache.
+
+```html
+<a
+  href="/lantern"
+  data-dio-preload="/models/lantern.glb"
+>The lantern</a>
+```
+
+[Loading and preloading](/docs/guides/loading) has the rest: preloading from router code and a progress bar for the first screen.
+
+## Decoders under a content security policy
+
+Draco, Meshopt and KTX2 run in `blob:` workers and WebAssembly. Under a content security policy, allow both, or the load fails with `ASSET_DECODER`.
+
+```http
+Content-Security-Policy: worker-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'
+```
+
+To serve the decoders from your own folder, pass `assets()` with `decoders` in `plugins`. Its options merge with the cache `start()` already adds.
+
+```ts title="src/main.ts" twoslash
+import { assets, start } from 'dioramajs'
+
+export const app = start({
+  plugins: [
+    assets({ decoders: { draco: '/draco/', ktx2: '/basis/' } }),
+  ],
+})
+```
+
+`draco: false` or `ktx2: false` refuses that kind of file with `ASSET_DECODER` instead of loading a decoder.
+
+<Callout kind="performance">
+Each instance clones only the scene graph. Geometry, materials and textures stay in the cache while any instance uses them, and up to 32 MB of unused entries stay for reuse, so a model seen on the previous page comes back without a request. A model's first frame compiles its materials, which can take 50 to 100 ms on the main thread.
+</Callout>

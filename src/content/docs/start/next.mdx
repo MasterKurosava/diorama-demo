@@ -1,0 +1,74 @@
+---
+title: Install with Next.js
+label: Next.js
+description: Wrap the Next.js config with withDiorama and start the app from a client component.
+section: start
+order: 4
+frameworks: [next]
+---
+
+Next.js builds with webpack or Turbopack, not Vite. `withDiorama` writes the effect registry and its types to `src/diorama.gen.ts` and points both bundlers at it. Effects go in `src/effects/`.
+
+## Install the packages
+
+<Install packages="dioramajs three" />
+
+## Wrap the config
+
+```ts title="next.config.ts" fixture="next" twoslash
+import { withDiorama } from 'dioramajs/next'
+
+export default withDiorama({})
+```
+
+## Start the app from a client component
+
+```tsx title="src/app/diorama.tsx" fixture="next"
+'use client'
+import { start } from 'dioramajs'
+import { useEffect } from 'react'
+
+export function Diorama() {
+  useEffect(() => void start(), [])
+  return null
+}
+```
+
+Render `<Diorama />` once in the root layout.
+
+```tsx title="src/app/layout.tsx" fixture="next"
+import type { ReactNode } from 'react'
+import { Diorama } from './diorama'
+
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Diorama />
+      </body>
+    </html>
+  )
+}
+```
+
+## Put an effect on an image
+
+```tsx title="src/app/page.tsx" fixture="next"
+export default function Page() {
+  return (
+    <img
+      src="/cover.jpg"
+      width={800}
+      height={450}
+      data-dio="ripple"
+    />
+  )
+}
+```
+
+Commit `src/diorama.gen.ts`. In development new and removed effect files are picked up on their own, and Fast Refresh replaces an edited effect.

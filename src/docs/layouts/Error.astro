@@ -1,0 +1,66 @@
+---
+import Badge from '../components/Badge.astro'
+import { consoleLine, type ErrorPage } from '../lib/errors.ts'
+import Article from './Article.astro'
+
+interface Props {
+  readonly page: ErrorPage
+  readonly headings: readonly {
+    readonly depth: number
+    readonly slug: string
+    readonly text: string
+  }[]
+}
+const { page, headings } = Astro.props
+const { code, level, message, summary } = page.entry.data
+---
+
+<Article
+  title={code}
+  description={summary}
+  url={page.url}
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'Errors', href: '/docs/errors' }, { label: code }]}
+  headings={headings}
+  kind="error"
+  meta={{ level, module: page.info.specifier }}
+>
+  <Fragment slot="heading">
+    <h1>{code}</h1>
+    <p class="err-meta">
+      <span class="sr-only">Package </span><Badge text={page.info.specifier} />{' '}
+      <span class="sr-only">Level </span><Badge text={level} />
+    </p>
+  </Fragment>
+  <pre class="err-msg" data-pagefind-weight="8"><code>{consoleLine(code, message)}</code></pre>
+  <slot />
+</Article>
+
+<style>
+  .err-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin: var(--s-3) 0 var(--s-2);
+  }
+  .err-meta :global(.badge) {
+    margin: 0;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    text-transform: none;
+  }
+  .err-msg {
+    margin: var(--s-5) 0;
+    padding: var(--s-4) var(--s-5);
+    overflow-x: auto;
+    background: var(--bg-code);
+    border-radius: var(--radius-panel);
+    font: 400 var(--code-size) / 1.6 var(--font-mono);
+    white-space: pre-wrap;
+  }
+  .err-msg code {
+    background: none;
+    padding: 0;
+    font: inherit;
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+effect: split-flap
+example:
+  description: A departures board of three flights whose statuses flip to new values every few seconds.
+  aspect: 16 / 8
+  caption: The statuses change every few seconds from a script; only the letters that change flip.
+  variants: [style, motion]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A status your code changes
+
+Write the new text into the element and the board flips to it: the effect watches the text, so there is no extra call. Only the characters that differ turn, and the DOM always holds the current text, so screen readers, search and copy see it. Add `aria-live="polite"` if a screen reader should announce each change; it then reads the new status once, not every flip.
+
+```html
+<span
+  class="status"
+  data-dio="split-flap"
+  data-dio-trigger="change"
+  aria-live="polite"
+>ON TIME</span>
+```
+
+```ts
+document.querySelector('.status').textContent = 'BOARDING'
+```
+
+`data-dio-trigger="change"` shows the text at once and flips only on changes. The default `view` also flips the board in from blank tiles the first time it comes into view.
+
+### A countdown that ticks every second
+
+For a clock, a launch countdown or a sale timer, use the `time` drum with `data-dio-flips="1"`: each changed digit turns once, straight to the next value, the way a flip clock does.
+
+```html
+<time
+  class="clock"
+  data-dio="split-flap"
+  data-dio-trigger="change"
+  data-dio-chars="time"
+  data-dio-flips="1"
+>02:14:09</time>
+```
+
+### Menu boards and prices without tiles
+
+`data-dio-style="plain"` flips the letters alone, in your own font and color, and shows the real text at rest. With `motion="random"` every letter shows a few random faces and they all land together.
+
+```html
+<h2
+  data-dio="split-flap"
+  data-dio-style="plain"
+  data-dio-motion="random"
+  data-dio-flips="6"
+>Today: ramen</h2>
+```
+
+## Notes
+
+The tiles look best in a monospaced font with some `letter-spacing` and a `line-height` of 1.3 or more, so neighboring tiles and lines do not touch. Each tile is centered on its letter; a space stays a gap. The letters take the color of the text and the tiles take `tile`; `shade="0"` gives flat tiles, `gap="0"` tiles that touch.
+
+`chars` sets the drum, the order a flap walks through: `board` (the letters A to Z, digits and `. , : - / &`), `letters`, `digits`, `time`, or your own string. Lowercase letters stop at the place of their capital, and a character not on the drum drops in at the end. A letter takes as many flips as it is far from its target along the drum, at most `flips`, so a line settles unevenly like a real board. `duration="0"` swaps the letters without turning.
+
+With the tiles the board stays drawn at rest, and the DOM text under it stays in the page for screen readers and selection. Under reduced motion the tiles stay and new text shows at once; the plain style is the text as it is. `style`, `motion`, `trigger`, `chars` and `seed` rebuild the effect when they change; the other params change live.

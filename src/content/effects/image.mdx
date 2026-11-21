@@ -1,0 +1,83 @@
+---
+effect: image
+example:
+  description: A photo of a brass astrolabe whose frame switches between full, card, round and contained, with the drawn copy following each change.
+  caption: The copy is the image as the page draws it. Switch the frame and the copy crops, rounds and letterboxes with the CSS.
+related:
+  - learn/flights
+  - guides/routers
+  - guides/performance
+---
+
+## Recipes
+
+### Fly a thumbnail to its page
+
+Give the thumbnail on the list page and the cover on the project page the same `data-dio-key`. The thumbnail needs a drawn copy to fly, and `image` gives it one without changing how it looks. The cover may carry another effect, such as `ripple`, and the copy lands into it.
+
+```html title="work.html"
+<a href="/work/astrolabe">
+  <img
+    src="/img/astrolabe-thumb.avif"
+    data-dio="image"
+    data-dio-key="astrolabe"
+  />
+</a>
+```
+
+```html title="work/astrolabe.html"
+<img
+  src="/img/astrolabe.avif"
+  data-dio="image ripple"
+  data-dio-key="astrolabe"
+/>
+```
+
+### Let every keyed image fly
+
+On a site with many keyed images, attach `image` once from code instead of writing it on each one. The selector skips elements that already carry an effect, since their copy flies anyway.
+
+```ts
+import { start } from 'dioramajs'
+
+const app = start()
+app.attach(
+  'img[data-dio-key]:not([data-dio]), video[data-dio-key]:not([data-dio])',
+  'image',
+)
+```
+
+### A product film that flies with the page
+
+A playing `<video>` draws each new frame and nothing while it is paused, so a muted loop on a shop card costs a texture upload per frame and no more. With a key it flies to the product page like an image.
+
+```html
+<video
+  src="/film/lounge.webm"
+  poster="/film/lounge.webp"
+  muted
+  loop
+  autoplay
+  playsinline
+  data-dio="image"
+  data-dio-key="lounge"
+></video>
+```
+
+### Hundreds of tiles that never move
+
+Each drawn frame measures every visible layer. For a large grid of images that move only with the scroll, `data-dio-track="layout"` caches the position at layout changes and subtracts the scroll instead.
+
+```html
+<img
+  src="/tiles/017.avif"
+  data-dio="image"
+  data-dio-track="layout"
+/>
+```
+
+## Notes
+
+The canvas covers the viewport above the page, so a copy draws over any HTML laid on top of its image. Give a caption or button over a drawn image `position: relative` and a `z-index` of 2 or more to keep it in front.
+
+The copy reads `object-fit`, `object-position` and `border-radius` again when the element's box changes, not in every frame: a style that changes while the box stays the same shows on the copy at its next resize. `none` and `scale-down` draw as `contain`, and corners of different radii draw with the largest one; development builds warn about both.

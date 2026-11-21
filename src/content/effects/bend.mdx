@@ -1,0 +1,65 @@
+---
+effect: bend
+example:
+  description: A photo of a snow peak with layered rock that bows against the scroll and splits into red and blue fringes while the page moves.
+  caption: Scroll the page or press Flick the page. The photo bends with the speed of the scroll and straightens as it stops.
+related:
+  - concepts/scroll
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Color split only
+
+Set `strength` to 0 and the image stays flat while its red and blue channels drift apart with the scroll. Stars, city lights and type on a dark ground show the fringes best, so it suits a music or night-event site where a full bend would be too much.
+
+<Example id="effects/bend/split" description="A photo of the Milky Way over the Earth whose stars split into red and blue fringes while the page scrolls." show={['html']} />
+
+### Bend without the color split
+
+For product photos, where colored fringes look like a printing fault, keep the bend and turn the split off with 0.
+
+```html
+<img
+  src="/img/chair-side.avif"
+  data-dio="bend"
+  data-dio-split="0"
+/>
+```
+
+### A gentle bend for long articles
+
+A reader of a long article scrolls fast through it. Halve both params and the figures still move with the page without pulling the eye away from the text.
+
+```html
+<img
+  src="/img/harbor.avif"
+  data-dio="bend"
+  data-dio-strength="0.5"
+  data-dio-split="0.5"
+/>
+```
+
+### A showreel strip
+
+`bend` takes a `<video>` as well. A muted loop of an agency's work, set between two sections, bows with the scroll like the photos around it and plays on at rest. A low `split` keeps the colors of the footage while the page moves.
+
+```html
+<video
+  src="/reel/2026.webm"
+  poster="/reel/2026.webp"
+  muted
+  loop
+  autoplay
+  playsinline
+  data-dio="bend"
+  data-dio-split="0.4"
+></video>
+```
+
+## Notes
+
+The bend follows the speed of the scroll, not its position, so an image at rest always matches its HTML. Scrolling from code bends it too, such as a smooth `scrollTo()` to an anchor or smooth scrolling with Lenis.
+
+The image always bows up and down, the way a page scrolls. A carousel that slides with CSS transforms is not a scroll and leaves its images straight.

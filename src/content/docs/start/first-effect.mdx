@@ -1,0 +1,94 @@
+---
+title: Your first effect
+label: First effect
+description: Write an effect file, put it on an image with one attribute and change its param from markup and from code.
+section: start
+order: 6
+---
+
+An effect is a file in the effects folder that exports `effect()`. Its name is the file name: `src/effects/brighten.ts` is `brighten`, and `HeroBrighten.ts` is `hero-brighten`. Files that start with `_` are helpers, not effects. This page uses the Vite setup; the folder is `app/effects/` in Nuxt.
+
+## Write the effect
+
+The first argument of `effect()` holds the params with their defaults. The setup function gets the effect context: `surface` changes the picture of the element, and `u` holds params and inputs as shader nodes.
+
+```ts title="src/effects/brighten.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((color) => color.mul(u.strength.add(1)))
+})
+```
+
+Param types come from the defaults: a number, a boolean, a tuple of 2 to 4 numbers, or a color such as `'#ffd27a'`, `rgb(...)` or `hsl(...)`. Use `text('#cafe')` for a string that only looks like a color.
+
+## Put it on an image
+
+Use the file name in `data-dio`. One element can carry several effects, separated by spaces.
+
+```html title="index.html"
+<img class="hero" src="/cover.jpg" data-dio="brighten" />
+```
+
+## Set a param in markup
+
+A param is an attribute named `data-dio-` plus the param name in kebab case: `colorA` is `data-dio-color-a`.
+
+```html title="index.html"
+<img
+  class="hero"
+  src="/cover.jpg"
+  data-dio="brighten"
+  data-dio-strength="2"
+/>
+```
+
+Here is the same effect running on this page. The slider writes `strength` the way code does, and the code under it follows.
+
+<Example id="first-effect" description="A photo of paper ridges made brighter by the brighten effect, with strength set in markup." />
+
+## Set it from code
+
+`app.attach()` puts an effect on elements from code and returns a handle. Writes to `handle.params` draw in the next frame.
+
+```ts title="src/main.ts" twoslash
+// @filename: src/effects/brighten.ts
+import { effect } from 'dioramajs'
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((color) => color.mul(u.strength.add(1)))
+})
+// @filename: src/diorama.gen.d.ts
+declare module 'dioramajs' {
+  interface SiteEffects {
+    brighten: typeof import('./effects/brighten').default
+  }
+}
+export {}
+// @filename: src/main.ts
+// ---cut---
+import { start } from 'dioramajs'
+
+export const app = start()
+const brighten = app.attach('.hero', 'brighten', { strength: 2 })
+brighten.params.strength = 3
+```
+
+The name `'brighten'` and the type of `strength` are checked against the effect file. The types come from `src/diorama.gen.d.ts`, which the plugin writes.
+
+## When it draws
+
+This effect reads no time input, so it draws only when the page scrolls, the pointer moves over it or a param changes. An effect that reads `u.time` draws every frame while it is on screen; one that reads `u.hoverTime` draws while the pointer is over it and while hover fades. To choose yourself, pass options before the setup function.
+
+```ts title="src/effects/brighten.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { strength: 1 },
+  { animate: 'visible', when: 'hover' },
+  ({ surface, u }) => {
+    surface.color((color) => color.mul(u.strength.add(1)))
+  },
+)
+```
+
+`when: 'hover'` skips the effect on touch devices, so they never load the engine for it. Option names such as `when`, `animate` and `media` are never param names.

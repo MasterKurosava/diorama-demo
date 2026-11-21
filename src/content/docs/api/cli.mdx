@@ -1,0 +1,104 @@
+---
+title: CLI
+description: dioramajs gen writes the registry or the types of your effects folder without a bundler; dioramajs add copies a built-in effect into it.
+section: api
+order: 3
+---
+
+The build plugins write the types of your effects while the dev server runs. `dioramajs gen` does the same without a bundler: in CI, with esbuild, Parcel or Bun, or for a page without a build.
+
+<Run command="dioramajs gen" />
+
+```sh frame="terminal"
+$ npx dioramajs gen
+wrote src/diorama.gen.d.ts
+```
+
+## Options
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `--dir <folder>` | `src/effects` when `src` exists, `app/effects` in Nuxt 4, else `effects` | The effects folder. |
+| `--out <file>` | `diorama.gen.d.ts` next to the effects folder | The output file. Its extension picks the format. |
+| `--check` | | Writes nothing and exits with 1 when the file is stale. |
+| `--watch` | | Writes again on every change in the folder. |
+| `--help`, `-h` | | Prints the usage. |
+
+## Output formats
+
+| Extension | What it writes |
+| --- | --- |
+| `.d.ts` | Types only: effect names and params for `app.attach()`. |
+| `.ts` | The registry with its types, the same file `withDiorama` writes for Next.js. |
+| `.js` | The registry for a page without a build: relative imports with their extension, no types. Only `.js` effect files go in. |
+
+The file is written only when its text changes, so type checkers and file watchers do not wake up for nothing.
+
+## Check in CI
+
+Fail the build when someone adds an effect and forgets to commit the types.
+
+<Run command="dioramajs gen --check" />
+
+```sh frame="terminal"
+$ npx dioramajs gen --check
+src/diorama.gen.d.ts is stale: run dioramajs gen
+```
+
+The exit code is 0 when the file is up to date, 1 when it is stale or the folder cannot be watched, and 2 on wrong arguments.
+
+## Copy a built-in effect
+
+`dioramajs add` copies the source of a built-in effect into your effects folder, so you own it and can change anything. The copy needs no edits to build: its imports point at public entries (`dioramajs`, `dioramajs/effects`, `dioramajs/kit`, `three/tsl`), and the docs of its params come along as TSDoc, so autocomplete works as before. The sources come from the installed package, with no network.
+
+<Run command="dioramajs add ripple" />
+
+```sh frame="terminal"
+$ npx dioramajs add ripple
+wrote src/effects/ripple.ts, which replaces the built-in "ripple"
+```
+
+Name several effects to copy them at once: `dioramajs add spotlight liquid`.
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `--as <name>` | the effect's name | The name of the copy: the file name and the `name` in its definition. Takes one effect. |
+| `--force` | | Replaces a file the command wrote before, and helpers that differ from the package's. |
+| `--dir <folder>` | the effects folder | Where the copy goes. |
+
+### Where the files go
+
+The copy goes into the folder the build plugins read, so it registers on its own:
+
+| Project | Folder |
+| --- | --- |
+| Vite, Astro, Next.js | `src/effects`, or `effects` without a `src` folder |
+| Nuxt 4 | `app/effects` |
+| Anything else | `--dir <folder>` |
+
+### Helpers
+
+Some effects share helper modules inside their package. The command copies them next to the copy, under `_<module>/` (for example `src/effects/_media/slots.ts`), and rewrites the imports to them. The leading underscore keeps the folder out of the registry. Copies of several effects share one helper file. When a helper already exists with other text, the command keeps yours and says so; `--force` replaces it.
+
+Helpers that hold state for the whole page stay shared with the built-in effects through public entries, so a copy and a built-in can work on the same element: `dioramajs/audio/graph` (one audio graph per page) and `dioramajs/model/rig` (the scene of `model` for `explode` and `hotspots`).
+
+### Override and intro
+
+A copy under a built-in name replaces that effect. The command adds `export const override = true`, which tells the dev build that the replacement is on purpose, so no [`EFFECT_OVERRIDE`](/docs/errors/effect-override) warning appears. A copy under a new name with `--as` leaves the built-in in place.
+
+Effects that play on the first screen, like `pixelate` and `text-reveal`, keep the element hidden until their first frame. The copy carries this rule as `export const intro`: `true`, or a function of the element that the registry inlines. Write your own the same way, in plain JavaScript with no types on its parameters:
+
+```ts
+export const intro: (element: Element) => boolean = (element) =>
+  element.getAttribute('data-dio-trigger') !== 'scroll'
+```
+
+`image` is the base layer of every picture and has no code of its own, so `dioramajs add image` refuses. Write your own effect with [`effect()`](/docs/learn/write-an-effect) instead.
+
+### Exit codes
+
+| Code | When |
+| --- | --- |
+| 0 | Every effect was copied. |
+| 1 | An effect is unknown, its file exists without `--force`, or its name is taken by another file in the folder. The other effects are still copied. |
+| 2 | Wrong arguments, such as no effect, `--as` with several effects, or `image`. |

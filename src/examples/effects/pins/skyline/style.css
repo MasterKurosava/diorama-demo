@@ -1,0 +1,23 @@
+.pn-city {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(6px, 1.6cqi, 14px);
+  padding: 0 8%;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #e9edf2 0%, #d9dfe7 100%);
+}
+.pn-city .pn-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5a6576;
+}
+.pn-city .pn-towers {
+  justify-self: start;
+  margin: 0;
+  font: 900 clamp(2.6rem, 14cqi, 8.5rem) / 1.05 var(--font-text);
+  letter-spacing: -0.01em;
+  color: #3b5bdb;
+}

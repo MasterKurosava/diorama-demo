@@ -1,0 +1,105 @@
+---
+effect: horizontal
+example:
+  description: A row of eight project pictures with their titles on a pinned frame, which slides sideways as you scroll, the pictures bending with the speed.
+  caption: Scroll the page. The frame holds still while the row slides by; tab through the titles or swipe the row and the page follows.
+  scroll: 1px
+related:
+  - concepts/scroll
+  - guides/gsap-lenis
+---
+
+## Recipes
+
+### Selected work, sideways
+
+The portfolio and agency classic: a section whose stage sticks to the top, with a row of cards on it. The row is a plain horizontal scroller, `overflow-x: auto`, so it works before the engine loads, without WebGL and under reduced motion. Put `data-dio="horizontal"` on the row; the effect finds the sticky stage, gives the section the height the row needs to travel and moves the row as you scroll down.
+
+```html
+<section>
+  <div class="stage">
+    <ul
+      class="row"
+      data-dio="horizontal"
+      aria-label="Selected work"
+    >
+      <li>
+        <a href="/work/atlas-of-ice">
+          <img src="/img/atlas-of-ice.avif" />Atlas of Ice
+        </a>
+      </li>
+      <li>
+        <a href="/work/outer-coast">
+          <img src="/img/outer-coast.avif" />Outer Coast
+        </a>
+      </li>
+      <!-- more cards -->
+    </ul>
+  </div>
+</section>
+```
+
+```css
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  align-content: center;
+}
+.row {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 40px 6vw;
+  /* For the plain row; the effect turns it off while it runs. */
+  scroll-snap-type: x mandatory;
+}
+.row li { flex: none; scroll-snap-align: start; }
+.row img { width: 30vw; aspect-ratio: 4 / 5; object-fit: cover; }
+```
+
+Do not set a height on the section: the effect makes it as tall as the stage plus the distance the row travels, so one pixel of scroll moves the row one pixel. `pace="1.5"` gives the row more scroll; `pace="0"` keeps the height from your CSS and spreads the travel over it.
+
+### Shear or a wave instead of a bend
+
+`style="skew"` shears the pictures, top leading, the way fast motion looks on film. `style="wave"` sends one wave across the screen that the cards ride through.
+
+```html
+<ul
+  class="row"
+  data-dio="horizontal"
+  data-dio-style="skew"
+  data-dio-stretch="0"
+></ul>
+<ul
+  class="row"
+  data-dio="horizontal"
+  data-dio-style="wave"
+  data-dio-reverse
+></ul>
+```
+
+### Calm pictures
+
+The row still slides, but the pictures stay flat and still inside their cards: `strength`, `stretch` and `parallax` at 0.
+
+```html
+<ul
+  class="row"
+  data-dio="horizontal"
+  data-dio-strength="0"
+  data-dio-stretch="0"
+  data-dio-parallax="0"
+></ul>
+```
+
+## Notes
+
+The row stays a real scroller while the effect runs. Tabbing to a card brings it fully into view and scrolls the page to match; a sideways swipe or Shift with the wheel moves the row and the page follows. Only the pictures get a copy: titles, links and buttons are the DOM.
+
+Leave some padding above and below the cards: the row clips them like the browser does, and a bend or a wave needs a little room.
+
+Under reduced motion the effect is off: the row is a plain horizontal scroller in a section of its own height.
+
+`style` and `items` rebuild the effect; `strength`, `stretch`, `parallax`, `pace`, `reverse` and `ease` change live.

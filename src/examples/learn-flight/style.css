@@ -1,0 +1,19 @@
+.ex[data-id="learn-flight"] .box {
+  padding: 20px;
+  box-sizing: border-box;
+}
+.ex[data-id="learn-flight"] .box > a img {
+  width: 160px;
+  height: 120px;
+}
+.ex[data-id="learn-flight"] figure img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+}
+.ex[data-id="learn-flight"] figure {
+  margin: 0 0 8px;
+}
+.ex[data-id="learn-flight"] figcaption {
+  margin-top: 6px;
+}

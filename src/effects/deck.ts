@@ -1,5 +1,5 @@
-import type { EffectContext, EffectHandle } from 'diorama'
-import { effect } from 'diorama'
+import type { EffectContext, EffectHandle } from 'dioramajs'
+import { effect } from 'dioramajs'
 import { card } from './_deck-card'
 import { clamp, D, smooth } from './_hero'
 

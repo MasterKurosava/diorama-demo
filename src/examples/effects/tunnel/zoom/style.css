@@ -1,0 +1,17 @@
+.tz-scene {
+  container-type: inline-size;
+  background: #f1ece2;
+  color: #1d1a16;
+}
+.tz-story {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+.tz-story p {
+  margin: 0;
+  font: 300 clamp(1.6rem, 9cqi, 6.5rem) / 1.05 var(--font-text);
+  letter-spacing: -0.02em;
+}

@@ -1,0 +1,29 @@
+.rb-silk {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2.4cqi;
+  background: radial-gradient(80% 90% at 50% 40%, #2a1d2e 0%, #140e17 75%);
+  text-align: center;
+  color: #d8c9b4;
+}
+.rb-silk .rb-silk-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #a8957e;
+}
+.rb-silk .rb-silk-title {
+  margin: 0;
+  font: 600 14cqi / 1 var(--font-text);
+  letter-spacing: -0.015em;
+  color: #f0d9a8;
+}
+.rb-silk .rb-silk-line {
+  max-width: 40ch;
+  margin: 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #a99a8b;
+}

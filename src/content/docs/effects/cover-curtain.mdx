@@ -1,0 +1,97 @@
+---
+title: Curtain cover
+label: Curtain cover
+description: A page transition where a panel sweeps over the old page and on off the new one, in one piece or in strips, in a color or a picture.
+section: effects
+order: 2
+related: [guides/page-covers, effects/cover-pixel, effects/cover-ink, guides/routers]
+---
+
+A panel sweeps in from one edge, covers the old page while the router swaps it, and carries on out of the far edge to show the new page. Its leading edge bows while it moves and casts a soft shadow on the page. It suits studio and agency sites that brand every page change with their color, a title card or a pattern.
+
+![A dark curtain rising over the home page of a studio site, its edge bowed and casting a shadow](/media/covers/curtain.webp)
+
+```ts
+import { start } from 'dioramajs'
+
+export const app = start({ transitions: { cover: 'curtain' } })
+```
+
+The [page covers guide](/docs/guides/page-covers) explains how the cover works with your router, the timing options and what visitors with reduced motion see.
+
+## Recipes
+
+### An accent ahead of the curtain
+
+`accent` adds a second panel in another color. It leads the curtain in and trails it out, so the old page leaves behind a stripe of your brand color.
+
+```ts
+start({
+  transitions: {
+    cover: {
+      name: 'curtain',
+      direction: 'down',
+      color: '#1b1a17',
+      accent: '#e4572e',
+      curve: 0.8,
+    },
+  },
+})
+```
+
+![An orange accent panel leading a dark curtain down over a studio site](/media/covers/curtain-accent.webp)
+
+### Strips
+
+`style: 'strips'` cuts the curtain into `count` strips across its way. Each strip starts a little after the one before, so the curtain arrives as steps.
+
+```ts
+start({
+  transitions: {
+    cover: {
+      name: 'curtain',
+      style: 'strips',
+      direction: 'left',
+      count: 5,
+      color: '#1b1a17',
+    },
+  },
+})
+```
+
+![Five dark strips arriving from the right one after another over a studio site](/media/covers/curtain-strips.webp)
+
+### A picture on the curtain
+
+`image` puts a picture on the panel, cropped to fill the screen and moving with it: a title card, a pattern or a texture. It needs the `assets` plugin, which `start()` includes. If the picture fails to load, the curtain keeps its color.
+
+```ts
+start({
+  transitions: {
+    cover: {
+      name: 'curtain',
+      image: '/img/pattern.webp',
+      color: '#24302b',
+    },
+  },
+})
+```
+
+## Options
+
+| Option      | Default     | What it does |
+| ----------- | ----------- | ------------ |
+| `style`     | `'panel'`   | One `'panel'`, or `'strips'` that follow one another |
+| `direction` | `'up'`      | Where the curtain travels: `'up'`, `'down'`, `'left'` or `'right'` |
+| `count`     | `5`         | Strips of the `'strips'` style |
+| `color`     | `'#0e0e10'` | Any CSS color |
+| `accent`    | none        | CSS color of a second panel that leads in and trails out |
+| `image`     | none        | URL of a picture on the curtain |
+| `curve`     | `0.4`       | 0 to 1, how far the moving edge bows; 0 is straight |
+| `shade`     | `0.4`       | 0 to 1, the shadow the moving edge casts on the page |
+
+`duration`, `ease`, `wait`, `timeout`, `links` and `arrive` are shared by every cover and described in the [guide](/docs/guides/page-covers#options).
+
+## Notes
+
+The curtain enters from the edge opposite to `direction` and leaves through the edge it points to: with `'up'` it rises from the bottom and goes out at the top. A click on another link while the curtain opens brings it back the way it came.

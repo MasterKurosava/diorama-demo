@@ -1,0 +1,50 @@
+.tour {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.tour .lounge {
+  min-height: 0;
+}
+.tour .lounge > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tour .spots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 10px 12px 14px;
+  list-style: none;
+}
+.tour .spots button {
+  min-height: 34px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: 500 0.82rem / 1 var(--font-text);
+  cursor: pointer;
+}
+.tour .spots button:hover,
+.tour .spots button:focus-visible {
+  border-color: var(--link);
+  color: var(--link);
+}
+.tour .spots li {
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .tour .spots {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  .tour .spots li {
+    flex: none;
+  }
+}

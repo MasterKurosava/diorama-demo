@@ -1,0 +1,69 @@
+      <section class="room layout" id="layout" data-sky="#1d1428" aria-labelledby="layout-title">
+        <div class="layout-copy">
+          <p class="ch-kicker"><b>03</b> CSS is the source of truth</p>
+          <h2 id="layout-title" class="layout-title">CSS moves the&nbsp;layout. <em>The&nbsp;3D follows.</em></h2>
+          <fieldset class="modes" aria-label="Layout of the cards">
+            <button type="button" data-mode="grid" aria-pressed="false">Grid</button>
+            <button type="button" data-mode="row" aria-pressed="false">Row</button>
+            <button type="button" data-mode="stack" aria-pressed="true">Stack</button>
+            <button type="button" data-mode="fan" aria-pressed="false">Fan</button>
+          </fieldset>
+          <p class="layout-note">Tween the DOM with CSS, GSAP or Motion, scroll it with Lenis: the 3D follows. <button class="layout-tween" type="button">Tween the width</button></p>
+          <pre class="css"><code></code></pre>
+        </div>
+        <section class="stage" aria-label="The deck">
+            <div class="deck is-stack" data-dio="deck">
+              <article class="card" data-motif="sunset" style="--i: 0; --r: -3">
+                <span class="card-n" data-ink>01</span><span class="card-hour" data-ink>19:40</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Sunset</p>
+              </article>
+              <article class="card" data-motif="ridges" style="--i: 1; --r: 2">
+                <span class="card-n" data-ink>02</span><span class="card-hour" data-ink>20:15</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Ridges</p>
+              </article>
+              <article class="card" data-motif="swifts" style="--i: 2; --r: -1">
+                <span class="card-n" data-ink>03</span><span class="card-hour" data-ink>20:50</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Swifts</p>
+              </article>
+              <article class="card" data-motif="lantern" style="--i: 3; --r: 3">
+                <span class="card-n" data-ink>04</span><span class="card-hour" data-ink>22:30</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Lantern</p>
+              </article>
+              <article class="card" data-motif="moon" style="--i: 4; --r: -2">
+                <span class="card-n" data-ink>05</span><span class="card-hour" data-ink>00:10</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Moon</p>
+              </article>
+              <article class="card" data-motif="tide" style="--i: 5; --r: 1">
+                <span class="card-n" data-ink>06</span><span class="card-hour" data-ink>02:40</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Tide</p>
+              </article>
+              <article class="card" data-motif="pines" style="--i: 6; --r: -2.5">
+                <span class="card-n" data-ink>07</span><span class="card-hour" data-ink>05:05</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Pines</p>
+              </article>
+              <article class="card" data-motif="dawn" style="--i: 7; --r: 1.5">
+                <span class="card-n" data-ink>08</span><span class="card-hour" data-ink>06:20</span>
+                <div class="card-art"><canvas width="240" height="240"></canvas></div>
+                <p class="card-title" data-ink>Dawn</p>
+              </article>
+              <div class="deck-ruler" aria-hidden="true"><output>760px</output></div>
+              <button
+                class="deck-handle"
+                type="button"
+                role="slider"
+                aria-label="Width of the container"
+                aria-valuemin="280"
+                aria-valuemax="900"
+                aria-valuenow="760"
+              ></button>
+            </div>
+            <p class="deck-hint">drag the edge · <span class="pointer">hover</span><span class="touch">touch</span> a card</p>
+          </section>
+      </section>

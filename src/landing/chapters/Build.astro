@@ -1,0 +1,49 @@
+      <section class="room build" id="build" data-sky="#2a1020" aria-labelledby="build-title">
+        <div class="build-head">
+          <p class="ch-kicker"><b>07</b> For developers</p>
+          <h2 id="build-title" class="build-title">The built-ins are written the way you write yours.</h2>
+          <p class="build-lede">
+            Every effect on this page is a short file on the public API. The library is the runtime
+            around them: layout, scroll, loading, cleanup, WebGPU and WebGL 2.
+          </p>
+        </div>
+
+        <ul class="build-facts">
+          <li>
+            <h3>A file is an effect</h3>
+            <pre class="build-code"><code is:raw><span class="c">// src/effects/glow.ts</span>
+<span class="k">export default</span> effect({ <span class="p">strength</span>: 1 }, …)
+
+<span class="c">&lt;!-- any element --&gt;</span>
+&lt;img data-dio=<span class="s">"glow"</span>
+     data-dio-strength=<span class="s">"0.6"</span>&gt;</code></pre>
+            <p>The plugin for Vite, Astro, Nuxt or Next finds the folder, types the params from their defaults and gives each effect its own chunk.</p>
+          </li>
+          <li>
+            <h3>Start from a built-in</h3>
+            <pre class="build-code"><code is:raw><span class="k">npx</span> dioramajs add ripple
+<span class="c">// src/effects/ripple.ts, yours to change</span></code></pre>
+            <p>Copies the source of a built-in effect into your folder, with public imports only, so the copy builds as it is.</p>
+          </li>
+          <li>
+            <h3>Bring your GLSL</h3>
+            <pre class="build-code"><code is:raw><span class="c">// src/effects/aurora.frag</span>
+<span class="k">uniform float</span> uTime;   <span class="c">// → time</span>
+<span class="k">uniform vec2</span>  uPointer; <span class="c">// → pointer</span></code></pre>
+            <p>A fragment shader in the folder is an effect too. Uniforms map to inputs by name, and the converter says what it cannot translate.</p>
+          </li>
+          <li>
+            <h3>Pay for what is on screen</h3>
+            <pre class="build-code"><code is:raw>start()   <span class="c">// no three.js yet</span>
+<span class="c">// an element with data-dio scrolls in:</span>
+<span class="c">// three.js, then that effect's chunk</span></code></pre>
+            <p>Three.js and each effect load when an element needs them. WebGPU where it runs, WebGL 2 everywhere else, plain HTML without either.</p>
+          </li>
+        </ul>
+
+        <p class="build-actions">
+          <a class="button solid" href="/docs/learn/write-an-effect">Write your first effect</a>
+          <a class="button" href="/docs/effects">Browse the effects</a>
+          <a class="button" href="/docs/api">API reference</a>
+        </p>
+      </section>

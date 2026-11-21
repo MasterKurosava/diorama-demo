@@ -1,0 +1,47 @@
+---
+code: ASSET_LOAD
+level: error
+message: 'cannot load {url}'
+summary: An asset request failed on the network or with an HTTP error, so its lease rejected and nothing was cached.
+---
+
+## Why it happens
+
+- An image, loaded for the `image` or `texture` type in a detached `Image`, fired `error`: a 404, a wrong path, a network error, or a CORS refusal when `crossOrigin` is set.
+- A fetched type such as `gltf`, `ktx2`, `json` or `buffer` got an HTTP error. The message then holds the status, such as `404 /models/lamp.glb`.
+- `fetch` itself failed: the network is down, or a Content Security Policy or CORS refused the request. The message then reads `cannot fetch {url}`.
+- The URL does not parse: `{url} is not a URL`.
+- There is no DOM, as in server rendering. Every load then fails with `no DOM to load in`, without a report.
+
+The error is reported through `app.report()` with the target `asset:<url>`, once per attempt. The lease's `ready` rejects and its `status` becomes `failed`. When the last lease of a failed asset goes, the asset leaves the cache, so the next load is a new attempt.
+
+A preload does not report a failed file, since the page loads it itself. In development it prints a warning that starts with `preload of`.
+
+## How to fix
+
+<Steps>
+
+1. Open the URL from the message in the browser and check the status in the network panel.
+2. Fix the path. A relative URL resolves against `document.baseURI`, or against the `base` option of `app.assets.preload()`.
+3. For files on another origin, make the server send `Access-Control-Allow-Origin`. Fetched types always request in CORS mode, and images need `crossOrigin: 'anonymous'` in the load options.
+
+</Steps>
+
+```ts
+import type { App } from 'dioramajs'
+
+export function cover(app: App) {
+  return app.assets?.load('https://cdn.example.com/cover.avif', {
+    type: 'texture',
+    crossOrigin: 'anonymous',
+  })
+}
+```
+
+## Related
+
+- `ASSET_PARSE`
+- `ASSET_ABORTED`
+- `EFFECT_MEDIA`
+- `app.assets.load()`
+- `app.assets.preload()`

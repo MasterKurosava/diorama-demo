@@ -1,0 +1,51 @@
+---
+effect: dust
+example:
+  description: A desert night walk headline that crumbles into lit sand, lifts off the page towards the viewer and drifts away.
+  caption: Press Blow away, or scroll until the heading leaves the top of the window. Scrolling back gathers the sand into the heading again.
+  aspect: 16 / 8
+  variants: [motion]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A notice the visitor dismisses
+
+With `data-dio-trigger="click"` the text blows away once on a click, a tap or Enter, and the element is left empty, with `data-dio-dust="done"`. It still takes its space, so remove or collapse it on the `dio:dust` event. Put the close button inside the element, so the click on it plays the effect too. The dust carries only the text: fade the box around it with CSS while `data-dio-dust` is set. Click the notice below.
+
+<Example id="effects/dust/notice" description="A saved draft notice that rises away as ash when it is clicked, then leaves the page." aspect="16 / 5" show={['html', 'script']} controls={[]} variants={[]} />
+
+```css
+.toast:has([data-dio-dust]) {
+  background-color: transparent;
+  box-shadow: none;
+  transition: background-color 0.6s 0.3s, box-shadow 0.6s 0.3s;
+}
+```
+
+### A heading that shatters once it scrolls out
+
+With `data-dio-trigger="view"` the heading plays on its own clock once it has moved into the top of the window, whatever the scroll speed, and gathers back when it returns. `explode` breaks it into tiles that tumble out of the page, towards the viewer and behind it.
+
+```html
+<h2 data-dio="dust" data-dio-trigger="view" data-dio-motion="explode" data-dio-duration="1.6">Sold out</h2>
+```
+
+### Ash rising off a closing chapter
+
+`rise` lets the grains float straight up like ash, and an `angle` of 90 starts the edge at the top of the text, so the grains never cross the lines still standing. Without shadows the ash reads lighter on a dark page.
+
+```html
+<h2 data-dio="dust" data-dio-motion="rise" data-dio-angle="90" data-dio-shadow="0">The last summer</h2>
+```
+
+## Notes
+
+The grains are pieces of the heading's own text, drawn the way the browser laid it out: each one carries its cell of the glyph pixels, so the edge where the text comes loose looks like the ink it leaves, in every color and weight the heading has. A grain that comes loose first tumbles as a flake, then rounds off into sand of the `dot` size, lifts off the page towards the viewer and rides a swirling flow in the direction of the wind. Grains in front of the page are seen through the page camera, larger and slightly out of focus, those behind it smaller and dimmer, and a soft light from the upper left shades and glints them as they turn. Lifted grains cast faint shadows on the page below.
+
+The edge sweeps from the side the wind blows to, so the sand always flies over the empty page, never across the text that is left. With the scroll trigger the sweep starts when the heading's top rises past 30% of the window height, or with the first scroll for a heading that starts above that line, and ends when its middle reaches the top; it runs both ways.
+
+The number of grains follows the area of the glyphs: about 10,000 for a 120 px heading of four words, at most 20,000 on fast devices, fewer on slower ones. `density` raises or lowers it within that limit. Under reduced motion the scroll and view triggers keep the text as it is, and the click trigger fades it out instead. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `motion`, `trigger`, `density` and `seed` rebuild the effect when they change.

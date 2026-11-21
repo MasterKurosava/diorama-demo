@@ -1,0 +1,28 @@
+.ex-root > .wall {
+  position: relative;
+  height: 100%;
+}
+.wall {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wall a {
+  display: block;
+}
+.wall img {
+  display: block;
+  width: 220px;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+.wall a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}

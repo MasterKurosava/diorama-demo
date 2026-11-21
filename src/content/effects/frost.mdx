@@ -1,0 +1,81 @@
+---
+effect: frost
+example:
+  description: "A bay with dark islets behind frosted glass; the pointer wipes a clear patch that slowly fogs back over."
+  caption: "Drag the pointer, or a finger, across the photo to wipe the glass clear. Switch the style to a steamed mirror, or let hover or the scroll clear it."
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Wipe the window to see the product
+
+For winter campaigns and "reveal the product" teasers, the visitor wipes the glass like a cold window. `touch-action: none` lets a finger wipe instead of scrolling the page.
+
+```html
+<img
+  src="/winter/parka.avif"
+  data-dio="frost"
+  style="touch-action: none"
+/>
+```
+
+### A steamed mirror that clears on hover
+
+`style="steam"` draws a fogged mirror with droplets; `by="hover"` clears it while the pointer is over the photo and `refog` sets how fast it fogs back.
+
+```html
+<img
+  src="/spa/bath.avif"
+  data-dio="frost"
+  data-dio-style="steam"
+  data-dio-by="hover"
+  data-dio-refog="2"
+/>
+```
+
+### A teaser that thaws on scroll
+
+With `by="scroll"` the glass clears between `start` and `end` as the image scrolls into view.
+
+```html
+<img
+  src="/launch/bottle.avif"
+  data-dio="frost"
+  data-dio-by="scroll"
+  data-dio-start="0.1"
+  data-dio-end="0.45"
+/>
+```
+
+### A frozen window over the whole page
+
+On any element that is not a picture, frost draws a pane of ice over its box; on a fixed element over the viewport (or on `<body>`) the whole screen freezes. Nothing under it is read: the page stays real, readable and clickable, and the pointer wipes the ice from anywhere on the window. `keep` names the text the ice stays thin over, `refill` lets only a thin fog come back over a wiped patch, and `cover` freezes the glass from the edges and thaws it from `x`, `y`.
+
+```html
+<div
+  class="window"
+  data-dio="frost"
+  data-dio-cover="0"
+  data-dio-strength="0.12"
+  data-dio-refill="0.35"
+  data-dio-keep=".hero h1, .hero .cta"
+  style="position: fixed; inset: 0; pointer-events: none"
+></div>
+```
+
+```ts
+// Freeze when the winter section comes on screen, thaw when it leaves.
+document.querySelector('.window').dataset.dioCover = inWinter ? '1' : '0'
+```
+
+On touch screens a finger never wipes, since that would fight the scroll: every touch clears the ice around it, also while it scrolls, and the middle of the screen stays thin. Pair it with [drops](/docs/effects/drops) for meltwater running down after a thaw.
+
+## Notes
+
+The photo stays a plain `<img>` with its `alt` text, so the frost never hides what the picture shows from a screen reader. Under reduced motion nothing clears by itself: with `by="view"` or `"scroll"` the photo shows clear, wiping still works. A cleared patch is kept when the quality tier changes.
+
+On a pane the ice under reduced motion is only a faint cold tint without crystals, and nothing wipes it.
+
+`style`, `by`, `keep` and `resolution` rebuild the effect; the other params change live.

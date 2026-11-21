@@ -1,0 +1,40 @@
+.mq-trust {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(14px, 3cqi, 28px);
+  box-sizing: border-box;
+}
+.mq-trust .mq-label {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.mq-trust .mq-logos {
+  display: flex;
+  align-items: center;
+  gap: clamp(32px, 7cqi, 72px);
+  margin: 0;
+  padding: 12px 0;
+  list-style: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.mq-trust .mq-logos li {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  font: 700 clamp(1.1rem, 3.2cqi, 1.8rem) / 1 var(--font-text);
+  letter-spacing: -0.02em;
+  color: var(--text);
+  opacity: 0.75;
+}
+.mq-trust .mq-logos svg {
+  width: 1.1em;
+  height: 1.1em;
+  fill: currentColor;
+}

@@ -1,0 +1,10 @@
+.ex-root:has(> img.bottle) {
+  display: grid;
+  place-items: center;
+  background: #f1ece4;
+}
+.ex-root > img.bottle {
+  width: 30%;
+  height: 88%;
+  object-fit: contain;
+}

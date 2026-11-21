@@ -1,0 +1,25 @@
+---
+import { type ApiSignature, type Token, tokensText } from '../lib/api.ts'
+import Tokens from './Tokens.astro'
+
+interface Props {
+  readonly signature?: ApiSignature
+  /** A declaration line instead of a signature: types, interfaces, constants. */
+  readonly tokens?: readonly Token[]
+  readonly self?: string
+}
+const { signature, tokens, self } = Astro.props
+const all = signature?.tokens ?? tokens ?? []
+const long = signature && signature.params.length > 0 && tokensText(all).length > 80
+const open = all.findIndex((t) => !('more' in t) && t[0] === '(')
+---
+
+<pre class="api-sig" data-pagefind-weight="5"><code>{
+  long && signature ? (
+    <Fragment><Tokens tokens={all.slice(0, open)} self={self} />({signature.params.map((p) => (
+      <Fragment>{'\n  '}{p.name}{p.optional ? '?' : ''}: <Tokens tokens={p.type} self={self} />,</Fragment>
+    ))}{'\n'}): <Tokens tokens={signature.returns.type} self={self} /></Fragment>
+  ) : (
+    <Tokens tokens={all} self={self} />
+  )
+}</code></pre>

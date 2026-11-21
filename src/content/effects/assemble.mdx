@@ -1,0 +1,44 @@
+---
+effect: assemble
+example:
+  description: A planetarium headline that gathers out of a cloud of lit particles floating in front of and behind the page.
+  aspect: 16 / 8
+  variants: [style, from]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A heading made of beads
+
+With `data-dio-trigger="hover"` the heading gathers once and then stays made of particles instead of handing back to the text. The beads under the pointer lift towards the viewer, part a little and spring back into place when it moves on; on a touch screen they follow a finger while it presses on the heading. An `accent` color tints the beads that are lifted. Move the pointer across the heading below.
+
+<Example id="effects/assemble/hover" description="A dark band with a heading of glossy beads that lift towards the viewer under the pointer and spring back." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+`spread` sets how far the pointer reaches, in multiples of 80 px. The text stays real for screen readers, search and selection, but it shows as particles, so keep this trigger for a short display line rather than a heading people need to read at a glance.
+
+### Section headings that form on scroll
+
+With `data-dio-trigger="scroll"` a heading gathers as it rises towards the middle of the viewport, holds there as plain text, and breaks up again as it moves on towards the top. Streaks from both sides suit a tech product page; scrolling back plays it in reverse.
+
+```html
+<h2 data-dio="assemble" data-dio-trigger="scroll" data-dio-style="dashes" data-dio-from="edges">Signal and noise</h2>
+```
+
+### Gold leaf for a launch or an award
+
+Tiles that tumble and catch the light, rising from below the heading, read like gold leaf or glitter. A warm `color` gives them their own tint in flight; they settle into the color of the text.
+
+```html
+<h1 data-dio="assemble" data-dio-style="squares" data-dio-from="below" data-dio-dot="3" data-dio-color="#ffcf6e">Launch day</h1>
+```
+
+## Notes
+
+The particles are small objects in the 3D space around the page, seen through the same camera as the page itself. Those in front of the page are larger, brighter and a little out of focus, those far behind it smaller and dimmer, and their paths bend through depth on the way in. Each one is lit from the upper left: beads show a highlight, tiles glint as they turn.
+
+Their positions come from the pixels of the heading's own text, drawn the way the browser laid it out, and they take their color from the text, so mixed colors and weights inside the heading carry over. The real text fades in over the particles of each letter as it fills, and once the last letter is in the element is plain, selectable DOM text. Text on screen when the page opens is hidden until the effect is ready and then gathers, as with `text-reveal`.
+
+The number of particles follows the area of the glyphs: about 5,000 for a 128 px heading of three words, at most 14,000 on fast devices, fewer on slower ones. `density` raises or lowers it within that limit, and `dot` sets the size they land at. Under reduced motion the effect is off and the text shows at once. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `from`, `trigger`, `density` and `seed` rebuild the effect when they change.

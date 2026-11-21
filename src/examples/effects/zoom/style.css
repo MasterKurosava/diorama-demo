@@ -1,0 +1,59 @@
+.product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(14px, 3vw, 28px);
+  padding: clamp(14px, 3vw, 28px);
+  background: #ece8e0;
+  color: #1f1b16;
+}
+.product .dial {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border-radius: 4px;
+}
+.product .info {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  height: 100%;
+  font: 400 0.9rem / 1.45 var(--font-text);
+}
+.product .info p {
+  margin: 0;
+}
+.product .kicker {
+  font: 500 0.72rem var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b6155;
+}
+.product .name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.product .price {
+  font: 600 1rem var(--font-mono);
+}
+/* The side view draws here, over the description, while the pointer is on the photo. */
+.product .pane {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .product {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  }
+  .product .dial {
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+  }
+  .product .info {
+    display: none;
+  }
+}

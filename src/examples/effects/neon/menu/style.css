@@ -1,0 +1,25 @@
+.nn-menu {
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6cqi;
+  box-sizing: border-box;
+  padding: 0 6%;
+  background: linear-gradient(180deg, #100c12 0%, #08070a 100%);
+}
+.nn-menu a {
+  font: 700 clamp(1.1rem, 5cqi, 3rem) / 1 var(--font-text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.nn-menu .nn-program {
+  color: #ff5a4f;
+}
+.nn-menu .nn-tickets {
+  color: #4ff0ff;
+}
+.nn-menu .nn-drinks {
+  color: #c6ff5a;
+}

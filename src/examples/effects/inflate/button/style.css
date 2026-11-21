@@ -1,0 +1,23 @@
+.if-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 6%;
+  box-sizing: border-box;
+  background: #fff3e6;
+}
+.if-cta .if-button {
+  display: inline-block;
+  padding: 0.55em 1.3em;
+  border-radius: 999px;
+  background: #2b1638;
+  color: #ffd23f;
+  font: 800 clamp(1.1rem, 3.2vw, 1.7rem) / 1 var(--font-text);
+  text-decoration: none;
+}
+.if-cta .if-ghost {
+  background: #ffd6b0;
+  color: #e8562a;
+}

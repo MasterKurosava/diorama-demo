@@ -1,0 +1,10 @@
+.ex-root:has(> img.can) {
+  display: grid;
+  place-items: center;
+  background: #e9eef0;
+}
+.ex-root > img.can {
+  width: 40%;
+  height: 80%;
+  object-fit: contain;
+}

@@ -1,0 +1,27 @@
+/* The book fills the box it is given: leave the table some room around it. */
+.ex-root > .menu {
+  position: relative;
+  top: 7%;
+  width: 92%;
+  height: 86%;
+  margin: 0 auto;
+}
+/* Without WebGL the pages are a strip that scrolls and snaps. */
+.menu {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: 4px;
+}
+.menu:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.menu img {
+  flex: 0 0 auto;
+  width: auto;
+  height: 100%;
+  scroll-snap-align: center;
+}

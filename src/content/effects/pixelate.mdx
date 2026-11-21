@@ -1,0 +1,61 @@
+---
+effect: pixelate
+example:
+  description: A photo of a brass astrolabe that resolves from large square pixels to the sharp image.
+  caption: The reveal plays as the image scrolls into view. Switch the style, the trigger or the ease; each change plays it again.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Pieces that turn to pixels under the pointer
+
+With `trigger="hover"` the image is sharp and breaks into blocks while the pointer is over it, which suits a retro or gaming portfolio and a gallery of digital art. A small `cell` and a short `duration` keep it playful rather than hiding the work.
+
+<Example id="effects/pixelate/hover" description="Three artworks on black, a cyanotype, a tea bowl and an aurora, each breaking into pixels under the pointer." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### Cascade across a grid
+
+Give each image a slightly longer `delay` than the one before it, so a row resolves one tile after another as it scrolls into view.
+
+```html
+<div class="grid">
+  <img src="/work/one.avif" data-dio="pixelate" />
+  <img
+    src="/work/two.avif"
+    data-dio="pixelate"
+    data-dio-delay="0.15"
+  />
+  <img
+    src="/work/three.avif"
+    data-dio="pixelate"
+    data-dio-delay="0.3"
+  />
+</div>
+```
+
+### Hexagons tied to the scroll
+
+With `trigger="scroll"` the blocks shrink as the image rises to the middle of the viewport and grow again when the reader scrolls back. `style="hex"` with `motion="smooth"` gives a softer, honeycomb look for an art or science page.
+
+```html
+<img
+  src="/plates/algae.avif"
+  data-dio="pixelate"
+  data-dio-trigger="scroll"
+  data-dio-style="hex"
+  data-dio-motion="smooth"
+/>
+```
+
+## Notes
+
+A reveal on the first screen plays as the page opens: the image is hidden until the effect draws its first frame, at most three seconds. An image the reader already saw as plain HTML stays sharp and never breaks up again. Under reduced motion the reveal is skipped, and hover fades the blocks in without growing them.
+
+In `round` the page shows between the dots, so the look depends on the background behind the image.
+
+List `pixelate` before color effects such as `tone` in `data-dio`, so they color the blocks as well.
+
+`style`, `trigger` and `motion` rebuild the effect; `cell`, `duration` and `delay` change live.

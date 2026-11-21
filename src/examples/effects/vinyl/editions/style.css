@@ -1,0 +1,14 @@
+.editions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4%;
+  align-items: center;
+  height: 100%;
+  padding: 0 4%;
+  background: #efe9dd;
+}
+.editions img {
+  width: 62%;
+  height: auto;
+  aspect-ratio: 1;
+}

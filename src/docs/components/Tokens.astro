@@ -1,0 +1,28 @@
+---
+import type { Token } from '../lib/api.ts'
+
+interface Props {
+  readonly tokens: readonly Token[]
+  /** URL of the page itself: its own name is not a link. */
+  readonly self?: string
+}
+const { tokens, self } = Astro.props
+const CLASS: Record<string, string> = { k: 'tk-k', s: 'tk-s', n: 'tk-n', t: 'tk-t', f: 'tk-f' }
+---
+
+{
+  tokens.map((t) =>
+    'more' in t ? (
+      <details class="tk-more">
+        <summary>| {t.more} more</summary>
+        <Astro.self tokens={t.tokens} self={self} />
+      </details>
+    ) : t[2] && t[2] !== self ? (
+      <a class={CLASS[t[1] ?? ''] } href={t[2]}>{t[0]}</a>
+    ) : t[1] ? (
+      <span class={CLASS[t[1]]}>{t[0]}</span>
+    ) : (
+      t[0]
+    ),
+  )
+}

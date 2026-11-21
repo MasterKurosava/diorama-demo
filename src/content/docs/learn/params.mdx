@@ -1,0 +1,191 @@
+---
+title: Drive params from code
+label: 5. Drive params from code
+description: Attach an effect from code, keep its handle and write its params from a slider, then reach an instance created by markup.
+section: learn
+order: 5
+---
+
+In this step you put `mono` from [step 2](/docs/learn/write-an-effect) on a gallery from code and drive its `strength` with a range slider. Then you change the params of an image that got its effect from markup.
+
+This is the effect, unchanged.
+
+```ts title="src/effects/mono.ts" twoslash
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+
+export default effect(
+  { strength: 1, ink: '#1d2b53' },
+  ({ surface, u }) => {
+    surface.color((color) => {
+      const gray = luminance(color.rgb)
+      const toned = mix(u.ink, vec3(1), gray)
+      return vec4(mix(color.rgb, toned, u.strength), color.a)
+    })
+  },
+)
+```
+
+## Attach from code
+
+The gallery has no `data-dio` attributes. A slider below it sets how monochrome the images are.
+
+```html title="index.html"
+<div class="gallery">
+  <img src="/work/aurora.jpg" width="400" height="300" />
+  <img src="/work/lantern.jpg" width="400" height="300" />
+</div>
+<input
+  class="strength"
+  type="range"
+  min="0"
+  max="1"
+  step="0.01"
+  value="1"
+  aria-label="Monochrome"
+/>
+```
+
+`app.attach()` puts an effect on every element that matches a selector and returns a handle. Write to `handle.params` and every image under the handle changes on the next frame.
+
+```ts title="src/main.ts" twoslash
+// @filename: src/effects/mono.ts
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+export default effect(
+  { strength: 1, ink: '#1d2b53' },
+  ({ surface, u }) => {
+    surface.color((color) => {
+      const toned = mix(u.ink, vec3(1), luminance(color.rgb))
+      return vec4(mix(color.rgb, toned, u.strength), color.a)
+    })
+  },
+)
+// @filename: src/diorama.gen.d.ts
+declare module 'dioramajs' {
+  interface SiteEffects {
+    mono: typeof import('./effects/mono').default
+  }
+}
+export {}
+// @filename: src/main.ts
+// ---cut---
+import { start } from 'dioramajs'
+
+export const app = start()
+
+const mono = app.attach('.gallery img', 'mono', { strength: 1 })
+
+const slider = document.querySelector('.strength')
+if (slider instanceof HTMLInputElement) {
+  slider.addEventListener('input', () => {
+    mono.params.strength = slider.valueAsNumber
+  })
+}
+```
+
+<Example id="mono-gallery" description="Two prints with mono attached from code and a range slider under them that brings the color back in both at once." show={['html', 'script', 'effect']} />
+
+Drag the slider to the left and the color comes back in both images at once. The name `'mono'` and the type of `strength` are checked against the effect file through `src/diorama.gen.d.ts`: a typo in the name or a string in `strength` is a type error.
+
+The selector is a live rule, like a CSS rule. An image added to `.gallery` later gets the effect and the current `strength` too.
+
+## Write several params, then undo
+
+`handle.set()` writes several params at once. `handle.reset()` drops what the handle wrote and goes back to the params given to `attach()`, then to the defaults. Calling the handle removes the effect from the images.
+
+```ts title="src/main.ts" twoslash
+// @filename: src/effects/mono.ts
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+export default effect(
+  { strength: 1, ink: '#1d2b53' },
+  ({ surface, u }) => {
+    surface.color((color) => {
+      const toned = mix(u.ink, vec3(1), luminance(color.rgb))
+      return vec4(mix(color.rgb, toned, u.strength), color.a)
+    })
+  },
+)
+// @filename: src/diorama.gen.d.ts
+declare module 'dioramajs' {
+  interface SiteEffects {
+    mono: typeof import('./effects/mono').default
+  }
+}
+export {}
+// @filename: src/main.ts
+import { start } from 'dioramajs'
+export const app = start()
+const mono = app.attach('.gallery img', 'mono', { strength: 1 })
+// ---cut---
+mono.set({ strength: 0.5, ink: '#5b1a2e' })
+mono.reset()
+mono()
+```
+
+## Change an instance from markup
+
+An image with `data-dio="mono"` has its own instance, created by the markup. `app.effects.get()` returns it by element and effect name.
+
+```html title="index.html"
+<img
+  class="hero"
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="mono"
+  data-dio-strength="1"
+/>
+```
+
+```ts title="src/main.ts" twoslash
+// @filename: src/effects/mono.ts
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+export default effect(
+  { strength: 1, ink: '#1d2b53' },
+  ({ surface, u }) => {
+    surface.color((color) => {
+      const toned = mix(u.ink, vec3(1), luminance(color.rgb))
+      return vec4(mix(color.rgb, toned, u.strength), color.a)
+    })
+  },
+)
+// @filename: src/diorama.gen.d.ts
+declare module 'dioramajs' {
+  interface SiteEffects {
+    mono: typeof import('./effects/mono').default
+  }
+}
+export {}
+// @filename: src/main.ts
+// ---cut---
+import { start } from 'dioramajs'
+
+export const app = start()
+
+const hero = document.querySelector('.hero')
+const instance = hero && app.effects.get(hero, 'mono')
+if (instance) instance.params.strength = 0.3
+```
+
+<Example id="mono-hero" description="A photo with data-dio-strength=&quot;1&quot; that shows mostly in color, because a script set its strength to 0.3." aspect="16 / 9" controls={[]} show={['html', 'script', 'effect']} />
+
+The image shows mostly in color, although the attribute still says 1.
+
+## Why it works
+
+A param can come from four places, and the stronger one wins, the way CSS orders its sources. From weakest to strongest: the default in the effect file, the params given to `attach()`, the `data-dio-*` attribute, and writes from code to `params`. A write from code beats the attribute, so a tween from code works on an element with an attribute. `reset()` removes the writes, and the attribute shows again.
+
+A write changes a uniform and asks for one frame, and only if the image is on screen. A write to an image off screen costs no frame; it shows when the image scrolls in.
+
+<Callout kind="note">
+`handle.params` is a plain object with getters and setters, so a GSAP tween works on it: `gsap.to(mono.params, { strength: 0, duration: 1 })`. Call `await mono.loaded()` before the tween, so every param has its start value. [GSAP and Lenis](/docs/guides/gsap-lenis) shows how to share one ticker.
+</Callout>
+
+## Related
+
+- [Markup](/docs/api/markup): attributes and their short and addressed forms.
+- [GSAP and Lenis](/docs/guides/gsap-lenis)
+- [React, Vue and Svelte](/docs/guides/components): attaching from components.

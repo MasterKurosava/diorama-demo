@@ -1,0 +1,53 @@
+---
+import Top from '../../landing/Top.astro'
+import Landing from '../../layouts/Landing.astro'
+---
+
+<Landing title="Ridges · Diorama" work>
+  <Top crumb="Ridges" />
+
+      <main class="case">
+        <header class="case-head">
+          <p class="kicker">01 — Shadow box</p>
+          <h1 class="case-title">Ridges</h1>
+          <p class="case-lede">
+            A shadow box: the picture cut into seven sheets of paper that stand apart in depth behind a
+            mat. Move the pointer over it to look inside.
+          </p>
+        </header>
+        <figure class="cover">
+          <img src="/media/ridges.jpg" width="1800" height="1200" alt="Mountain ridges fading into the haze one behind another" data-dio="shadowbox" data-dio-key="ridges" />
+        </figure>
+        <section class="how" aria-labelledby="how">
+          <h2 id="how" class="how-title">How it got here</h2>
+          <ol class="how-steps">
+            <li>
+              <span class="how-n">01</span>
+              <h3>One key on both pages</h3>
+              <p>The card in the landscape and this cover carry the same <code>data-dio-key</code>.</p>
+            </li>
+            <li>
+              <span class="how-n">02</span>
+              <h3>The 3D lives on</h3>
+              <p>The canvas is not torn down when the page changes. Nothing reloads, nothing blinks.</p>
+            </li>
+            <li>
+              <span class="how-n">03</span>
+              <h3>The picture flies</h3>
+              <p>
+                Its own mesh and texture travel from the card's box to this one, recropped on the way.
+                Not a screenshot.
+              </p>
+            </li>
+          </ol>
+          <pre class="case-code"><code><span class="note">&lt;!-- in the landscape: the card --&gt;</span>
+&lt;a href="/work/ridges"&gt;
+  &lt;img src="ridges.jpg" data-dio="shadowbox" <mark>data-dio-key="ridges"</mark>&gt;
+&lt;/a&gt;
+
+<span class="note">&lt;!-- on this page: the cover --&gt;</span>
+&lt;img src="ridges.jpg" data-dio="shadowbox" <mark>data-dio-key="ridges"</mark>&gt;</code></pre>
+          <a class="case-back" href="/" data-back><span aria-hidden="true">←</span> Fly it back to the landscape</a>
+        </section>
+      </main>
+</Landing>

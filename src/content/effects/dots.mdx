@@ -1,0 +1,89 @@
+---
+effect: dots
+example:
+  description: A dark changelog hero with a dot grid beside the heading; dots near the pointer grow and turn periwinkle.
+  aspect: 16 / 9
+  caption: Move the pointer over the grid. Switch mode to push or glow, and style to plus or squares.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Behind a SaaS hero
+
+Put the grid on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`, so the heading and buttons sit over the canvas. A CSS dot pattern with the same gap and color is what visitors see before the engine draws and without WebGL. Raise `fade` so the grid dissolves before the edges of the hero.
+
+```html
+<header class="hero">
+  <div
+    class="hero-dots"
+    aria-hidden="true"
+    data-dio="dots"
+    data-dio-fade="0.6"
+    data-dio-color="#cbd2dc"
+    data-dio-accent="#4f46e5"
+  ></div>
+  <h1>Ship docs your team reads</h1>
+  <a class="cta" href="/signup">Start writing</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+}
+.hero-dots {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle, #cbd2dc 1px, transparent 1.5px) 0 0 / 24px 24px;
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+Keep the hero itself without a background color, or it covers the canvas behind it. A background color on the grid element is fine: the effect draws it under the dots.
+
+### Plus marks on a blueprint
+
+The `plus` style with `push` suits engineering and architecture products: thin plus marks on a pale panel slide out of the pointer's way and settle back when it leaves.
+
+<Example id="effects/dots/plus" description="Thin blue plus marks on a pale blue panel, moving aside around the pointer." aspect="16 / 7" show={['html']} controls={['radius', 'strength']} variants={[]} />
+
+### A drifting glow for a dark section
+
+With `speed` the grid slides slowly even without a pointer, which keeps a pricing or sign-up section alive on phones. `glow` lights the squares under the pointer with a soft halo.
+
+```html
+<div
+  class="signup-bg"
+  aria-hidden="true"
+  data-dio="dots"
+  data-dio-style="squares"
+  data-dio-mode="glow"
+  data-dio-speed="8"
+  data-dio-gap="18"
+  data-dio-dot="3"
+  data-dio-color="#2a3140"
+  data-dio-accent="#ffb347"
+  data-dio-fade="0.7"
+></div>
+```
+
+## Notes
+
+The docs canvas sits above the page, so the examples here keep text beside the grid instead of over it. Put text over a grid with `canvas: 'behind'`, as in the first recipe.
+
+The grid starts at the element's top left corner, like a CSS background pattern, so a `radial-gradient` with the same gap matches it dot for dot. The element's background color is read once, when the effect starts.
+
+`dots` draws a frame only while the pointer moves over it and for about a second while the lens settles. With `speed` above 0 it draws up to 30 frames a second while on screen. On the low quality tier drift is off.
+
+`style` and `mode` rebuild the effect when they change. The rest change live.

@@ -1,0 +1,44 @@
+---
+effect: ribbon
+example:
+  description: A half marathon headline in white capitals on an orange label that waves like a flag over a night-blue page, its folds lit and casting a soft shadow.
+  caption: Switch the style and the trigger, or move the sliders. Move the pointer over the label to press a dent into the cloth.
+  aspect: 16 / 8
+  controls: [wind, speed, folds, twist, gloss]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A satin ribbon for a grand opening
+
+`style="ribbon"` turns each line into a strip of satin. The strip waves, and a twist rolls along it from left to right: where it turns past edge-on you see the back of the ribbon in `back`, a darker shade of the surface when you leave it out. `color` paints the ribbon behind the letters and stays on the page at rest too. A larger `twist` turns the strip further; at 360 it makes a full roll and comes back to the printed side.
+
+<Example id="effects/ribbon/opening" description="A bakery's grand opening headline in cream capitals on a red satin ribbon that twists to its dark back as it waves, on a cream page." aspect="16 / 7" show={['html']} controls={['twist', 'wind']} variants={[]} />
+
+### Silk for a fashion label
+
+`style="silk"` lays the letters on silk with slow, shallow ripples from three directions while a broad sheen sweeps across. Without a surface color the cloth is the letters themselves, so it suits a light serif or a refined sans in a pale gold. Raise `gloss` for a glossier fabric.
+
+<Example id="effects/ribbon/silk" description="A fashion house name in pale gold letters rippling like silk, with a sheen sliding across, on a dark plum page." aspect="16 / 7" show={['html']} controls={['gloss', 'speed']} variants={[]} />
+
+### A label that waves while the page scrolls
+
+With `trigger="scroll"` the wind follows the scroll speed: a quick flick sends a wave through the label, and once the page stops the cloth settles flat and hands back to the DOM. A solid background color and padding on the heading become the cloth, so the label looks the same at rest with or without the effect.
+
+```html
+<h2 class="label" data-dio="ribbon" data-dio-trigger="scroll">Match day</h2>
+```
+
+## Notes
+
+The cloth is a real 3D surface, not a distortion of the picture. A grid of a few thousand points is folded by travelling waves and seen with its own perspective, the normal of each point comes from the shape of the folds, and the light from the top left shades the cloth by them: folds turned away darken, crests catch a highlight whose strength is `gloss`. The same cloth, flattened along the light, is drawn on the page behind as a soft shadow that blurs the higher the cloth lifts. The text is printed on the cloth from a raster of the heading, so the letters bend with it.
+
+A flag is pinned at its left edge and swings wider toward the free end. `folds` sets how many waves run along the cloth and `wind` how deep they are; the folds keep the same steepness on a short word and on a long line. The pointer presses a dent into the cloth that follows it.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. With `trigger="hover"` and `trigger="scroll"` the cloth lies flat at rest and the DOM text shows, so nothing is drawn until the wind picks up. A solid background color on the heading itself becomes the surface of the cloth, with its border radius. A background image or a border on the heading is hidden while it waves, so put those on a wrapper; a background image on the heading itself keeps the text as it is.
+
+`color` paints a surface the page does not have, so the flat copy of the cloth stays drawn at rest in place of the DOM text. Under reduced motion the cloth stays flat and still. The canvas cannot draw some text the way the browser does: `background-clip: text`, `text-shadow`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `trigger`, `back` and `color` rebuild the effect when they change.

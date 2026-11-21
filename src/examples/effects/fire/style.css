@@ -1,0 +1,32 @@
+.fr-night {
+  container-type: inline-size;
+  display: grid;
+  align-content: end;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 8% 7%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(70% 55% at 35% 75%, #24140c 0%, transparent 70%),
+    linear-gradient(180deg, #0b0807 0%, #120c09 100%);
+  color: #f3e9de;
+}
+.fr-night .fr-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a18c7c;
+}
+.fr-night .fr-title {
+  justify-self: start;
+  margin: 1.05em 0 0.1em;
+  font: 800 clamp(2.6rem, 13cqi, 8rem) / 1 var(--font-text);
+  letter-spacing: -0.01em;
+  color: #f6ece2;
+}
+.fr-night .fr-line {
+  max-width: 44ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #b3a294;
+}

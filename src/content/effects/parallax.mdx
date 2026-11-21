@@ -1,0 +1,59 @@
+---
+effect: parallax
+example:
+  description: Misty ridges at dusk in 2.5D from a photo and a depth map; near ridges move more than far ones as the pointer moves and the page scrolls.
+  caption: Move the pointer over the photo, then scroll the page. The focus slider picks the depth that holds still.
+related:
+  - guides/reduced-motion
+  - concepts/scroll
+---
+
+## Recipes
+
+### A depth map from the photo
+
+`map` is a grayscale image of the same frame, white where things are near. The map of the ridges above comes from the photo itself, since haze makes far ridges lighter: inverted, blurred and saved at half the size, it weighs 70 KB. A depth estimation model gives one for any photo.
+
+```html
+<img src="/img/ridges.jpg" data-dio="parallax" data-dio-map="/img/ridges-depth.png" />
+```
+
+`focus` picks the depth that stays put. At 0.5 the middle ridges hold still while the near ones move one way and the far ones the other. At 0 the sky holds and everything in front of it moves.
+
+### Without a map
+
+Without `map` the whole picture moves as one layer: it drifts away from the pointer and travels down through its frame as the page scrolls. It needs nothing but the photo.
+
+<Example id="effects/parallax/flat" description="A photo of a cliff above the sea that drifts inside its frame with the pointer and the scroll." show={['html']} controls={['depth', 'scroll', 'ease']} variants={[]} />
+
+### A headline over a moving hero
+
+The canvas draws the copy above the page, so text laid over the image needs a `z-index` above it. Keep `depth` low on a hero with text, so the picture moves under the words without pulling the eye from them.
+
+<Example id="effects/parallax/hero" description="A hero image of a wave on sea steps that drifts behind a white headline." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+```css
+.hero-copy {
+  position: relative;
+  z-index: 2;
+}
+```
+
+### Scroll only
+
+With `depth` at 0 the pointer does nothing and the picture only travels with the scroll. Use it where the pointer is busy with something else, such as a card that is also a link, or to make the motion the same on touch screens and desktops.
+
+```html
+<img
+  src="/img/canyon.avif"
+  data-dio="parallax"
+  data-dio-depth="0"
+  data-dio-scroll="0.2"
+/>
+```
+
+## Notes
+
+The picture is drawn slightly larger than its box so the moving edge never shows, which crops a little of it. Keep faces and text away from the edges of a photo you give it.
+
+A depth map needs no special tool: any grayscale image of the same frame works, white near and black far. A map from a depth estimation model, a render pass of a 3D scene or a hand-painted mask all do. Where the depth jumps sharply, the far side shows a stretched sliver; blur the map by a few pixels to hide it.

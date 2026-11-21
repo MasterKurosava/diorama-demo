@@ -1,0 +1,88 @@
+---
+title: Reduced motion and touch
+label: 7. Reduced motion and touch
+description: See what your effects and flights do with reduced motion and on touch devices, choose it per effect and check it in DevTools.
+section: learn
+order: 7
+---
+
+In this step you check the page from the previous steps with reduced motion and on a touch device, and decide per effect what those visitors get. You change two effects with one option each: `shimmer` turns off with reduced motion, and `torch` turns off on touch devices.
+
+## Turn on reduced motion
+
+Open DevTools, then the Rendering panel (in the Command Menu, <Kbd keys="mod+shift+p" />, type Rendering). Set "Emulate CSS media feature prefers-reduced-motion" to `reduce`. Diorama follows the setting at once, without a reload.
+
+<Example id="every-visitor" description="Three prints with ripple, torch and shimmer, and a checkbox that emulates reduced motion: with it on, all three show the plain image." aspect="3 / 1.15" controls={[]} show={['html', 'effect']} caption="The checkbox emulates the setting for this whole page, the same way the Rendering panel does." />
+
+Move the pointer over the images and scroll:
+
+- `ripple` and `torch` show the plain image. They read `u.hover`, which stays 0 with reduced motion.
+- `shimmer` stands still. `u.time` and `u.hoverTime` stop, and the effect asks for no frames.
+- `bend` does not curve. `u.velocity`, the scroll speed, stays 0.
+- The thumbnail from the [previous step](/docs/learn/flights) does not fly. It fades out in place in 0.2 seconds, and the cover appears in its own place.
+
+This is the default, `reducedMotion: 'static'`: the effect still runs, with motion inputs at 0 and time stopped. `u.pointer` keeps working, because the visitor moves it.
+
+## Turn an effect off with reduced motion
+
+A still frame is not always a good picture. If the setting changes while the page is open, `u.time` stops where it is, and the shimmer band can stop in the middle of the image. Pass `reducedMotion: 'off'` and the image stays plain HTML with reduced motion.
+
+```ts title="src/effects/shimmer.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { fract, smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { speed: 0.25, width: 0.15 },
+  { reducedMotion: 'off' },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      const at = fract(u.time.mul(u.speed)).mul(2).sub(0.5)
+      const d = box.x.add(box.y).mul(0.5).sub(at).abs()
+      const band = smoothstep(0, u.width, d).oneMinus().mul(0.35)
+      return vec4(color.rgb.add(band), color.a)
+    })
+  },
+)
+```
+
+Open the Elements panel and select the image. With reduced motion it has `data-dio-state="off"` and shows as plain HTML; turn the emulation off and the state goes to `drawn` as the effect starts again.
+
+To keep an effect but drop only its motion, multiply the moving part by `u.motion`, which is 1 normally and 0 with reduced motion.
+
+## Turn an effect off on touch
+
+A touch screen has no pointer that hovers, so `torch` has nothing to follow. Pass `when: 'hover'`: the effect runs only where the page matches the media query `(hover: hover)`.
+
+```ts title="src/effects/torch.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { radius: 0.35, dim: 0.6 },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    surface.color((color, { box }) => {
+      const d = box.sub(u.pointer).mul(u.size).length().div(u.size.y)
+      const spot = smoothstep(u.radius.mul(0.6), u.radius, d).oneMinus()
+      const shade = spot.oneMinus().mul(u.dim, u.hover).oneMinus()
+      return vec4(color.rgb.mul(shade), color.a)
+    })
+  },
+)
+```
+
+`ripple` comes with `when: 'hover'` already. `when` takes any media query, for example `'(min-width: 800px)'`.
+
+To check it, turn on the device toolbar (<Kbd keys="mod+shift+m" /> in DevTools), pick a phone and reload the page. The image with `torch` has `data-dio-state="off"` and shows as plain HTML. If no other element on the page needs the engine, it does not start on the phone at all.
+
+## Why it works
+
+Every effect decides what it does with reduced motion and on touch in its definition, so a page cannot forget one of its images. An effect that is off leaves its element as plain HTML, which costs nothing: no layer, no frames, and the engine does not start for it.
+
+The same plain HTML is what visitors see when Diorama cannot run: on a browser without WebGPU or WebGL 2, and with Save-Data on, where `start()` does not load the engine. Give every image its `alt` text and its size, and the page works for them without a canvas.
+
+## Related
+
+- [Reduced motion](/docs/guides/reduced-motion): flights, custom presence and testing.
+- [How a frame is decided](/docs/concepts/frames)
+- [Performance and quality](/docs/guides/performance)

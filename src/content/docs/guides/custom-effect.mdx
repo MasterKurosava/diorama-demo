@@ -1,0 +1,419 @@
+---
+title: Write an effect
+label: Write an effect
+description: Build an effect from an empty file to a torch that follows the pointer, then add your own three.js objects, composition and error handling.
+section: guides
+order: 1
+related: [start/first-effect, api/inputs, guides/glsl, guides/reduced-motion]
+---
+
+This guide builds `torch`, a soft light that follows the pointer over an image and magnifies what is under it. Each step adds one part of the effect API, and the whole file is at the end. The later steps leave the torch and show what an effect can do beyond the picture of its element. For a finished light that follows the pointer, use the built-in [`spotlight`](/docs/effects/spotlight).
+
+## Create the file
+
+An effect is a file in the effects folder that exports `effect()`: `src/effects/` with Vite, Astro and Next.js, `app/effects/` with Nuxt. The file name is the effect name, so `torch.ts` is the token `torch` in `data-dio`. A file named after a built-in effect replaces the built-in, and development builds warn with `EFFECT_OVERRIDE`.
+
+```ts title="src/effects/torch.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, tint: '#ffd27a' },
+  ({ surface, u }) => {
+    // Runs once per element, when the element nears the viewport.
+  },
+)
+```
+
+The first argument holds the params with their defaults, and their types come from the defaults.
+
+| Default                             | Param type                | In the shader                  |
+| ----------------------------------- | ------------------------- | ------------------------------ |
+| `0.35`                              | number                    | `float` uniform                |
+| `true`                              | boolean                   | `float` uniform, 0 or 1        |
+| `[0.5, 0.5]`, 2 to 4 numbers        | tuple                     | `vec2` to `vec4` uniform       |
+| `'#ffd27a'`, `rgb(...)`, `hsl(...)` | color                     | `color` uniform                |
+| `oneOf('soft', 'hard')`             | one of the listed strings | none, a change runs setup again |
+| `'img'`, `text('#cafe')`            | string                    | none, a change runs setup again |
+
+Param names are lowerCamelCase. Input names (`time`, `hover`, `pointer` and the rest) and option names (`when`, `animate`, `media` and the rest) are taken: the type check and `EFFECT_DEFINITION` both name the clash.
+
+The setup function gets the effect context. Its methods are bound, so you can destructure what you need. The next steps fill it in.
+
+## Light the picture
+
+`surface` is the element's picture as a plane on the canvas. `surface.color()` takes a function that gets the current color and returns a new one, written in TSL, the node language of three.js. `u` holds the params as uniforms (`u.radius`, `u.tint`) and the built-in inputs (`u.pointer`, `u.hover`, `u.size`).
+
+```ts title="src/effects/torch.ts" twoslash {7-13}
+import { effect } from 'dioramajs'
+import { smoothstep, vec2, vec4 } from 'three/tsl'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, tint: '#ffd27a' },
+  ({ surface, u }) => {
+    const aspect = vec2(u.size.x.div(u.size.y), 1)
+    surface.color((color, { uv }) => {
+      const distance = uv.sub(u.pointer).mul(aspect).length()
+      const edge = smoothstep(0, u.radius, distance)
+      const light = edge.oneMinus().mul(u.hover, u.strength)
+      return vec4(color.rgb.add(u.tint.mul(light)), color.a)
+    })
+  },
+)
+```
+
+- `uv` is the box UV, 0 to 1 with y up. `u.pointer` uses the same space, so the distance between them is a distance in the box.
+- `u.size` is the box size in CSS pixels. Multiplying by the aspect ratio keeps the light round on a wide image.
+- `u.hover` rises from 0 to 1 while the pointer is over the element and falls back when it leaves, so the light fades in and out.
+
+On an `<img>` or `<video>` the surface prepares the picture itself, crops it like CSS `object-fit` and `object-position`, and applies `border-radius`, the clip of an ancestor with `overflow: hidden` and the CSS opacity of the element. Once the plane is drawn, the element gets `data-dio-state="drawn"` and its DOM picture is hidden with `filter: opacity(0)`. Layout, clicks, focus and `alt` stay with the element.
+
+<Example id="custom-torch" description="A photo with the torch effect: a warm light follows the pointer and fades out when it leaves." aspect="16 / 9" highlight={{ effect: '7-13' }} />
+
+## Set params from markup
+
+A param is an attribute named `data-dio-` plus the param name in kebab case.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  data-dio="torch"
+  data-dio-radius="0.5"
+  data-dio-tint="#9ad7ff"
+/>
+```
+
+Numbers, booleans, colors and tuples are uniforms, so a new attribute value changes the uniform and draws one frame. A color also takes `var(--brand)` and `currentColor`, read from the element's computed style when it is set and again in every frame the element draws, so it follows a theme switch from the next frame. A switch made while nothing draws shows after `app.invalidate()`. Writes from code work the same way and beat attributes: `app.attach('.hero', 'torch', { radius: 0.5 })` returns a handle, and `handle.params.radius = 0.4` draws in the next frame. The build plugin writes the types of your effects to `src/diorama.gen.d.ts`, so the name and the params are checked.
+
+## Choose when it draws
+
+Diorama draws a frame only when something changed. An effect that reads no clock draws when the page scrolls, when the pointer moves over it and when a param changes. Inputs that fade, such as `hover` and `velocity`, keep frames coming until they settle. `torch` reads `u.pointer` and `u.hover` only, so a page at rest draws nothing.
+
+Reading a clock changes this. Read `u.time` and the effect draws every frame while it is on screen. Read `u.hoverTime`, seconds that run only while the pointer is over the element and while hover fades, and it draws only then.
+
+```ts title="src/effects/torch.ts" twoslash {8-9}
+import { effect } from 'dioramajs'
+import { smoothstep, vec4 } from 'three/tsl'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, tint: '#ffd27a' },
+  ({ surface, u }) => {
+    // A pulse that runs under the pointer only.
+    const pulse = u.hoverTime.mul(3).sin().mul(0.1).add(1)
+    const radius = u.radius.mul(pulse)
+    surface.color((color, { uv }) => {
+      const edge = smoothstep(0, radius, uv.sub(u.pointer).length())
+      const light = edge.oneMinus().mul(u.hover, u.strength)
+      return vec4(color.rgb.add(u.tint.mul(light)), color.a)
+    })
+  },
+)
+```
+
+To choose yourself, pass options between the params and the setup function. `animate` is the frame policy.
+
+| `animate`          | Asks for frames                                                      |
+| ------------------ | -------------------------------------------------------------------- |
+| `'input'`          | Never. Frames come from scroll, pointer and param changes            |
+| `'hover'`          | While the pointer is over the element and while hover fades          |
+| `'visible'`        | Every frame while the element is on screen                           |
+| `(ctx) => boolean` | While the function returns `true`, checked after each frame          |
+| `{ fps: 12 }`      | Time frames at most 12 times a second; input frames run at full rate |
+
+The update function can also answer for itself: returning `true` asks for the next frame and `false` for none, which suits state kept in JavaScript, such as a damped position. Without `animate` the answer decides alone; with it, `true` adds frames to the policy.
+
+An effect never asks for frames while its element is off screen or the tab is hidden. Under reduced motion `'hover'` and `'visible'` ask for none, as [Reduced motion](/docs/guides/reduced-motion) explains. An update that returns `true` still gets its frames there, so let it settle at once when `input.reducedMotion` is set.
+
+## Skip touch devices
+
+The torch needs a pointer that hovers. `when` takes a media query, and `'hover'` is short for `'(hover: hover)'`. Where the query does not match, the instance is off, the element stays plain HTML and the engine does not start for it.
+
+```ts title="src/effects/torch.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { smoothstep, vec2, vec4 } from 'three/tsl'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, tint: '#ffd27a' },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    const aspect = vec2(u.size.x.div(u.size.y), 1)
+    surface.color((color, { uv }) => {
+      const distance = uv.sub(u.pointer).mul(aspect).length()
+      const edge = smoothstep(0, u.radius, distance)
+      const light = edge.oneMinus().mul(u.hover, u.strength)
+      return vec4(color.rgb.add(u.tint.mul(light)), color.a)
+    })
+  },
+)
+```
+
+Diorama never guesses `when`: an effect that reacts to a tap can be what you want, so the choice is yours.
+
+## Magnify under the pointer
+
+`surface.uv()` moves the point the picture is read from. It runs before every color function, so `color` in `surface.color()` already shows the bent picture. Add a `zoom` param and pull the UV toward the pointer inside the light.
+
+```ts title="src/effects/torch.ts" twoslash {15-18}
+import { effect } from 'dioramajs'
+import { smoothstep, vec2, vec4 } from 'three/tsl'
+import type { Node } from 'three/webgpu'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, zoom: 0.2, tint: '#ffd27a' },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    const aspect = vec2(u.size.x.div(u.size.y), 1)
+    const inside = (uv: Node<'vec2'>) => {
+      const distance = uv.sub(u.pointer).mul(aspect).length()
+      const edge = smoothstep(0, u.radius, distance)
+      return edge.oneMinus().mul(u.hover)
+    }
+    surface.uv((uv) => {
+      const pull = inside(uv).mul(u.zoom).oneMinus()
+      return u.pointer.add(uv.sub(u.pointer).mul(pull))
+    })
+    surface.color((color, { box }) => {
+      const light = inside(box).mul(u.strength)
+      return vec4(color.rgb.add(u.tint.mul(light)), color.a)
+    })
+  },
+)
+```
+
+The second argument of the color function also has `box`, the UV before any `uv` function, and `sample(uv)`, which reads the picture at any UV with the crop and masks applied. A point outside the box reads the nearest edge pixel, like `ClampToEdgeWrapping`.
+
+`surface.position()` moves the vertices of the plane. x and y are fractions of the box from -0.5 to 0.5, z is in CSS pixels toward the viewer. Ask for more vertices with `surface.segments()`; the largest request of all effects on the element wins.
+
+```ts title="src/effects/lift.ts" twoslash
+import { effect } from 'dioramajs'
+import { vec3 } from 'three/tsl'
+
+export default effect({ height: 40 }, ({ surface, u }) => {
+  surface.segments(32)
+  surface.position((position, uv) => {
+    const near = uv.sub(u.pointer).length().oneMinus().max(0)
+    return position.add(vec3(0, 0, near.mul(u.hover, u.height)))
+  })
+})
+```
+
+## Put more than one effect on an element
+
+List several names in `data-dio`. Every element has one picture, and its effects share it in the order of the tokens: each `uv` function gets the UV of the one before, each color function gets the color of the one before.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  data-dio="ripple torch"
+  data-dio-radius="0.5"
+  data-dio-torch-strength="0.8"
+/>
+```
+
+- `data-dio-radius` is short: only `torch` has a `radius`.
+- `ripple` and `torch` both have a `strength`, so the short `data-dio-strength` applies to neither and a development build warns. Name the effect: `data-dio-torch-strength`.
+- An effect runs once per element. Markup, `app.attach()` and a parent's `ctx.attach()` with the same name on the same element share one instance.
+- Changing the order of the tokens rebuilds the material without running setup again.
+
+## Draw your own objects
+
+The surface is one option. Any three.js object works through the context, and Diorama keeps it on the element and disposes it with the instance.
+
+- `place(object, options)` glues an object to the element's box and returns it. With `fit: 'box'`, the default, a 1 by 1 object is stretched to the box; `'contain'` scales it by the smaller side, and `'none'` keeps pixel units.
+- `viewport` is a group pinned to the viewport: its origin is the center of the screen, its units are pixels, and it does not scroll with the page. Use it for the background of a sticky section.
+- `update`, the function setup returns, runs in every drawn frame while the element is on screen. It gets `input`, the inputs as numbers, and the frame time.
+
+```ts title="src/effects/halo.ts" twoslash
+import { effect } from 'dioramajs'
+import { Mesh, MeshBasicNodeMaterial, RingGeometry } from 'three/webgpu'
+
+export default effect(
+  { speed: 1, color: '#ffd27a' },
+  ({ place, params, u }) => {
+    const material = new MeshBasicNodeMaterial({ transparent: true })
+    material.colorNode = u.color
+    // Three quarters of a ring, so the turn shows.
+    const geometry = new RingGeometry(
+      0.46,
+      0.5,
+      64,
+      1,
+      0,
+      Math.PI * 1.5,
+    )
+    const ring = place(new Mesh(geometry, material))
+    return (input) => {
+      ring.rotation.z = input.time * params.speed
+    }
+  },
+)
+```
+
+Reading `input.time` or `input.delta` in `update` counts as a clock, so `halo` draws every frame while it is visible. An effect that only eases toward the pointer reads `delta` too: its update returns `true` while it still moves and `false` once it settles, and the answer decides in place of the clock, as the [10-minute tutorial](/docs/learn/effect-in-10-minutes) shows. Read params in `update` or through `u`: a value read from `params` in setup is a snapshot of that moment.
+
+Diorama disposes the geometry, materials and textures of placed objects with the instance. Pass `{ dispose: false }` for shared ones, and hand textures and render targets that live inside TSL nodes to `onDispose`. `signal` aborts when the instance goes away, for `fetch` and other async work in setup. Setup may be async: the element shows its DOM until the promise settles.
+
+<Example id="halo-card" description="A round card with the halo effect: a thin three-quarter ring turns around it while it is on screen." />
+
+### Read the element's picture yourself
+
+With `media: true` the picture is ready before setup, and `map` is its texture. `coverUV(uv)` maps box UV to texture UV with the element's `object-fit`, and `mask(uv)` is the alpha of radius, clip and CSS opacity. `place(mesh, { replace: true })` makes your mesh the element's picture instead of the surface.
+
+```ts title="src/effects/drift.ts" twoslash
+import { effect } from 'dioramajs'
+import { texture, uv } from 'three/tsl'
+import {
+  Mesh,
+  MeshBasicNodeMaterial,
+  PlaneGeometry,
+} from 'three/webgpu'
+
+export default effect(
+  { depth: 0.04 },
+  { media: true },
+  ({ map, coverUV, mask, place, u }) => {
+    const shift = u.pointer.sub(0.5).mul(u.depth)
+    const material = new MeshBasicNodeMaterial({ transparent: true })
+    material.colorNode = texture(map, coverUV(uv().add(shift)))
+    material.opacityNode = mask()
+    const plane = new Mesh(new PlaneGeometry(1, 1), material)
+    place(plane, { replace: true })
+  },
+)
+```
+
+`media: true` limits the effect to `<img>` and `<video>`; on another element it is skipped with `EFFECT_TARGET`. Without it, `map` throws. Apart from the context the file is plain three.js, so it moves to another project with few changes.
+
+## Compose child elements
+
+`layers(selector)` returns the layers of matching descendants in document order and keeps the array up to date. `pose(layer, target, weight)` blends one of them from its layout toward a target for the current frame. Call it in `update`; a layer you stop posing returns to its layout by itself.
+
+```ts title="src/effects/wheel.ts" twoslash
+import { effect } from 'dioramajs'
+
+export default effect(
+  { items: 'img', radius: 600 },
+  ({ layers, params, pose }) => {
+    const items = layers(params.items)
+    return ({ pin }) => {
+      const r = params.radius
+      items.forEach((item, i) => {
+        const angle = (i / items.length) * Math.PI * 2 + pin * Math.PI
+        const x = Math.sin(angle) * r
+        const z = Math.cos(angle) * r - r
+        pose(item, { x, z, rotateY: angle }, pin)
+      })
+    }
+  },
+)
+```
+
+```html title="index.html"
+<section
+  class="sticky"
+  data-dio="wheel"
+  data-dio-radius="480"
+>
+  <img src="/work/aurora.jpg" />
+  <img src="/work/ridges.jpg" />
+  <img src="/work/lantern.jpg" />
+</section>
+```
+
+`pin` goes from 0 when the top of the section reaches the top of the viewport to 1 when its bottom reaches the bottom, so the images circle while the section is pinned. Targets are in world pixels with the viewport center at 0,0 and y up; angles are in radians. Every matching image gets a plain picture for the pose, even without effects of its own.
+
+## Rebuild on a change
+
+Uniform params change live. A string or `oneOf` param has no uniform, so a change runs setup again: in `wheel`, a new `items` selector picks other children. Name other params in `rebuild` when setup uses their value to build something, such as the number of instances.
+
+```ts title="src/effects/sparks.ts" twoslash
+import { effect } from 'dioramajs'
+import {
+  InstancedMesh,
+  Matrix4,
+  MeshBasicNodeMaterial,
+  PlaneGeometry,
+} from 'three/webgpu'
+
+const spread = () => (Math.random() - 0.5) * 400
+
+export default effect(
+  { count: 40, color: '#ffd27a' },
+  { rebuild: ['count'] },
+  ({ place, params, u }) => {
+    const material = new MeshBasicNodeMaterial()
+    material.colorNode = u.color
+    const plane = new PlaneGeometry(6, 6)
+    const sparks = new InstancedMesh(plane, material, params.count)
+    const matrix = new Matrix4()
+    for (let i = 0; i < params.count; i++) {
+      matrix.makeTranslation(spread(), spread(), 0)
+      sparks.setMatrixAt(i, matrix)
+    }
+    place(sparks, { fit: 'none' })
+  },
+)
+```
+
+A rebuild runs in two phases: the old setup keeps drawing until the new one has compiled, so the element does not flash. It happens only while the element is visible, and changes in between merge into one. Rebuilds are not for tweens: a param that rebuilds more than 3 times a second gets a warning in development builds.
+
+## Know what happens on failure
+
+A broken effect never breaks the page. Its element goes back to plain HTML, the other effects keep running, and the app reports an error with a code.
+
+| What fails                                   | Code                          | What you see                                                       |
+| -------------------------------------------- | ----------------------------- | ------------------------------------------------------------------ |
+| The definition: a bad param name or default  | `EFFECT_DEFINITION`           | `effect()` throws when the module loads                            |
+| An unknown name in `data-dio`                | `EFFECT_UNKNOWN`              | The element waits; a later `register()` picks it up                |
+| A param value of the wrong type              | `EFFECT_PARAM`                | A warning; the value falls back to the layer below                 |
+| Setup throws or rejects                      | `EFFECT_SETUP`                | Plain HTML, `data-dio-state="failed"`                              |
+| `update` throws                              | `EFFECT_UPDATE`               | Plain HTML from the first throw                                    |
+| The shader does not compile                  | `EFFECT_COMPILE`              | The last good material stays, or plain HTML                        |
+| The image does not decode or is cross-origin | `EFFECT_MEDIA`, `EFFECT_CORS` | Plain HTML until the image loads a new source or `crossorigin` changes |
+
+A failed instance stays failed until it gets a new start: remove the name from `data-dio` and add it back, or save the file in development and the edit replaces it. To react in code, listen to status changes.
+
+```ts title="src/main.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start()
+app.on('effects:status', ({ element, effect, status, error }) => {
+  if (status === 'failed') console.warn(effect, element, error)
+})
+```
+
+`app.effects.get(element, name)` returns the instance of one element with its `status` signal and `error`.
+
+## The whole file
+
+```ts title="src/effects/torch.ts" twoslash
+import { effect } from 'dioramajs'
+import { smoothstep, vec2, vec4 } from 'three/tsl'
+import type { Node } from 'three/webgpu'
+
+export default effect(
+  { radius: 0.35, strength: 0.6, zoom: 0.2, tint: '#ffd27a' },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    const aspect = vec2(u.size.x.div(u.size.y), 1)
+    const inside = (uv: Node<'vec2'>) => {
+      const distance = uv.sub(u.pointer).mul(aspect).length()
+      const edge = smoothstep(0, u.radius, distance)
+      return edge.oneMinus().mul(u.hover)
+    }
+    surface.uv((uv) => {
+      const pull = inside(uv).mul(u.zoom).oneMinus()
+      return u.pointer.add(uv.sub(u.pointer).mul(pull))
+    })
+    surface.color((color, { box }) => {
+      const light = inside(box).mul(u.strength)
+      return vec4(color.rgb.add(u.tint.mul(light)), color.a)
+    })
+  },
+)
+```
+
+```html title="index.html"
+<img src="/cover.jpg" data-dio="torch" />
+```
+
+`effect()` is the short form of `defineEffect({ name, params, setup, ...options })`, which packages use to set the name explicitly.

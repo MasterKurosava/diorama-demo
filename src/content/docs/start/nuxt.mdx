@@ -1,0 +1,53 @@
+---
+title: Install with Nuxt
+label: Nuxt
+description: Add the Diorama module to Nuxt and start the app in a client plugin.
+section: start
+order: 3
+frameworks: [nuxt]
+---
+
+The Nuxt module adds the Vite plugin with the effects folder under `srcDir`, which is `app/effects/` in Nuxt 4.
+
+## Install the packages
+
+<Install packages="dioramajs three" />
+
+## Add the module
+
+```ts title="nuxt.config.ts" fixture="nuxt" twoslash
+declare function defineNuxtConfig(config: {
+  modules: string[]
+}): unknown
+// ---cut---
+export default defineNuxtConfig({ modules: ['dioramajs/nuxt'] })
+```
+
+## Start the app in a client plugin
+
+A plugin whose name ends in `.client.ts` runs in the browser only.
+
+```ts title="app/plugins/diorama.client.ts" fixture="nuxt" twoslash
+declare function defineNuxtPlugin(setup: () => void): unknown
+// ---cut---
+import { start } from 'dioramajs'
+
+export default defineNuxtPlugin(() => {
+  start()
+})
+```
+
+## Put an effect on an image
+
+```vue title="app/app.vue" fixture="nuxt"
+<template>
+  <img
+    src="/cover.jpg"
+    width="800"
+    height="450"
+    data-dio="ripple"
+  />
+</template>
+```
+
+`<NuxtPage>` without a page transition swaps pages in one render, so keyed elements fly between pages without more code.

@@ -1,0 +1,22 @@
+.books {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7%;
+  align-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 8%;
+  list-style: none;
+  background: #f6efe3;
+}
+.books img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 4;
+  border-radius: 4px;
+}
+.books p {
+  margin: 14% 0 0;
+  font: 500 0.8rem / 1.3 var(--font-text);
+  color: #3d1014;
+}

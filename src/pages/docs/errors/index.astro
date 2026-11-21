@@ -1,0 +1,53 @@
+---
+import Article from '../../../docs/layouts/Article.astro'
+import { errorPages } from '../../../docs/lib/errors.ts'
+
+const pages = await errorPages()
+const packages = [...new Set(pages.map((p) => p.info.specifier))]
+const slug = (s: string) => s.replace(/^@/, '').replace(/\W+/g, '-')
+const headings = packages.map((p) => ({ depth: 2, slug: slug(p), text: p }))
+---
+
+<Article
+  title="Errors"
+  description="Every code Diorama prints in the console, what it means and how to fix it."
+  url="/docs/errors"
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'Errors' }]}
+  headings={headings}
+  kind="error"
+>
+  <p>Diorama prefixes its console messages with <code>[diorama]</code> or <code>[diorama:plugin]</code> and starts them with a code. In development builds the message ends with the address of its page here. Paste a whole message into search to find its page.</p>
+  {
+    packages.map((pkg) => (
+      <section>
+        <h2 id={slug(pkg)}>{pkg}</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Level</th>
+                <th scope="col">What happened</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pages
+                .filter((p) => p.info.specifier === pkg)
+                .map((p) => (
+                  <tr>
+                    <td>
+                      <a class="code-link" href={p.url}>
+                        <code>{p.info.code}</code>
+                      </a>
+                    </td>
+                    <td>{p.entry.data.level}</td>
+                    <td>{p.entry.data.summary}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))
+  }
+</Article>

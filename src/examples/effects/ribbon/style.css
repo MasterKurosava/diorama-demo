@@ -1,0 +1,36 @@
+.rb-race {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: 2.6cqi;
+  box-sizing: border-box;
+  padding: 0 8%;
+  background:
+    radial-gradient(90% 80% at 75% 10%, #1d3557 0%, transparent 65%),
+    linear-gradient(180deg, #0f1b2d 0%, #0a1220 100%);
+  color: #e9eef5;
+}
+.rb-race .rb-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8fb3d9;
+}
+.rb-race .rb-label {
+  justify-self: start;
+  margin: 0;
+  padding: 0.1em 0.32em 0.06em;
+  font: 900 13cqi / 1 var(--font-text);
+  font-stretch: 75%;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #e8452c;
+}
+.rb-race .rb-line {
+  max-width: 44ch;
+  margin: 0.6cqi 0 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #a8b6c8;
+}

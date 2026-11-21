@@ -1,0 +1,11 @@
+.fr-window {
+  margin: 0;
+}
+.fr-window img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  object-position: 50% 80%;
+}

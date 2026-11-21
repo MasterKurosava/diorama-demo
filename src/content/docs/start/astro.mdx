@@ -1,0 +1,70 @@
+---
+title: Install with Astro
+label: Astro
+description: Add the Diorama integration to Astro and start the app once in the layout.
+section: start
+order: 2
+frameworks: [astro]
+---
+
+Astro builds with Vite, so the integration adds the same plugin as the Vite setup. Effects go in `src/effects/`.
+
+## Install the packages
+
+<Install packages="dioramajs three" />
+
+## Add the integration
+
+```js title="astro.config.mjs" fixture="astro"
+import diorama from 'dioramajs/astro'
+
+export default { integrations: [diorama()] }
+```
+
+## Start the app in the layout
+
+Call `start()` in a `<script>` of the layout every page uses. Astro bundles the script and runs it once, so the app lives across pages.
+
+```astro title="src/layouts/Layout.astro" fixture="astro"
+---
+import { ClientRouter } from 'astro:transitions'
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Diorama</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+    <script>
+      import { start } from 'dioramajs'
+      start()
+    </script>
+  </body>
+</html>
+```
+
+## Put an effect on an image
+
+```astro title="src/pages/index.astro" fixture="astro"
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout>
+  <img
+    src="/cover.jpg"
+    width="800"
+    height="450"
+    data-dio="ripple"
+  />
+</Layout>
+```
+
+With `<ClientRouter />` in the layout, elements with the same `data-dio-key` fly between pages without more code. [Your first page transition](/docs/start/first-transition) shows how.
+
+<Callout kind="warning">
+Start the app in one module only. Astro runs component scripts in document order, so a `start()` without options in a script that runs first creates the app without the options of the layout.
+</Callout>

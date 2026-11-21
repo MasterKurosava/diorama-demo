@@ -1,0 +1,11 @@
+.ex-root:has(> img.dashboard) {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #0f2a3a, #1c4a5c);
+}
+.ex-root > img.dashboard {
+  width: 82%;
+  height: auto;
+  aspect-ratio: 2560 / 1600;
+  border-radius: 10px;
+}

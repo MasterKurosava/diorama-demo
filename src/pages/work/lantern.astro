@@ -1,0 +1,46 @@
+---
+import Top from '../../landing/Top.astro'
+import Landing from '../../layouts/Landing.astro'
+---
+
+<Landing title="Lantern · Diorama" work night>
+  <Top crumb="Lantern" />
+
+      <main class="case lantern-page">
+        <section class="lantern-stage" aria-labelledby="lantern-name">
+          <div class="lantern-big" data-dio="lantern" data-dio-src="/media/lantern.glb" data-dio-tint="#e2a18c" data-dio-key="lantern" data-dio-fire="1" role="img" aria-label="A paper lantern, lit from inside, hanging from the top of the page"></div>
+          <div class="lantern-story">
+            <p class="kicker" data-dio="burn">02 — A product page</p>
+            <h1 id="lantern-name" class="case-title" data-dio="burn" data-dio-smoulder="1" data-dio-angle="-12" data-dio-delay="0.6">Lantern</h1>
+            <p class="case-lede" data-dio="burn" data-dio-smoulder="0.6" data-dio-angle="-8" data-dio-delay="1.4">
+              Washi on twelve bamboo hoops, lacquered caps and a silk tassel: one glTF, loaded once. It
+              came here from the landscape, the same lantern in the same swing.
+            </p>
+            <dl class="specs">
+              <dt>File</dt>
+              <dd class="mono"><span class="ember-line" data-dio="burn">lantern.glb</span></dd>
+              <dt>Loaded</dt>
+              <dd><span class="ember-line" data-dio="burn">through <code>app.assets</code>, once</span></dd>
+              <dt>Dye</dt>
+              <dd><fieldset class="swatches" aria-label="Paper colour"></fieldset></dd>
+            </dl>
+            <div class="prints">
+              <p class="kicker" data-dio="burn" data-dio-smoulder="1" data-dio-angle="14" data-dio-delay="2">Also lit tonight</p>
+              <div class="print-row">
+                <img src="/media/prints/dusk.jpg" width="1000" height="1250" alt="A low sun between cut-paper ridges" data-dio="burn" />
+                <img src="/media/prints/lanterns.jpg" width="1000" height="1250" alt="Paper lanterns rising over a dark valley" data-dio="burn" data-dio-smoulder="0.6" data-dio-angle="28" data-dio-delay="2.4" />
+                <img src="/media/prints/night.jpg" width="1500" height="1000" alt="A crescent over indigo paper hills" data-dio="burn" data-dio-smoulder="1" data-dio-angle="32" data-dio-delay="1.8" />
+              </div>
+              <p class="print-note" data-dio="burn">Leave the page: the lantern flies, and what has no place on the next page burns away. <code>data-dio="burn"</code></p>
+            </div>
+            <a class="case-back" href="/" data-back><span class="ember-line" data-dio="burn"><span aria-hidden="true">←</span> Fly it back to the landscape</span></a>
+          </div>
+        </section>
+      </main>
+</Landing>
+
+<style>
+  .ember-line {
+    display: inline-block;
+  }
+</style>

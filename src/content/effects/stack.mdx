@@ -1,0 +1,70 @@
+---
+effect: stack
+example:
+  description: Six places on the coast as a pile of photos; drag the top one away, click it or use the arrow keys, and the next comes forward.
+  aspect: 16 / 10
+  controls: [rotate, offset, duration, shadow, loop, swipe, click]
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A fan of projects that stops at the last one
+
+The `fan` style opens the cards under the top one to both sides, like a hand of cards, for a short list such as featured work or this week's picks. With `loop` set to false the last card stays on top: a drag only nudges it and a click does nothing.
+
+<Example id="effects/stack/fan" description="Four project covers fanned out; each click throws the top one off until the last." aspect="16 / 10" show={['html']} controls={['rotate', 'offset']} variants={[]} />
+
+### Name the card on top
+
+Nothing in the page tells a screen reader that another card came to the top. Put a caption with `aria-live="polite"` next to the pile and fill it from `dio:index`, whose `index` is the place of the card on top, from 0. The example at the top of this page names the place this way.
+
+```html
+<section
+  class="trips"
+  data-dio="stack"
+  tabindex="0"
+  aria-label="Places on the coast. Click, swipe or use the arrow keys for the next one."
+  style="touch-action: none"
+>
+  <img src="/media/coast/headland-800.avif" />
+  <img src="/media/coast/islets-600.avif" />
+</section>
+<p class="place" aria-live="polite">The headland</p>
+```
+
+```ts
+const trips = document.querySelector('.trips')
+const place = document.querySelector('.place')
+const cards = [...trips.querySelectorAll('img')]
+
+trips.addEventListener('dio:index', (e) => {
+  place.textContent = cards[e.detail.index].alt.split(':')[0]
+})
+```
+
+### Buttons for the next and the previous card
+
+A pile reads as something to swipe, but a button says it plainly and works for everyone. Set `index` on the instance: one more throws the top card off, one less brings the last thrown card back onto the pile.
+
+```ts
+const trips = document.querySelector('.trips')
+
+document.querySelector('.next').addEventListener('click', () => {
+  const stack = app.effects.get(trips, 'stack')
+  stack?.set({ index: Math.round(stack.params.index) + 1 })
+})
+```
+
+## Notes
+
+The container is the size of one card: the top card covers its box, and the cards under it, their shadows and a thrown card reach past it. Leave some room around the box, about `offset` times three plus the corners a turned card shows, and keep captions and buttons outside it. A thrown card is cut by an ancestor with `overflow: hidden`, as a CSS transform would be.
+
+Each card takes the picture of its image cut to the box, at the image's own `object-position`; `object-fit: contain` on an image keeps it whole on a plain card. The corners follow the container's `border-radius`.
+
+The images stay in the page in their order, each with its alt text, so a screen reader reaches all of them, and without WebGL the container is the strip you styled. With `tabindex="0"` on the container the pile takes focus and changes with the arrow keys, PageUp, PageDown, Home and End; give it an `aria-label` that says what is in it and how to move on.
+
+A drag with a mouse always carries the card. On touch screens it needs `touch-action` on the container: `none` lets the card go any way, `pan-y` keeps the page scrolling up and down while sideways drags carry the card.
+
+`style` and `items` rebuild the effect when they change. Set them in the markup rather than switching them while the pile is on screen.

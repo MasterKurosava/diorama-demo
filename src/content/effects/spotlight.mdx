@@ -1,0 +1,63 @@
+---
+effect: spotlight
+example:
+  description: A brass astrolabe on black, dimmed at rest, with a soft circle of light that follows the pointer across it.
+  caption: Move the pointer over the picture, or press and drag with a finger. The light trails the pointer and closes when it leaves.
+  controls: [radius, softness, dim, rest, ease, duration]
+  variants: []
+related:
+  - learn/pointer
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A collection piece seen by flashlight
+
+For a museum, an auction lot or a product with fine detail, keep part of the dim at rest with `rest`, so the picture reads as "in the dark" before the visitor reaches for it. A larger `radius` suits a large photo; `softness` near 1 gives a torch, near 0 a hard theater spot.
+
+```html
+<img
+  src="/collection/astrolabe.avif"
+  data-dio="spotlight"
+  data-dio-radius="160"
+  data-dio-rest="0.6"
+/>
+```
+
+### An x-ray under the pointer
+
+`style="reveal"` shows a second picture inside the circle: the movement behind a watch face, a building before and after renovation, a plan over a photo. Both pictures should share their framing, since the second one is drawn at the same `object-fit` and position as the first. With `dim="0"` the rest of the image stays as it is.
+
+```html
+<img
+  src="/watch/front.avif"
+  data-dio="spotlight"
+  data-dio-style="reveal"
+  data-dio-src="/watch/movement.avif"
+  data-dio-dim="0"
+  style="touch-action: none"
+/>
+```
+
+### Find the detail
+
+`style="blur"` blurs everything outside the light as well, which turns a busy interior or a map into a small game of looking.
+
+```html
+<img
+  src="/rooms/loft.avif"
+  data-dio="spotlight"
+  data-dio-style="blur"
+  data-dio-dim="0.3"
+  data-dio-blur="16"
+/>
+```
+
+## Notes
+
+The light only draws while it fades or trails the pointer; a still pointer costs nothing. On touch screens it follows a pressed finger; add `touch-action: none` to the image when a drag should move the light instead of scrolling the page.
+
+The picture stays a plain `<img>`, so its `alt` text is all a screen reader needs. Under reduced motion the light appears and moves without fades or smoothing.
+
+`style` and `src` rebuild the effect; every other param changes live.

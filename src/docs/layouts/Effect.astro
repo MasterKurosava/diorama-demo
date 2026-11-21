@@ -1,0 +1,517 @@
+---
+/**
+ * The page of one effect. Parts 1 to 7 and 10 come from the library metadata, parts
+ * 8 and 9 (Recipes, Notes) from src/content/effects/<name>.mdx, passed in as the default slot.
+ */
+import { Code } from 'astro-expressive-code/components'
+import Doc from '../components/Doc.astro'
+import Example from '../components/Example.astro'
+import Params from '../components/Params.astro'
+import Tab from '../components/Tab.astro'
+import Tabs from '../components/Tabs.astro'
+import { categoryTitle } from '../lib/categories.ts'
+import type { EffectPage } from '../lib/effect-pages.ts'
+import {
+  type EffectInfo,
+  framesPhrase,
+  inputHref,
+  kb,
+  motionPhrase,
+  overrideCode,
+  sourceUrl,
+  touchPhrase,
+} from '../lib/effects.ts'
+import { load } from '../lib/tables.ts'
+import { addCommand, attachCode, importCode, readMarkup } from '../lib/usage.ts'
+import { REPO, REPO_REF } from '../site.ts'
+import Article from './Article.astro'
+
+interface Heading {
+  readonly depth: number
+  readonly slug: string
+  readonly text: string
+}
+interface Props {
+  readonly page: EffectPage
+  /** Headings of the MDX part: Recipes and Notes. */
+  readonly headings: readonly Heading[]
+  readonly related: readonly EffectInfo[]
+  readonly guides: readonly { readonly url: string; readonly label: string }[]
+}
+const { page, headings, related, guides } = Astro.props
+const { info } = page
+const e = info.meta
+const url = info.url
+const { entry } = page
+const ex = entry.data.example ?? {}
+const shaderInputs = new Set(load().tables.inputs)
+const hasNotes = Object.keys(e.quality?.notes ?? {}).length > 0
+const tiers = ['low', 'medium', 'high'] as const
+// Usage code when the page has no live example yet: the first markup example of the metadata.
+const sample = e.examples?.[0]?.html ?? ''
+const sampleMarkup = readMarkup(sample)
+const own = [
+  { depth: 2, slug: 'usage', text: 'Usage' },
+  { depth: 2, slug: 'params', text: 'Params' },
+  { depth: 2, slug: 'inputs-and-frames', text: 'Inputs and frames' },
+  { depth: 2, slug: 'reduced-motion-and-touch', text: 'Reduced motion and touch' },
+  { depth: 2, slug: 'cost-and-quality', text: 'Cost and quality' },
+]
+const tail = [
+  ...(e.credits ? [{ depth: 2, slug: 'credits', text: 'Credits' }] : []),
+  ...(related.length || guides.length ? [{ depth: 2, slug: 'related', text: 'Related' }] : []),
+]
+const meta: Record<string, string> = { module: e.module, category: info.categoryTitle }
+if (page.poster) meta.poster = `${page.poster}.webp`
+if (page.clip) meta.clip = page.clip
+const self = url
+// `dioramajs add` copies a built-in's source into the site; image is the base layer it refuses.
+const add = e.builtIn && e.name !== 'image' ? addCommand(e.name) : undefined
+---
+
+<Article
+  title={e.name}
+  description={e.summary}
+  url={url}
+  crumbs={[
+    { label: 'Docs', href: '/docs' },
+    { label: 'Effects', href: '/docs/effects' },
+    { label: info.categoryTitle, href: `/docs/effects?category=${info.category}` },
+    { label: e.name },
+  ]}
+  headings={[...own, ...headings, ...tail]}
+  kind="effect"
+  meta={meta}
+>
+  <Fragment slot="heading">
+    <h1 class="ef-title"><code>{e.name}</code></h1>
+    <div class="ef-tags">
+      <p class="ef-cats">
+        <a class="ef-cat" href={`/docs/effects?category=${info.category}`}>{info.categoryTitle}</a>
+        {info.tags.length > 0 && <span class="sr-only">Also in</span>}
+        {info.tags.map((t) => <a class="ef-cat ef-also" href={`/docs/effects?category=${t}`}>{categoryTitle(t)}</a>)}
+      </p>
+      <p class="ef-pkg">
+        <code>{e.import}</code>
+        <a href={sourceUrl(e, REPO, REPO_REF)}>Source</a>
+      </p>
+    </div>
+  </Fragment>
+
+  {
+    page.example ? (
+      <Example
+        id={page.example}
+        description={ex.description ?? e.summary}
+        aspect={ex.aspect}
+        caption={ex.caption ?? e.looks}
+        controls={ex.controls}
+        variants={ex.variants}
+        scroll={ex.scroll}
+      >
+        <Fragment slot="code">
+          <h2 id="usage">Usage</h2>
+          <div class="ef-facts">
+            {e.target && (
+              <p>
+                Put it on <Doc md={e.target} self={self} inline />.{' '}
+                {e.builtIn ? (
+                  <Fragment>
+                    <code>start()</code> registers <code>{e.name}</code>, so the attribute alone puts it on an element. The tabs below are the example above, with the values you set.
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    Register it first with <code>{`start({ effects: { ${e.name} } })`}</code>.
+                  </Fragment>
+                )}
+              </p>
+            )}
+          </div>
+          {add && (
+            <div class="ef-own">
+              <p>To change its code, copy the source into your effects folder; the copy replaces the built-in.</p>
+              <Code code={add} lang="sh" />
+            </div>
+          )}
+        </Fragment>
+      </Example>
+    ) : (
+      <Fragment>
+        {page.poster ? (
+          <figure class="ef-poster">
+            <picture>
+              <source srcset={`${page.poster}.avif`} type="image/avif" />
+              <img src={`${page.poster}.webp`} alt={`A still of ${e.name}.`} width="640" height="400" loading="lazy" decoding="async" />
+            </picture>
+            {e.looks && <figcaption>{e.looks}</figcaption>}
+          </figure>
+        ) : (
+          e.looks && <p class="ef-looks">{e.looks}</p>
+        )}
+        <h2 id="usage">Usage</h2>
+        {e.target && (
+          <p>
+            Put it on <Doc md={e.target} self={self} inline />.{' '}
+            {e.builtIn && (
+              <Fragment>
+                <code>start()</code> registers <code>{e.name}</code>, so the attribute alone puts it on an element.
+              </Fragment>
+            )}
+          </p>
+        )}
+        {sample && (
+          <Tabs label={`Usage of ${e.name}`}>
+            <Tab label="HTML" value="html">
+              <Code code={sample} lang="html" />
+            </Tab>
+            <Tab label="attach" value="attach">
+              <Code code={attachCode(sampleMarkup?.selector ?? 'img', e.name, [])} lang="ts" />
+            </Tab>
+            <Tab label="import" value="import">
+              <Code code={importCode(sampleMarkup?.selector ?? 'img', e.name, e.import, [])} lang="ts" />
+            </Tab>
+          </Tabs>
+        )}
+        {add && (
+          <div class="ef-own">
+            <p>To change its code, copy the source into your effects folder; the copy replaces the built-in.</p>
+            <Code code={add} lang="sh" />
+          </div>
+        )}
+      </Fragment>
+    )
+  }
+
+  {
+    (e.children?.length ?? 0) > 0 && (
+      <Fragment>
+        <h3 id="markup-it-reads">Markup it reads</h3>
+        <ul>
+          {e.children?.map((c) => (
+            <li>
+              {c.attribute ? <code>{c.attribute}</code> : <Fragment><code>{c.element}</code> inside</Fragment>}: <Doc md={c.description} self={self} inline />
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    )
+  }
+  {
+    (e.events?.length ?? 0) > 0 && (
+      <Fragment>
+        <h3 id="events">Events</h3>
+        <p>It dispatches these on its element; they bubble.</p>
+        <ul>
+          {e.events?.map((ev) => (
+            <li>
+              <code>{ev.name}</code>, <code>detail: {ev.detail}</code>. <Doc md={ev.description} self={self} inline />
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    )
+  }
+  {
+    (e.parts?.length ?? 0) > 0 && (
+      <Fragment>
+        <h3 id="parts">Parts</h3>
+        <p>
+          Its own controls take your styles through <code>::part()</code>.
+        </p>
+        <ul>
+          {e.parts?.map((p) => (
+            <li>
+              <code>{p.name}</code>: <Doc md={p.description} self={self} inline />
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    )
+  }
+
+  {
+    e.presence?.note && (
+      <Fragment>
+        <h3 id="page-transitions">Page transitions</h3>
+        <p>
+          <Doc md={e.presence.note} self={self} inline /> <a href="/docs/concepts/flights">How a flight flies</a>.
+        </p>
+      </Fragment>
+    )
+  }
+
+  <h2 id="params">Params</h2>
+  <p data-pagefind-ignore>Every param is also an attribute, and both <code>app.attach()</code> and the handle take it by name.</p>
+  <Params effect={e.name} />
+
+  <h2 id="inputs-and-frames">Inputs and frames</h2>
+  <p>
+    {
+      e.inputs.length > 0 && (
+        <Fragment>
+          It reads{' '}
+          {e.inputs.map((input, i) => (
+            <Fragment>
+              <a class="code-link" href={inputHref(input, shaderInputs)}>
+                <code>{input}</code>
+              </a>
+              {i < e.inputs.length - 2 ? ', ' : i === e.inputs.length - 2 ? ' and ' : ''}
+            </Fragment>
+          ))}
+          .{' '}
+        </Fragment>
+      )
+    }
+    {framesPhrase(e)}
+    {e.frames.note && ` ${e.frames.note}`} <a href="/docs/concepts/frames">How a frame is decided</a>.
+  </p>
+
+  <h2 id="reduced-motion-and-touch">Reduced motion and touch</h2>
+  <p>
+    {motionPhrase(e)}
+    {e.reducedMotion.note && ` ${e.reducedMotion.note}`}
+  </p>
+  <p>
+    {touchPhrase(e)}
+    {e.touch && ` ${e.touch}`}
+  </p>
+  <div data-pagefind-ignore>
+    <p>{e.when ? 'To run it on touch devices too, or to change what reduced motion does, patch it in start().' : 'To change what reduced motion does, patch it in start().'}</p>
+    <Code code={overrideCode(e)} lang="ts" />
+  </div>
+
+  <h2 id="cost-and-quality">Cost and quality</h2>
+  {
+    e.cost && (
+      <dl class="ef-cost">
+        <div>
+          <dt>Download</dt>
+          <dd>
+            {kb(e.cost.chunk)} min+gzip the first time a page uses it{e.cost.data ? `, ${kb(e.cost.data)} of it data` : ''}
+          </dd>
+        </div>
+        {e.cost.gpu && (
+          <div>
+            <dt>GPU</dt>
+            <dd>{e.cost.gpu}</dd>
+          </div>
+        )}
+        {e.cost.memory && (
+          <div>
+            <dt>Memory</dt>
+            <dd>{e.cost.memory}</dd>
+          </div>
+        )}
+        <div>
+          <dt>Frames</dt>
+          <dd>{info.cost === 'idle' ? 'Idle at rest' : 'Draws while on screen'}</dd>
+        </div>
+      </dl>
+    )
+  }
+  <p data-pagefind-ignore>
+    It runs from the <code>{e.quality?.min ?? 'low'}</code> tier up.
+    {hasNotes ? ' Each tier changes this:' : ' Every tier draws it the same way.'} The <a href="/docs/effects/quality">quality plugin</a> picks the tier for each device.
+  </p>
+  {
+    hasNotes && (
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Tier</th>
+              <th scope="col">What changes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tiers
+              .filter((t) => e.quality?.notes?.[t])
+              .map((t) => (
+                <tr>
+                  <td>
+                    <code>{t}</code>
+                  </td>
+                  <td>
+                    <Doc md={e.quality?.notes?.[t] ?? ''} self={self} inline />
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  <slot />
+
+  {
+    e.credits && (
+      <Fragment>
+        <h2 id="credits">Credits</h2>
+        <p>{e.credits}</p>
+      </Fragment>
+    )
+  }
+
+  {
+    (related.length > 0 || guides.length > 0) && (
+      <nav class="ef-related" aria-labelledby="related">
+        <h2 id="related">Related</h2>
+        {related.length > 0 && (
+          <ul class="ef-rel-effects">
+            {related.map((r) => (
+              <li>
+                <a href={r.url}>
+                  <code>{r.name}</code>
+                  <span>{r.meta.summary}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        {guides.length > 0 && (
+          <ul>
+            {guides.map((g) => (
+              <li>
+                <a href={g.url}>{g.label}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </nav>
+    )
+  }
+</Article>
+
+<style>
+  .ef-title code {
+    padding: 0;
+    background: none;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .ef-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-3) 0 var(--s-2);
+    font-size: 0.85rem;
+  }
+  .ef-cats,
+  .ef-pkg {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-3);
+    margin: 0;
+  }
+  .ef-cat {
+    padding: 2px 12px;
+    border: 1px solid var(--text);
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 600;
+    line-height: 1.6;
+    text-decoration: none;
+  }
+  .ef-cat:hover {
+    border-color: var(--link);
+    background: var(--link);
+    color: var(--bg);
+  }
+  .ef-also {
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .ef-also:hover {
+    background: transparent;
+    color: var(--link);
+  }
+  .ef-pkg code {
+    padding: 0;
+    background: none;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .ef-pkg a {
+    color: var(--text-muted);
+  }
+  .ef-looks {
+    color: var(--text-muted);
+  }
+  .ef-own {
+    margin-top: var(--s-6);
+  }
+  .ef-own p {
+    color: var(--text-muted);
+  }
+  .ef-poster {
+    margin: var(--s-6) 0;
+  }
+  .ef-poster figcaption {
+    margin-top: var(--s-2);
+    font-size: 0.89em;
+    color: var(--text-muted);
+  }
+  .ef-poster img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-panel);
+    background: var(--bg-code);
+  }
+  .ef-cost {
+    display: grid;
+    gap: var(--s-2);
+    margin: var(--s-4) 0;
+  }
+  .ef-cost div {
+    display: grid;
+    grid-template-columns: 7em minmax(0, 1fr);
+    gap: var(--s-3);
+  }
+  .ef-cost dt {
+    font: 500 0.78rem / 1.9 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .ef-cost dd {
+    margin: 0;
+  }
+  .ef-rel-effects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--s-3);
+    padding: 0;
+    list-style: none;
+  }
+  .ef-rel-effects a {
+    display: grid;
+    gap: var(--s-1);
+    height: 100%;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-paper);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .ef-rel-effects a:hover {
+    border-color: var(--link);
+  }
+  .ef-rel-effects code {
+    font-weight: 600;
+  }
+  .ef-rel-effects span {
+    font-size: 0.85em;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+</style>

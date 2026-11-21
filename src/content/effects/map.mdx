@@ -1,0 +1,59 @@
+---
+effect: map
+example:
+  description: A dotted world map with the partner cafes of a coffee roaster, and arcs drawn in from its Lisbon roastery.
+  aspect: 16 / 9
+  caption: Hover a marker or press Tab through the hidden list. Switch style to solid and region to europe or asia.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A store locator with a visible list
+
+Keep the stores in a list next to the map and point `markers` at its items. Hovering an item lights its marker and a click on a marker follows the item's link. The map itself is `aria-hidden`: the list already says everything it shows.
+
+```html
+<div
+  class="map"
+  data-dio="map"
+  data-dio-region="europe"
+  data-dio-style="solid"
+  data-dio-markers="#stores li"
+  aria-hidden="true"
+></div>
+<ul id="stores">
+  <li data-dio-lat="48.86" data-dio-lng="2.35">
+    <a href="/stores/paris">Paris</a>
+  </li>
+  <li data-dio-lat="41.39" data-dio-lng="2.17">
+    <a href="/stores/barcelona">Barcelona</a>
+  </li>
+</ul>
+```
+
+### A Pacific view with the sea drawn in
+
+`center` moves the middle of the map east or west, so 150 puts the Pacific in the middle. `sea` draws the sea in `color` at that opacity: faint dots in the dots style, a fill in the solid one.
+
+```html
+<div
+  class="map"
+  data-dio="map"
+  data-dio-center="150"
+  data-dio-sea="0.2"
+  data-dio-color="#3a4a66"
+></div>
+```
+
+`dio:marker` fires on the map each time a marker lights up or goes dark, with the element of the place in `detail.marker`. Use it for a tooltip or for the address of the store under the pointer.
+
+## Notes
+
+The map is an Equal Earth projection of the Natural Earth land mask (public domain), the same data as `globe`, loaded once for both. The region always fits the box, and a box wider or taller than the region shows more map around it. Antarctica is left out.
+
+It draws only while the arcs draw in, once when the map scrolls into view, and for a few frames as a marker lights up. Under reduced motion the arcs stand drawn and markers light up without easing. Nothing hovers on touch screens, so a tap on a marker works as a click.
+
+Dots take about 12 bytes each, under 150 KB at the default 160 across; `solid` keeps a 260 KB land mask texture on the GPU instead. The `low` tier draws 100 dots across.

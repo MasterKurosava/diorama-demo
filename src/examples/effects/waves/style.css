@@ -1,0 +1,60 @@
+/* A trail card: the contour lines read as the map of the route, the details sit beside them.
+   Nothing sits over the lines, because the docs canvas is above the page. */
+.wv-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #f7f3ea;
+  color: #2b2a24;
+  font: 400 14px / 1.5 var(--font-text);
+}
+/* The look without WebGL: the paper color of the map. */
+.wv-map {
+  background: #efe8d8;
+}
+.wv-info {
+  align-self: center;
+  padding: 0 9%;
+}
+.wv-kicker {
+  margin: 0 0 8px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a6d3b;
+}
+.wv-info h2 {
+  margin: 0 0 14px;
+  font: 600 clamp(20px, 2.6vw, 28px) / 1.15 var(--font-display, var(--font-text));
+  color: #1f1e1a;
+}
+.wv-info dl {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 14px;
+}
+.wv-info dt {
+  font: 500 10px / 1.4 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8b8574;
+}
+.wv-info dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+.wv-info p:last-child {
+  margin: 0;
+  color: #5d5a50;
+}
+@media (max-width: 640px) {
+  .wv-route {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .wv-info {
+    padding: 16px 20px 20px;
+  }
+}

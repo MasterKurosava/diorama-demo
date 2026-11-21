@@ -1,0 +1,108 @@
+---
+effect: blobs
+example:
+  description: A radio station card with soft violet, cyan, pink and gold blobs drifting and merging over dark navy, beside the station name.
+  aspect: 16 / 8
+  caption: Switch style to orbs for blurred discs or to glass for glossy drops.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Behind a SaaS hero
+
+Put the blobs on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`, so the heading and buttons sit over the canvas. The element's CSS background is what visitors see before the engine draws and without WebGL, so give it the same `background` color.
+
+```html
+<header class="hero">
+  <div
+    class="hero-bg"
+    aria-hidden="true"
+    data-dio="blobs"
+    data-dio-color1="#4f46e5"
+    data-dio-color2="#06b6d4"
+    data-dio-color3="#ec4899"
+    data-dio-color4="#f59e0b"
+    data-dio-background="#0b1026"
+  ></div>
+  <h1>Deploys you never think about</h1>
+  <a class="cta" href="/signup">Start for free</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+  color: #fff;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #0b1026;
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+### Orbs behind frosted glass cards
+
+`orbs` keeps the blobs apart as blurred discs, the look behind glass cards with `backdrop-filter`. On a light page use pale brand colors and a near-white `background`.
+
+```html
+<section class="plans">
+  <div
+    class="plans-bg"
+    aria-hidden="true"
+    data-dio="blobs"
+    data-dio-style="orbs"
+    data-dio-count="4"
+    data-dio-softness="0.6"
+    data-dio-background="#f5f3ff"
+    data-dio-color1="#a78bfa"
+    data-dio-color2="#67e8f9"
+    data-dio-color3="#f9a8d4"
+    data-dio-color4="#fde68a"
+  ></div>
+  <div class="card">Pro, $12 a month</div>
+</section>
+```
+
+```css
+.card {
+  background: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(16px);
+}
+```
+
+### Glass drops for a launch
+
+`glass` shades the merged shapes as glossy drops with a highlight and a bright rim. It reads best on a dark background with three to five drops and no grain.
+
+<Example id="effects/blobs/glass" description="Five glossy drops in brand colors drifting and merging over a near-black background." aspect="16 / 7" show={['html']} controls={['count', 'scale', 'softness', 'speed']} variants={[]} />
+
+## Readable text
+
+Text sits over the blobs, so pick colors with contrast in mind:
+
+- On a dark `background` such as `#0b1026`, set the heading in white and keep the blobs saturated but not near white. Keep `grain` at 0.05 or below under body text.
+- On a light `background` such as `#f5f3ff`, use pale blobs and dark text such as `#1b1530`; `orbs` with `softness` around 0.6 keeps hard edges away from the letters.
+- Lower `count` or `scale` when a blob keeps drifting under the heading, or put the heading on a card.
+
+## Notes
+
+The docs canvas sits above the page, so the examples here draw nothing over the blobs. Put text over them with `canvas: 'behind'`, as in the first recipe.
+
+Unlike `gradient`, which fills the whole box with one wash, `blobs` draws distinct shapes with the background between them. Colors mix in OKLab where two blobs merge, and every pixel is dithered.
+
+It draws up to `fps` frames a second while it is on screen and none off screen; the pointer and scroll draw at full rate while they move the blobs. With `attract` at 0 the pointer draws nothing. On the low tier it draws at most 15 frames a second and 4 blobs.
+
+`style` and `seed` rebuild the effect when they change. Count, colors, sizes and speeds change live.

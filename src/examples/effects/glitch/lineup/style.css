@@ -1,0 +1,48 @@
+.lineup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 16px;
+  margin: 0;
+  padding: 20px;
+  list-style: none;
+  background: #07090f;
+}
+.lineup li,
+.lineup li + li {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  margin: 0;
+}
+.lineup img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.lineup p {
+  display: flex;
+  align-content: start;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  margin: 0;
+  font: 600 0.9rem / 1.3 var(--font-text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #e8ecf4;
+}
+.lineup span {
+  font-weight: 400;
+  color: #7fd3ff;
+}
+@media (max-width: 560px) {
+  .lineup {
+    gap: 8px;
+    padding: 10px;
+  }
+  .lineup p {
+    font-size: 0.68rem;
+  }
+}

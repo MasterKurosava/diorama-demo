@@ -1,0 +1,35 @@
+.sf-board {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 6%;
+  box-sizing: border-box;
+  background: #0b0c0e;
+  color: #f5c518;
+}
+.sf-board .sf-head {
+  margin: 0;
+  font: 600 max(11px, 1.6cqi) / 1 var(--font-text);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a8f98;
+}
+.sf-board .sf-rows {
+  display: grid;
+  gap: clamp(4px, 1.4cqi, 12px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 600 clamp(0.9rem, 3.4cqi, 1.9rem) / 1.6 var(--font-mono);
+  letter-spacing: 0.16em;
+}
+.sf-board li {
+  display: grid;
+  grid-template-columns: 9.5ch 6.5ch 1fr;
+  align-items: baseline;
+}
+.sf-board .sf-status {
+  justify-self: start;
+  color: #fafafa;
+}

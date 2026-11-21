@@ -1,0 +1,48 @@
+---
+code: ASSET_DECODER
+level: error
+message: 'the Draco decoder did not load from {path}: {hint}'
+summary: A compressed model or texture needs a Draco, KTX2 or Meshopt decoder that is blocked, missing or turned off.
+---
+
+Diorama loads a decoder only when a file lists its extension, so a model without compression never loads one. A decoder that failed is not kept: the next file tries again.
+
+## Why it happens
+
+- A Content Security Policy blocks the decoders. They run in `blob:` workers and WebAssembly, so the hint after the colon reads `decoders run in blob: workers and WebAssembly: the Content Security Policy needs worker-src blob: and script-src 'wasm-unsafe-eval'`. Before the first Draco or KTX2 decoder, and before Meshopt with `decoders.workers`, Diorama starts an empty `blob:` worker that compiles an empty WebAssembly module. Chrome does not throw for a refused worker, and without this probe the three.js loaders wait for an answer that never comes.
+- The decoder files did not load from their path: `the Draco decoder did not load from {path}` or `the Basis transcoder did not load from {path}` for KTX2. By default the files come from three.js through `import.meta.url`, so the bundler emits them. A custom directory without the files fails.
+- The file uses a compression that the options turn off: `the file uses {what} and decoders.{option} is false`.
+- The browser has no WebAssembly, which Meshopt needs: `meshopt decoding needs WebAssembly`.
+- Parsing a file that needs decoders failed with an error that looks like a refused worker or WebAssembly: `a decoder failed`, followed by the same hint.
+
+## How to fix
+
+If the hint names the Content Security Policy, add `blob:` to `worker-src` and `'wasm-unsafe-eval'` to `script-src` in your existing policy:
+
+```html
+<meta
+  http-equiv="Content-Security-Policy"
+  content="worker-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'"
+/>
+```
+
+`start()` uses the default decoder paths. To serve the decoder files from your own directories, set `decoders` on the `assets` plugin in an app made with `createApp`:
+
+```ts
+import { assets, createApp, effects, transitions } from 'dioramajs'
+import { media } from 'dioramajs/media'
+
+export const app = createApp({
+  plugins: [
+    assets({ decoders: { draco: '/draco/', ktx2: '/basis/' } }),
+  ],
+  presets: [effects({ effects: media }), transitions()],
+})
+```
+
+## Related
+
+- `ASSET_PARSE`
+- `ASSET_LOAD`
+- `ctx.model()`
+- `app.assets.load()`

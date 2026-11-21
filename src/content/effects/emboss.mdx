@@ -1,0 +1,44 @@
+---
+effect: emboss
+example:
+  description: A bookbinder's business card in cream cotton paper on a dark desk, its name raised out of the paper and its small print inked in brown.
+  caption: Move the pointer over the page and watch the light slide over the letters and the paper. Switch the style, or change the depth, the bevel and the angle of the light.
+  aspect: 16 / 9
+  controls: [depth, bevel, light, follow, grain]
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Five materials
+
+`material` picks the surface: `paper` with soft fibres, `leather` with a pebble grain that darkens and polishes where it is pressed, brushed `metal` whose highlight stretches across the brushing, speckled `stone` and troweled `plaster`. Each one takes the background color of its element, so the same material comes in any color. Move the pointer along the row: the light is one lamp for all five.
+
+<Example id="effects/emboss/covers" description="A notebook shop's cover picker: five tiles in cotton paper, calf leather, brushed steel, slate and lime plaster, each with the initials JK pressed in or raised and the material named in small print." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### A leather journal cover
+
+`style="deboss"` presses the letters into the surface, with walls that fall into shadow on the side away from the light. Large text is blind, the way a cover is pressed without foil; text under 22 px is printed in its own color, because a blind relief that small cannot be read. Here the volume line is inked in the cover's gold.
+
+<Example id="effects/emboss/journal" description="A product card for a leather notebook: a brown calf cover with Field Notes debossed in it, the price and a short description beside it." aspect="16 / 8" show={['html']} controls={['depth', 'grain']} variants={[]} />
+
+### A wax seal on an invitation
+
+`style="stamp"` pours a pool of wax around the text, with a raised rim and the letters standing out of it, in the text color or `color`. The seal has no background of its own here, so it sits on the invitation's paper; the shading of a relief without a background goes over whatever is behind it, a color, a gradient or a picture.
+
+<Example id="effects/emboss/seal" description="A wedding invitation on cream paper with the couple's initials in a dark red wax seal under the text." aspect="16 / 8" show={['html']} controls={[]} variants={[]} />
+
+## Notes
+
+The relief is built from the shape of the letters: a distance field of the text gives every pixel its distance to the nearest edge, and a profile over `bevel` turns that into a height. Raised letters get rounded shoulders, pressed letters steep walls and a flat floor, letterpress a shallower impression with bare paper walls, the ink lying flat in the bottom and the paper pushed up around it. The lighting runs per pixel: normals come from the relief and from a tile of the material's own fine relief, and every pixel marches over the relief toward the lamp to find whether a letter stands between them, so shadows fall the right way and grow longer as the light gets lower.
+
+The lamp sits about the size of the element away from it, at `light` when the pointer is elsewhere. It follows a mouse or a pen anywhere on the page and drifts as the element scrolls, as a lamp fixed in the room would. After it settles nothing more is drawn; the relief stays as it is. Set `follow` to 0 for a fixed light.
+
+The element should be a card, a label or a heading with a background color: that color becomes the material, and the surface covers the box and its rounded corners. Its border, shadow and background image are not drawn, so put a box shadow on a wrapper, as the examples do. An element without a background is pressed into the page itself: its text gets the relief and shadows, and the page around it stays as it is.
+
+The text stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the surface is drawn the element is hidden without being removed, so give the text a color that reads on the background, since that is what shows without WebGL. The canvas cannot draw `background-clip: text`, `-webkit-text-stroke` or vertical writing modes the way the browser does, and an element with any of them keeps its text as it is, with a warning in development.
+
+`style`, `material` and `color` rebuild the effect when they change. `bevel` builds the relief again a moment after it changes; the other params change live.

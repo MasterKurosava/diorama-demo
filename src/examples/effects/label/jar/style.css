@@ -1,0 +1,10 @@
+.ex-root:has(> img.jar) {
+  display: grid;
+  place-items: center;
+  background: #f3efe6;
+}
+.ex-root > img.jar {
+  width: 50%;
+  height: 74%;
+  object-fit: contain;
+}

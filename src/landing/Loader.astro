@@ -1,0 +1,139 @@
+---
+import { ridges } from './ridges'
+---
+
+<style is:inline>
+  /* Loader. The sun rises behind paper ridges to where the scene's sun will be. The scene is
+     built while the sun slows down, which hides the hitch. Once everything is drawn the ridges
+     sink and the night clears. */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: hidden;
+  }
+  /* No scrolling under the loader: the hero is driven by scroll and must start at its first frame.
+     The gutter keeps the width when the scrollbar comes back. */
+  html:has(.loader:not(.out)) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+  .loader > *,
+  .loader-sun > * {
+    position: absolute;
+  }
+  .loader-sky,
+  .loader-dawn {
+    inset: 0;
+  }
+  .loader-sky {
+    background: linear-gradient(to bottom, #16050a 0%, #2c0b10 46%, #4b1519 72%, #3a0f12 100%);
+    transition: opacity 0.75s 0.45s;
+  }
+  .loader-dawn {
+    position: absolute;
+    background:
+      radial-gradient(ellipse 46% 34% at 83.5% 30%, rgb(255 222 180 / 0.5), transparent 70%),
+      linear-gradient(to bottom, #4b1519 0%, #7a3330 34%, #e39a76 52%, #a85c58 60%, #6d282b 72%, #4b1519 100%);
+    animation: loader-light 2.4s cubic-bezier(0.3, 0.4, 0.3, 1) 0.1s both;
+  }
+  .loader-sun {
+    left: 83.5%;
+    top: 29.8%;
+    animation: loader-rise 2.4s cubic-bezier(0.25, 0.6, 0.2, 1) 0.1s both;
+    transition: opacity 0.7s 0.9s;
+  }
+  .loader-disc,
+  .loader-rays {
+    aspect-ratio: 1;
+    translate: -50% -50%;
+  }
+  .loader-disc {
+    width: 10.5vh;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6e6 0 58%, #ffe2bd 74%, #ffcf98 100%);
+    box-shadow:
+      0 0 4vh 1vh rgb(255 214 170 / 0.55),
+      0 0 18vh 7vh rgb(255 190 140 / 0.3);
+  }
+  .loader-rays {
+    width: 120vh;
+    background: repeating-conic-gradient(rgb(255 226 190 / 0.25) 0 2deg, transparent 2deg 9deg);
+    mask: radial-gradient(circle, #000 4%, transparent 50%);
+    animation:
+      loader-light 1.8s 0.5s both,
+      loader-turn 80s linear infinite;
+  }
+  @keyframes loader-rise {
+    from {
+      transform: translateY(40vh);
+    }
+  }
+  @keyframes loader-light {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes loader-turn {
+    to {
+      rotate: 1turn;
+    }
+  }
+  .loader-ridges {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .loader-ridges path {
+    transition: transform 0.85s cubic-bezier(0.6, 0, 0.4, 1);
+    filter: drop-shadow(0 -6px 14px rgb(20 4 5 / 0.35));
+  }
+  .loader .top {
+    color: var(--cream);
+    transition: opacity 0.5s 0.7s;
+  }
+  .loader.out {
+    pointer-events: none;
+  }
+  .loader.out .loader-sky,
+  .loader.out .loader-sun,
+  .loader.out .top {
+    opacity: 0;
+  }
+  .loader.out path {
+    transform: translateY(62%);
+  }
+  .loader.out path:nth-child(3) {
+    transition-delay: 0.06s;
+  }
+  .loader.out path:nth-child(2) {
+    transition-delay: 0.12s;
+  }
+  .loader.out path:nth-child(1) {
+    transition-delay: 0.18s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .loader-sun,
+    .loader-dawn,
+    .loader-rays {
+      animation: none;
+    }
+    .loader.out > *,
+    .loader.out path {
+      transform: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+  }
+</style>
+<div class="loader" aria-hidden="true">
+  <div class="loader-sky"><div class="loader-dawn"></div></div>
+  <div class="loader-sun"><i class="loader-rays"></i><i class="loader-disc"></i></div>
+  <svg class="loader-ridges" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#a85c58" d={ridges.far}></path>
+    <path fill="#86393b" d={ridges.mid}></path>
+    <path fill="#5a1b1f" d={ridges.near}></path>
+    <path fill="#3d1014" d={ridges.front}></path>
+  </svg>
+  <div class="top"><span class="mark">Diorama</span></div>
+</div>

@@ -1,0 +1,35 @@
+---
+effect: shine
+example:
+  description: A white pricing card for a Team plan whose violet upgrade button catches a glint every three seconds.
+  caption: Switch the trigger, or move the sliders. With trigger hover, point at the button; on a phone, tap it.
+  controls: [angle, width, duration, interval, strength]
+  variants: [trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### The featured plan on hover
+
+On a pricing table, the plan you recommend can catch the light as the pointer comes over it. A narrower `width` and a lower `strength` keep the band subtle on a large card.
+
+<Example id="effects/shine/plans" description="Three pricing plans on a warm page; the dark featured Studio plan glints when the pointer enters it." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+### A badge that glints as it shows up
+
+The `view` trigger sweeps once the first time half of the element is in view. A warm `color` and a stronger `strength` suit a gold member badge or an award seal.
+
+<Example id="effects/shine/badge" description="A gold member badge above a welcome message, sweeping once as it scrolls into view." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+## Notes
+
+The element stays DOM: the band draws over it on the canvas only during a sweep and is clipped to the element's own `border-radius`, corner by corner, so pill buttons work too. A parent with `overflow: hidden` does not clip it, so keep the element fully inside such a parent. Between sweeps nothing is drawn, and the `interval` trigger waits on a timer without drawing frames. Timed sweeps pause while the element is off screen or the tab is hidden.
+
+Keyboard focus on the element or a control inside it sweeps like a hover, and a tap sweeps on touch screens.
+
+Under reduced motion neither the module nor the engine loads for it, and the element stays as it is.
+
+`trigger` rebuilds the effect when it changes; the other params change live and apply to the next sweep.

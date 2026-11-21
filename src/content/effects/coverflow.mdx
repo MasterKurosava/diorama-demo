@@ -1,0 +1,58 @@
+---
+effect: coverflow
+example:
+  description: Eight project covers in a row; the middle one faces you, its neighbors turn away, mirrored on the floor; drag, swipe or use the arrow keys.
+  aspect: 16 / 9
+  controls: [angle, spacing, depth, shade, reflection, perspective, duration, loop]
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Books stacked as cards
+
+The `cards` style puts the covers behind the middle one, a little to the side and smaller, like a hand of cards: it fits a short shelf of books or products in a narrow box. With `loop` the row goes round, so the last book leads back to the first.
+
+<Example id="effects/coverflow/books" description="Three book covers stacked as cards, the title of the one in the middle under them." aspect="16 / 10" show={['html', 'script']} controls={[]} variants={[]} />
+
+### Name the cover in the middle
+
+Nothing tells a screen reader that another cover reached the middle. Put a caption with `aria-live="polite"` next to the row and fill it from `dio:index`, whose `index` is the place of the cover among the images, from 0. The books above name their title this way.
+
+```ts
+const shelf = document.querySelector('.shelf')
+const title = document.querySelector('.shelf-title')
+const names = [...shelf.querySelectorAll('img')].map(
+  (img) => img.alt.split(' by ')[0],
+)
+
+shelf.addEventListener('dio:index', (e) => {
+  title.textContent = names[e.detail.index]
+})
+```
+
+### Buttons for the next and the previous cover
+
+Set `index` on the instance; the row glides there in `duration` per cover.
+
+```ts
+const row = document.querySelector('.work')
+
+document.querySelector('.next').addEventListener('click', () => {
+  const flow = app.effects.get(row, 'coverflow')
+  flow?.set({ index: Math.round(flow.params.index) + 1 })
+})
+```
+
+## Notes
+
+Write the row as a list of links around images, styled as the row you want without WebGL: a strip that scrolls sideways. Each cover takes the size of its image in that strip and stands at its height, so books of different heights keep their line, and its picture is cut like the image, with the image's own `object-fit` and `object-position`. The corners follow the `border-radius` of the first image. The covers to the sides and the reflection reach past the box of the list: leave room under it for the reflection, about half the height of a cover.
+
+The copy hides the list, its background included, so put a background on a parent. A click on a drawn cover is caught by the effect, since the link under the pointer in the hidden list is another one: a click on a side cover brings it to the middle, a click on the middle one follows its link, with Ctrl or Cmd in a new tab. An image without a link fires `dio:open` instead, for a page that opens its own viewer.
+
+The links stay in the page in order, each with its image's alt text. Tab moves through them and the row follows the focused one; the arrow keys, PageUp, PageDown, Home and End move the row and the focus with it, and Enter opens the cover in the middle. Without links give the list `tabindex="0"` and an `aria-label` that says how to move on.
+
+A drag with a mouse always carries the row. On touch screens set `touch-action: pan-y` on the list so the row follows the finger while the page still scrolls up and down; without it the browser scrolls the hidden list itself and the row follows that scroll. A wheel turned up and down always scrolls the page; only a sideways wheel or a two-finger swipe on a trackpad moves the row.
+
+`style` and `items` rebuild the effect when they change. Set them in the markup rather than switching them while the row is on screen.

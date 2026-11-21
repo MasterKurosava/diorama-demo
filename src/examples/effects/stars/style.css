@@ -1,0 +1,64 @@
+/* An event card: the starfield fills the left half, the details sit beside it. Nothing sits over
+   the stars, because the docs canvas is above the page. */
+.st-event {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #0b1024;
+  color: #e6e9f5;
+  font: 400 14px / 1.5 var(--font-text);
+}
+/* The look without WebGL: the sky color with a few fixed stars. */
+.st-sky {
+  background:
+    radial-gradient(1.2px 1.2px at 18% 24%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 62% 38%, #fff 50%, transparent),
+    radial-gradient(1.4px 1.4px at 40% 72%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 82% 64%, #fff 50%, transparent), #050816;
+}
+.st-info {
+  align-self: center;
+  padding: 0 9%;
+}
+.st-kicker {
+  margin: 0 0 8px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9fb3ff;
+}
+.st-info h2 {
+  margin: 0 0 14px;
+  font: 600 clamp(20px, 2.6vw, 28px) / 1.15 var(--font-display, var(--font-text));
+  color: #fff;
+}
+.st-info dl {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 14px;
+}
+.st-info dt {
+  font: 500 10px / 1.4 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8b93b8;
+}
+.st-info dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+.st-info p:last-child {
+  margin: 0;
+  color: #b7bdd6;
+}
+@media (max-width: 640px) {
+  .st-event {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .st-info {
+    padding: 16px 20px 20px;
+  }
+}

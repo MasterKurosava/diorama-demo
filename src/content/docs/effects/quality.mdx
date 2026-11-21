@@ -1,0 +1,142 @@
+---
+title: Quality tiers
+description: How the quality plugin picks a low, medium or high tier for each device and how effects follow it.
+section: effects
+order: 1
+label: Quality
+related: [guides/performance, concepts/frames]
+---
+
+The `quality` plugin picks a tier for each device from its GPU, lowers it when the browser misses frames while the page draws, and bounds the pixel ratio for each tier. Effects read the tier and cap their params by it. `start()` installs it for you: it loads with the engine, about 2 KB, and adds nothing to your main bundle.
+
+## What a tier changes
+
+A tier changes two things: how many device pixels the canvas draws, and the most each effect asks of the GPU. Every ready-made effect runs on every tier, so a weak device gets the same page, drawn more cheaply.
+
+| Tier     | Pixel ratio, at most          | Params                                  |
+| -------- | ----------------------------- | --------------------------------------- |
+| `low`    | 1                             | capped by each effect's low caps        |
+| `medium` | 1.5                           | capped by each effect's medium caps     |
+| `high`   | the screen's own, up to 2     | as you set them                         |
+
+A cap lowers a value above it and never raises one. Some of the caps:
+
+- `confetti`: at most 80 pieces a burst on low, 140 on medium.
+- `gradient`: at most 15 frames a second and one layer of noise on low, 24 frames on medium.
+- `visualizer`: at most 20 frames a second and 24 bars on low, 30 frames on medium.
+- `text-reveal`: no blur on low, and the text rastered at 1 device pixel per CSS pixel instead of 2.
+
+Each effect page lists its own under Cost and quality. Antialiasing does not follow the tier: `antialias: 'auto'` decides it once, when the renderer starts.
+
+Pin a tier below and fire a burst at it. The effect and its markup stay the same; only the cap on `count` moves. Leaving the page hands the tier back to detection.
+
+<Example id="effects/quality" description="A confetti cannon that fires 80, 140 or 200 pieces as the tier is pinned to low, medium or high." aspect="16 / 7" show={['html']} controls={[]} variants={[]} />
+
+## How the tier is picked
+
+The tier is set once the engine starts, from the GPU name the browser reports and a few facts about the device. Nothing is measured yet, so the first frame already draws at the right cost.
+
+| GPU                                         | Tier                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| Software renderer, such as SwiftShader      | `low`                                                            |
+| Phone or tablet: Mali, Adreno, PowerVR, Apple GPU | `medium`, or `low` with 3 GB of memory or less, or 4 cores or less |
+| Integrated: Intel HD, UHD, Iris, Radeon Graphics | `medium`                                                   |
+| Apple M series                              | `high`                                                           |
+| Discrete: NVIDIA, Radeon RX, Arc            | `high`                                                           |
+| Unknown or hidden                           | `high` with a mouse, `medium` on a touch device                  |
+
+A screen at pixel ratio 3 or more with over 1.5 million device pixels starts one step lower, at `medium` instead of `high`. The tier is kept in `sessionStorage` for the GPU, so the next page of the visit starts where the last one settled.
+
+## Adapting to slow frames
+
+While the page draws, the plugin watches how often the browser paints, not how often Diorama draws: frames run on demand, so their own rate says nothing. When over a quarter of the browser's frames take longer than one and a half screen refreshes across 2 seconds of drawing, the tier goes one step down.
+
+- It waits out the moments that are slow anyway: 0.5 s after a new effect compiles, a resize or a page change, and 1 s after the tier changes.
+- It steps down at most twice per page load and never goes back up during the visit, so the page does not flicker between tiers.
+- It stops watching at `low`, on a pinned tier, and with `adapt: false`.
+
+## Set the tier in `start()`
+
+Pin a tier for every device, for example on a page whose scene is too heavy for the high tier anywhere.
+
+```ts title="src/diorama.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start({ quality: 'medium' })
+```
+
+Keep detection and change how it behaves with an object. This one keeps the detected tier for the whole page and lets the medium tier draw at a pixel ratio of 1.25.
+
+```ts title="src/diorama.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start({
+  quality: {
+    adapt: false,
+    pixelRatio: { low: 1, medium: 1.25, high: 2 },
+  },
+})
+```
+
+`quality: false` leaves the plugin out: every effect draws as at the high tier, with no caps and no step down.
+
+## Change it while the page runs
+
+`app.quality` exists once the engine runs, so wait for `app.effects.load()`, which resolves `false` when 3D is unavailable. This battery saver switch in a site's settings pins the low tier and hands the choice back to detection when it is turned off.
+
+```ts twoslash
+import { start } from 'dioramajs'
+const app = start()
+// ---cut---
+const saver = document.querySelector<HTMLInputElement>('#battery-saver')
+if (saver)
+  saver.addEventListener('change', async () => {
+    if (!(await app.effects.load())) return
+    app.quality.set(saver.checked ? 'low' : 'auto')
+  })
+```
+
+`app.quality.tier` and `app.quality.reason` are signals: the tier now, and why it is what it is, `'detected'`, `'pinned'`, `'slow'` or `'remembered'`. The `quality:tier` event fires when the tier changes, which lets your CSS follow it too.
+
+```ts twoslash
+import { start } from 'dioramajs'
+const app = start()
+// ---cut---
+app.on('quality:tier', ({ tier }) => {
+  document.documentElement.dataset.quality = tier
+})
+```
+
+```css
+/* Frosted panels cost as much as an effect: drop them on the low tier. */
+html[data-quality='low'] .panel {
+  backdrop-filter: none;
+  background: rgb(18 18 28 / 0.92);
+}
+```
+
+## Caps in your own effects
+
+Give your own effect a `quality` option with caps per tier, and `min` for the lowest tier it should run at. Below `min` the instance is off and the element stays plain HTML. A param that setup reads, such as a mesh's detail, belongs in `rebuild`, so the effect is set up again when its cap changes.
+
+```ts title="src/effects/lift.ts" twoslash
+import { effect } from 'dioramajs'
+import { vec3 } from 'three/tsl'
+
+export default effect(
+  { height: 40, detail: 64 },
+  {
+    rebuild: ['detail'],
+    quality: { low: { detail: 16 }, medium: { detail: 32 } },
+  },
+  ({ surface, params, u }) => {
+    surface.segments(params.detail)
+    surface.position((position, uv) => {
+      const near = uv.sub(u.pointer).length().oneMinus().max(0)
+      return position.add(vec3(0, 0, near.mul(u.hover, u.height)))
+    })
+  },
+)
+```
+
+Inside setup, `quality` holds the tier for a cost that is not a param, such as the size of an offscreen buffer. Reading it there sets the effect up again when the tier changes.

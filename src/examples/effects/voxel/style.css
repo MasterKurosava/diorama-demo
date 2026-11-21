@@ -1,0 +1,32 @@
+.vx-shop {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 8%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(70% 80% at 85% 10%, #4f8bff 0%, transparent 70%),
+    linear-gradient(165deg, #2a63e8 0%, #1840b8 100%);
+  color: #f4f7ff;
+}
+.vx-shop .vx-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffe58a;
+}
+.vx-shop .vx-title {
+  max-width: 11ch;
+  margin: 0;
+  font: 900 clamp(2.6rem, 11cqi, 7.5rem) / 0.98 var(--font-text);
+  letter-spacing: -0.02em;
+  color: #ffd23f;
+}
+.vx-shop .vx-line {
+  max-width: 40ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #d9e4ff;
+}

@@ -1,0 +1,60 @@
+---
+effect: ambient
+example:
+  description: A short product film of a lounge chair on a dark page, with a soft glow in the film's colors around it.
+  aspect: 16 / 10
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Cards with a shadow in their own colors
+
+The `shadow` style drops the light below the box, narrower than it, like a drop shadow tinted by the picture. It reads on light pages too, so it suits book covers, album art and product cards, where a grey `box-shadow` looks flat. Raise `strength` on a light page so the tint reads. An image takes its colors once and draws no more frames.
+
+<Example id="effects/ambient/cards" description="Three cards on a light page, each with a soft shadow in the colors of its picture: blue, brass and green." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+### A video from another origin
+
+The light is read from the frame's pixels, and a browser lets a page read them only from a video of its own origin or one served with CORS. Add `crossorigin="anonymous"` to the video and have the CDN send `Access-Control-Allow-Origin` for your site. Without it the video plays as usual and the effect stops with [`EFFECT_CORS`](/docs/errors/effect-cors).
+
+```html
+<video
+  src="https://cdn.example.com/films/lounge.mp4"
+  crossorigin="anonymous"
+  controls
+  playsinline
+  preload="metadata"
+  data-dio="ambient"
+></video>
+```
+
+### Many videos on one page
+
+Each update draws the frame into a small canvas and reads it back on the CPU, by default 10 times a second while the video plays. For a grid of previews, lower `fps`, or set it to 0 so the light changes only on start, pause and seeking. `smooth` lets each change flow over more time, so fewer updates still look continuous.
+
+```html
+<video
+  src="/media/film/lounge.mp4"
+  poster="/media/film/lounge.webp"
+  muted
+  loop
+  playsinline
+  preload="metadata"
+  data-dio="ambient"
+  data-dio-fps="3"
+  data-dio-ease="1"
+></video>
+```
+
+## Notes
+
+The video stays a plain `<video>`: native controls, captions from `<track>`, fullscreen and picture-in-picture work as without the effect. A film without sound still needs a text alternative, such as an `aria-label` or a sentence next to it, as the example has.
+
+The glow lies outside the element's box and is not cut by an ancestor's `overflow: hidden`, unlike `box-shadow`. Leave room around the video for `spread`, which reaches at most 240 px, and keep text out of that space. The effect suits dark pages best; on a light page use the `shadow` style or lower `strength`.
+
+Before the first frame is decoded the light takes the poster's colors, so a video with `preload="metadata"` and a poster glows before it plays and downloads only its metadata.
+
+`style` and `resolution` rebuild the effect when they change. Set them in the markup.

@@ -1,0 +1,213 @@
+---
+title: Loading and preloading
+label: Loading
+description: Share one cache for images and models, preload the next page on intent, and drive a preloader from the progress of the first screen.
+section: guides
+order: 11
+related: [guides/routers, guides/models, guides/performance]
+---
+
+Every image an effect shows, every model and every preload goes through one cache with progress. This guide covers what the cache keeps, how to preload the next page and how to build a preloader with a scroll lock.
+
+## The cache
+
+`start()` adds the cache, and effects use it without code. The same URL decodes once, however many effects show it. An entry lives while something holds a lease on it; when the last lease goes, the entry stays for reuse up to `retain` bytes, 32 MB by default, and the least recently used go first. A model or cover seen on the previous page comes back without a request.
+
+Inside an effect, load through the context: `ctx.texture(url)` for a texture and `ctx.model(url)` for a glTF. Their leases end with the effect, so nothing leaks when the element leaves.
+
+```ts title="src/effects/paper.ts" twoslash
+import { effect } from 'dioramajs'
+import { texture as sample, uv } from 'three/tsl'
+
+export default effect(
+  { grain: 0.2 },
+  async ({ surface, texture, u }) => {
+    const noise = await texture('/textures/paper.avif', {
+      colorSpace: 'linear',
+    })
+    surface.color((color) =>
+      color.mul(sample(noise, uv()).r.mul(u.grain).oneMinus()),
+    )
+  },
+)
+```
+
+Outside effects, `app.assets.load(url)` returns a lease at once. The type comes from the extension, or from `type`: `image`, `texture`, `gltf`, `ktx2`, `buffer` or `json`.
+
+```ts twoslash
+import { ready, start } from 'dioramajs'
+
+const app = await ready(start())
+// ---cut---
+const data = app.assets.load('/data/stations.json', { type: 'json' })
+const stations = await data.ready
+// Later, when the page no longer needs it:
+data.release()
+```
+
+`ready` rejects with `ASSET_LOAD`, `ASSET_PARSE`, `ASSET_TYPE` or `ASSET_DECODER`; the same failure is reported once through the app. `ready(app)` from `dioramajs` resolves when the app runs, so `app.assets` exists.
+
+## Preload the next page on intent
+
+Put the files of the next page in `data-dio-preload` on the link, separated by spaces. Hovering the link for 65 ms, focusing it or touching it puts them in the cache, so the cover is decoded by the time the flight lands.
+
+```html title="work.html"
+<a
+  href="/work/aurora"
+  data-dio-preload="/img/aurora-cover.avif /models/aurora.glb"
+>
+  <img
+    src="/img/aurora-thumb.avif"
+    data-dio="image"
+    data-dio-key="aurora"
+  />
+</a>
+```
+
+Images from another origin that the page shows with `crossorigin` must be preloaded in the same CORS mode, or the cache misses and the cover loads twice. Add `crossorigin` to the link; models in the same list load as usual.
+
+```html
+<a
+  href="/work/aurora"
+  data-dio-preload="https://cdn.example.com/aurora.avif"
+  crossorigin
+>Aurora</a>
+```
+
+Under Save-Data and on 2G connections nothing preloads.
+
+## Preload from router code
+
+When the router has already fetched the next page, pass its document to `app.assets.preload()`. It takes the images with `data-dio` or `data-dio-key` and the URLs in `data-dio-preload`. An image inside `<picture>` picks the same source and size the new page picks.
+
+```ts twoslash
+import { ready, start } from 'dioramajs'
+
+const app = await ready(start())
+const url = '/work/aurora'
+// ---cut---
+const html = await (await fetch(url)).text()
+const next = new DOMParser().parseFromString(html, 'text/html')
+app.assets.preload(next, { base: url })
+```
+
+Pass the URL of the next page as `base`. A parsed document has the address of the current page, so `img/cover.avif` on `/work/aurora/` would otherwise resolve against `/work`. A page URL is not an asset: `preload('/work/aurora')` warns with `ASSET_TYPE` in development.
+
+- Only the latest preload of each kind is held: one from markup and one from code. The previous one is released, and its entries stay in the cache within `retain`.
+- Preloads run at low priority and wait while a flight is in the air, so the flight's frames stay smooth. A cover the landing target already needs decodes at once.
+- A failed preload does nothing visible: the page loads the file itself and reports a failure then.
+
+The [routers guide](/docs/guides/routers#recipes) has the preload line for Astro and Swup.
+
+## Progress of the first screen
+
+`app.assets.progress` is a signal from 0 to 1 for the current wave of work. During `start()` effects put their first screen into it: the engine, the renderer and the images of effects near the viewport. Models and textures loaded at normal or high priority join the wave; preloads do not move it. Within a wave progress never goes back, and it reaches 1 when `app.assets.ready()` resolves.
+
+Add your own work to the wave with `track()`, for example web fonts. `weight` is in bytes, 100 000 by default.
+
+```ts twoslash
+import { ready, start } from 'dioramajs'
+
+const app = await ready(start())
+// ---cut---
+app.assets.track(document.fonts.ready, { weight: 60_000 })
+```
+
+## Build a preloader
+
+The page below shows a bar while the first screen loads, locks scroll and fades the preloader out once everything is ready.
+
+```html title="index.html"
+<div id="preloader">
+  <div id="bar"></div>
+</div>
+```
+
+```css title="src/preloader.css"
+html.is-loading {
+  overflow: hidden;
+}
+#preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: #0b0b10;
+  transition: opacity 0.6s;
+}
+#bar {
+  width: 40vw;
+  height: 2px;
+  background: #f4efe6;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+```
+
+```ts title="src/main.ts" twoslash
+import { ready, start } from 'dioramajs'
+
+const root = document.documentElement
+root.classList.add('is-loading')
+
+const preloader = document.querySelector<HTMLElement>('#preloader')
+const bar = document.querySelector<HTMLElement>('#bar')
+
+export const app = start()
+
+async function boot(): Promise<void> {
+  try {
+    await ready(app)
+    app.assets.track(document.fonts.ready)
+    const off = app.assets.progress.subscribe((p) => {
+      if (bar) bar.style.transform = `scaleX(${p})`
+    })
+    // The engine, first-screen images, models and fonts. Never rejects.
+    await app.assets.ready()
+    off()
+  } finally {
+    // Unlock even if the app fails: the page works as plain HTML.
+    root.classList.remove('is-loading')
+    preloader?.addEventListener(
+      'transitionend',
+      () => preloader.remove(),
+      { once: true },
+    )
+    if (preloader) preloader.style.opacity = '0'
+  }
+}
+void boot()
+```
+
+<Example id="preloader" description="A preloader over three prints: once the engine is ready its bar fills a third for each print that arrives over a slow network, then the preloader fades out." aspect="2 / 1" show={['script', 'html']} />
+
+Without WebGPU or WebGL 2, or under Save-Data, the engine does not load and the wave ends at once, so the preloader does not hang.
+
+With Lenis, `overflow: hidden` on the root does not stop wheel scrolling. Stop Lenis instead and start it in the same `finally`.
+
+```ts twoslash
+import { ready, start } from 'dioramajs'
+import Lenis from 'lenis'
+
+const lenis = new Lenis()
+export const app = start({ lenis })
+
+lenis.stop()
+await ready(app)
+  .then(() => app.assets.ready())
+  .finally(() => lenis.start())
+```
+
+## A bar without JavaScript
+
+Mark any element with `data-dio-progress` and it gets the custom property `--dio-progress`. Diorama writes nothing else into it.
+
+```html
+<div
+  data-dio-progress
+  style="transform: scaleX(var(--dio-progress, 0))"
+></div>
+```
+
+The bar follows the page loading: the first wave, and the wave of each page change, from 0. Pictures that load later as the visitor scrolls move `app.assets.progress` but not the bar, so it never jumps back in the middle of a scroll.

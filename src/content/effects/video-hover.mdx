@@ -1,0 +1,45 @@
+---
+effect: video-hover
+example:
+  description: Three film thumbnails in a grid; resting the pointer on one crossfades it into a muted preview of the film, and leaving fades back to the still.
+  aspect: 16 / 7
+  controls: [duration, delay]
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Footage you browse by the pointer
+
+With `data-dio-scrub="pointer"` the video does not play. The pointer's position across the thumbnail picks the moment, from `from` at the left edge to the end at the right, and a thin bar along the bottom shows where you are. Stock footage libraries and video editors use it so a visitor can see the whole clip in a second. `delay` is 0 here, so the first move already loads the clip.
+
+<Example id="effects/video-hover/scrub" description="One clip of a plain at night with light beams; moving the pointer across it from left to right steps through the clip, and a bar at the bottom follows." aspect="16 / 9" show={['html']} controls={[]} variants={[]} />
+
+Seeking jumps to the nearest keyframe and decodes from there, so encode scrub clips with a keyframe every half second or so, for example with `-g 12` in ffmpeg at 25 fps. The preview files in these examples are encoded that way.
+
+### WebM first, MP4 as a fallback
+
+`src` takes several URLs separated by spaces, and the browser plays the first one it supports, as with `<source>` elements. Put the smaller WebM first and an H.264 MP4 after it for browsers without WebM.
+
+```html
+<img
+  src="/films/trailer.webp"
+  data-dio="video-hover"
+  data-dio-src="/films/trailer.webm /films/trailer.mp4"
+  data-dio-from="12"
+/>
+```
+
+`from` skips an intro or a black opening: here the preview begins 12 seconds in.
+
+## Notes
+
+The thumbnail stays a plain `<img>`, so its `alt`, `srcset`, lazy loading and the link around it work as without the effect. The preview repeats what the image shows, so it adds no text of its own. Hovering the link or button around the image plays the preview too, and keyboard focus on that link plays it as well.
+
+Nothing about the video is downloaded until the pointer has rested on the card for `delay`, so a pointer passing over a grid of thirty cards loads nothing. After that the browser keeps what it has buffered, and the second hover starts at once. Keep preview files short and small: the films here are 5 seconds at 640 pixels wide, about 300 KB each.
+
+A video from another origin needs CORS headers: the effect loads it in CORS mode, and without `Access-Control-Allow-Origin` it fails to load. A development warning `EFFECT_MEDIA` names the URL, and the image stays as it is.
+
+`src` and `scrub` rebuild the effect when they change. Set them in the markup.

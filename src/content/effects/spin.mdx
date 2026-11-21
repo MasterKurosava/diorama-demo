@@ -1,0 +1,75 @@
+---
+effect: spin
+example:
+  description: A rangefinder camera in 36 photos taken around it, turned by a drag, the pointer or the arrow keys.
+  caption: Drag the camera, or focus it and press the arrow keys. Switch by to hover and move the pointer across it instead.
+  controls: [sensitivity, spin, inertia, reverse, blend, hint]
+related:
+  - guides/performance
+  - guides/loading
+---
+
+## Recipes
+
+### A product shot that turns
+
+Shoot or render the product in a circle, every 5° to 10°, and name the files in turning order. The first frame is the `<img>`: it shows before the frames load, without WebGL and with reduced motion. `tabindex="0"` lets the arrow keys turn it, and `touch-action: pan-y` lets a finger turn it sideways while a vertical swipe still scrolls the page.
+
+```html
+<img
+  src="/spin/camera/01.avif"
+  data-dio="spin"
+  data-dio-frames="/spin/camera/{01..36}.avif"
+  tabindex="0"
+  style="touch-action: pan-y"
+/>
+```
+
+Say how to turn it in the `alt` or next to the picture. Nothing on the poster shows that it turns until the hint plays.
+
+### Buttons for the views that sell it
+
+The effect writes `frame` as the visitor turns the product and goes to any `frame` the page writes. Buttons for front, side and back step the handle there the short way round, and a drag carries on from wherever they leave it.
+
+<Example id="effects/spin/angles" description="The rangefinder camera with buttons for the three-quarter, front, side and back views, which turn it there frame by frame." aspect="3 / 2.3" show={['html', 'script']} controls={[]} variants={[]} />
+
+### Fewer requests with an atlas
+
+Thirty-six files mean thirty-six requests. Put the frames into atlas pages instead, read cell by cell, left to right and top to bottom. Two pages of 6 × 6 hold 72 frames, and `.ktx2` pages stay compressed on the GPU, so an atlas keeps no frames decoded on the CPU.
+
+```html
+<img
+  src="/spin/camera/01.avif"
+  data-dio="spin"
+  data-dio-atlas="/spin/camera-{0..1}.ktx2"
+  data-dio-grid="6 6"
+  tabindex="0"
+  style="touch-action: pan-y"
+/>
+```
+
+### Sparse sets and products that turn by themselves
+
+With 24 frames or fewer, each step jumps visibly. `blend` cross-fades two neighbors by the fraction of the turn, which smooths a sparse set but reads as ghosting on a dense one, so it is off by default. `spin` turns it, in degrees a second, until the first touch, for a hero shot or a card that should catch the eye.
+
+```html
+<img
+  src="/spin/vase/01.avif"
+  data-dio="spin"
+  data-dio-frames="/spin/vase/{01..18}.avif"
+  data-dio-blend="true"
+  data-dio-spin="36"
+  tabindex="0"
+  style="touch-action: pan-y"
+/>
+```
+
+## Notes
+
+Frames decode off the main thread, and only `cache` of them stay decoded around the current one. A 36-frame set of 960 × 640 AVIF files weighs about 630 KB here; the `low` tier loads half the frames at up to 960 px. Decide on `density` before you shoot more frames: 0.5 loads every second one.
+
+The product stops on the frame where the pointer lets go. `inertia` adds a coast after a flick: the product turns on as far as the flick carries it in that many seconds and eases out onto a whole photo, cross-fading neighbor frames on the way so it slows down without stepping. Try 0.3 to 0.5; reduced motion turns the coast off.
+
+`by` set to `hover` turns the product as the mouse moves over it, without a press. Touch screens have no hover, so a finger still drags it. `manual` leaves the pointer to the page entirely: keys, `frame` and `spin` turn it.
+
+Rows of viewing angles work the same way: shoot one circle per height, set `rows`, and a vertical drag moves between them. Rows need `touch-action: none`, since a vertical swipe turns the product instead of scrolling.

@@ -1,0 +1,44 @@
+---
+effect: orbit
+example:
+  description: A night market poster whose words circle a painted paper lantern on a tilted ring, passing behind it and in front of it again.
+  caption: Switch the style and what turns it, or move the sliders. With by drag, grab the ring and flick it.
+  aspect: 16 / 9
+  controls: [radius, tilt, roll, speed, fade]
+  variants: [style, by]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A headline on a drum that turns with the scroll
+
+The default `cylinder` style wraps the line around a drum, like a label on a spinning can. The letters in front sit where the heading would be, at its size, and the ones on the far side show mirrored through the gaps, smaller and fainter. With `by="scroll"`, the default, the drum turns as the page scrolls and reads straight on when the heading is in the middle of the screen. Keep the heading on one line with `white-space: nowrap`: each line of the element becomes a band of its own.
+
+<Example id="effects/orbit/drum" description="A design studio's headline in ivory capitals wrapped around a drum on a dark page, its far side showing mirrored behind the front letters." aspect="16 / 8" show={['html']} controls={['radius', 'tilt', 'fade']} variants={[]} />
+
+### A globe of text to spin by hand
+
+`style="sphere"` covers a globe with rows of the text from pole to pole, offset like bricks. With `by="drag"` the visitor grabs it and flicks it, and it coasts to a stop. Give the element a square box. On touch screens a finger spins it only where the element has `touch-action: pan-y` or `none`, so the page still scrolls.
+
+<Example id="effects/orbit/globe" description="A shop's shipping note beside a blue globe made of the words Shipping to 48 countries, which you can spin with the pointer." aspect="16 / 8" show={['html']} controls={['radius', 'tilt', 'fade']} variants={[]} />
+
+### A slow spinning badge
+
+A short label on a small drum, turning by itself in the corner of a hero, points the way down the page. `pause` stops it under the pointer and keyboard focus, so a visitor can read it, and it costs no frames while it is off screen.
+
+```html
+<a class="badge" href="/work" data-dio="orbit" data-dio-by="auto" data-dio-radius="0.9" data-dio-tilt="20">Scroll to explore ✦</a>
+```
+
+## Notes
+
+The form is real 3D seen through the page camera: a drum near the top of the screen shows more of its underside than one near the bottom, and the ring comes toward the viewer as it passes in front. Each letter is a small mesh bent around the form and lit by its normal, with a beveled edge that catches a highlight as it turns toward the light. `fade` dims the far side with depth.
+
+The text stays real in the DOM, once: screen readers read it, search engines index it and find in page works. The copies that fill the circle are drawn only. While the form is drawn, a CSS filter hides the element without removing it, so a background or border on the element itself is hidden too; put them on a wrapper. Images inside the element are drawn with the form, in their place, and the ring passes behind and in front of them. A transparent cutout such as a product shot reads best.
+
+With `by="scroll"` or `by="drag"` nothing is drawn while the form stands still. With `by="auto"` it turns at up to `fps` frames a second while on screen. Under reduced motion the form holds still with the front of the text toward the viewer; a drag still turns it, without the coast.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does; such text stays as it is, with a warning in development. `style` and `by` rebuild the effect; the other params change live.

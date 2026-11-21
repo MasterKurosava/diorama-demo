@@ -1,0 +1,58 @@
+---
+code: EFFECT_TARGET
+level: warning
+message: '"{effect}" applies to "{target}" only'
+summary: An effect does not fit the element it is on, or two owners compete for one element, layer or copy.
+---
+
+## Why it happens
+
+- A media effect is on an element that is not `img` or `video`. Effects with `media: true`, such as `image`, `ripple` and `bend`, draw only on those, so the target in the message is `img, video`. The instance becomes `failed` and the element stays plain DOM.
+- The element does not match the `on` selector of the definition. The target in the message is that selector.
+- Setup reads `ctx.map` in an effect without `media: true`. This one is thrown inside setup and reported as an error, `"{effect}" reads ctx.map: declare media: true`, and the instance fails.
+- A second Diorama app finds an element the first app already owns: `element is taken by another app`. Two apps never share an element, so the second one skips it.
+- Two effects on one element call `ctx.place()` with `replace: true`. The later object is hidden: `"{effect}": the element already has a replace object; this one is hidden`.
+
+In development builds the same code also reports these cases:
+
+- Two effects pose one layer with `ctx.pose()`, and the later pose wins.
+- `app.effects.take()` runs on an element whose copy is already taken: `the copy is taken already: one owner per element`.
+- A copy taken without a `signal` stays a ghost or veiled with no writes for 10 s, so Diorama releases it: `a taken copy was abandoned`.
+- The update of a leaving copy throws, and the copy is released.
+- The element has `object-fit: none` or `scale-down`, which draw as `contain`, an `object-position` value other than keywords and percentages, which draws at the center, or corners with different radii, where the largest radius is drawn.
+
+## How to fix
+
+Put media effects on the image or video itself, not on its wrapper:
+
+```html nocheck
+<figure data-dio="ripple">
+  <img src="/img/cover.avif" />
+</figure>
+```
+
+```html
+<figure>
+  <img src="/img/cover.avif" data-dio="ripple" />
+</figure>
+```
+
+In your own effect, declare `media: true` before reading `ctx.map`:
+
+```ts
+import { effect } from 'dioramajs'
+
+export default effect({}, { media: true }, ({ map }) => {
+  map.anisotropy = 4
+})
+```
+
+For two apps on one page, give each its own subtree with the `root` option of `effects()`. For copies you take, pass a `signal` and release the copy when you are done with it.
+
+## Related
+
+- `EFFECT_SETUP`
+- `EFFECT_UPDATE`
+- `ctx.map`
+- `ctx.place()`
+- `app.effects.take()`

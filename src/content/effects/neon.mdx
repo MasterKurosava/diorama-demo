@@ -1,0 +1,44 @@
+---
+effect: neon
+example:
+  description: A basement bar's headline as a pink neon sign on a dark wall, its tubes stuttering on letter by letter and lighting the wall behind them.
+  caption: Switch the style and the trigger, or move the sliders. Move the pointer near the sign to swing its shadow and turn it.
+  aspect: 16 / 8
+  controls: [glow, strength, depth, shadow, tilt, flicker, broken]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A menu that lights up on hover
+
+With `trigger="hover"` each link stays dark glass until the pointer or keyboard focus reaches it, then its tubes catch in a quick stutter; on a phone a tap switches it on. Each link takes its color from its CSS `color`. `flicker="0"` keeps a lit link steady, so it draws nothing while the pointer rests on it.
+
+<Example id="effects/neon/menu" description="A club menu of three uppercase links in red, cyan and lime that light up as neon when hovered." aspect="16 / 5" show={['html']} controls={[]} variants={[]} />
+
+### A motel sign with a dying letter
+
+`style="outline"` bends one thin tube along the edge of each letter, the classic roadside look. `broken` picks a share of the letters, at least one, that keep stuttering and go dark for a while now and then; `seed` decides which. Between two stutters the sign draws nothing.
+
+<Example id="effects/neon/motel" description="A red outline neon sign that reads Vacancy over a dark wall, one of its letters flickering out now and then." aspect="16 / 7" show={['html']} controls={['broken', 'seed']} variants={[]} />
+
+### On a light wall
+
+In daylight the light of the tubes on the wall gives way to their shadow. The sign reads the background color behind it: on a light wall the glow is softer and the shadow plainer, so a sign on a pale shop front still stands off the wall. A larger `depth` moves the tubes and their shadow further apart.
+
+```html
+<h2 data-dio="neon" data-dio-trigger="always" data-dio-flicker="0" data-dio-depth="0.2" data-dio-shadow="0.8">Fresh flowers</h2>
+```
+
+## Notes
+
+The sign is built in 3D, not painted: the tubes have a round section whose normals come from a distance field of the letters, so a highlight runs along each tube and slides as the light moves. They hang `depth` ems in front of the page, the light they throw lands on the wall behind them, and so does their shadow. The lamp for that shadow sits above the screen, so the shadow shifts as the page scrolls; a mouse near the sign takes its place, the shadow swings away from it and the sign turns a little toward it. The light on the wall is blurred once on the CPU when the sign is built, never per frame.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the sign is drawn the DOM text is hidden without being removed. Neon reads best in a medium or bold font and a saturated color on a dark background.
+
+Frames run while tubes switch on or off and while the lamp or the sign follows the mouse; a flickering tube asks for 30 a second. Between flickers a timer wakes the sign, and with `flicker` and `broken` at 0 a lit sign draws nothing. Under reduced motion the sign is lit from the start, with no turn-on, no flicker and no broken letters, and the shadow and the sign stay still.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. A `text-shadow` is fine: the sign draws its own light. `style`, `trigger` and `color` rebuild the effect when they change; a new `glow` blurs the light again after a short pause, and the other params change live.

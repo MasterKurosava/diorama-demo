@@ -1,0 +1,81 @@
+---
+title: How a flight flies
+label: Flights
+description: What happens between the click and the landing, from the snapshot and the swap to the copy that outlives its element and the takeover in the air.
+section: concepts
+order: 3
+related: [guides/routers, start/first-transition, concepts/frames]
+---
+
+A flight carries the picture of an element from one page to the element with the same key on the next, while the router replaces the DOM underneath. This page follows one flight from the click to the landing and explains the choices along the way. Browsers call the same idea a shared element transition.
+
+<Example id="flight-model" description="A model of one flight from the library defaults, with sliders for progress, duration and the takeover window, and a button that runs a real transition between a thumbnail and a cover in the box below it." aspect="4 / 3" controls={[]} show={["html", "script"]} caption="The model draws the thumbnail dark and the cover light, each with its share of the picture; the light curve is the share of the cover. The real flight takes the duration from the slider and keeps the takeover of the library." />
+
+## The snapshot
+
+Before the router touches the DOM, the transition takes a snapshot. For every drawn copy of a keyed element in view it records the box in viewport pixels, the corner radius, the opacity and the clip of any ancestor that cuts it. The transition takes those copies over: from now on it, not the element, decides where they are drawn.
+
+With the default `sources: 'hold'` the copies stay where the user saw them while the router animates the old page out. A thumbnail does not fade with its container, and a router that scrolls to the top during the swap does not move it, because its box is in viewport pixels.
+
+## The swap
+
+The router's swap runs once and synchronously. The old thumbnail element leaves the document, but its copy is not freed. It becomes a free copy: it keeps its mesh, material, texture and running instances, it is drawn at the box the transition gives it, and nothing ties it to the DOM any more.
+
+The new page's element with the same key is the target. Diorama hides its DOM with `data-dio-state="entering"` and builds its own copy hidden, so the cover loads and compiles while the thumbnail is in the air. The pair is now set: the free copy of the thumbnail and the hidden copy of the cover.
+
+## Why the same mesh flies
+
+An instance of an effect belongs to its element for life. Its setup closed over that element, its listeners and its children, and the cover has params, time and hover of its own. Moving the thumbnail's layer onto the cover would keep a running effect pointed at a dead node, and rebuilding it on the cover is what mounting the cover does anyway.
+
+So the thumbnail's own mesh flies, with its own texture, and the cover's copy is built beside it. The price is a second material for the length of the flight, and a second texture when the two images differ. In exchange every effect keeps its state, and the picture the user clicked is the one that moves.
+
+## The target is measured live
+
+The target's box is not read once. It is tracked every frame, so the flight follows the target when the router restores the scroll position on Back or when the new page's layout shifts while images load. Early in the flight the target's weight in the position is small, so such a jump hardly shows.
+
+The corner radius of the target is read once when the pair is made, from its computed `border-radius`. A target with no size yet, such as an `<img>` without `width` and `height` before its image arrives, holds the flight at the source pose; once it gets a size the flight continues from where it is.
+
+## Each frame of the flight
+
+Every frame, in the `layout` stage, the transition moves the free copy.
+
+```text
+p   = clamp((t - i * stagger) / duration, 0, 1)
+e   = ease(p)                      cubic in-out by default
+box = lerp(sourceBox, targetBox, e)
+```
+
+The radius, the clip and the opacity follow the same curve, the opacity towards the target's own CSS opacity. The crop follows the box: an image with `object-fit: cover` is cropped anew for every box on the way, so a 4:3 thumbnail opens into a 16:9 cover without stretching.
+
+The flight takes 0.8 seconds by default. It holds frames for its length, and once everything has landed the loop goes back to sleep.
+
+## The takeover
+
+Halfway through, a thumbnail and a cover are different pictures: different crops, different sizes of the same caption. If the cover appeared only after the landing, the user would see the thumbnail stop, then change.
+
+So the cover takes over in the air. As soon as its copy can be drawn, but not before 15 % of the flight, it flies under the thumbnail in the same box, clip and radius, with its own texture and crop. Its share of the picture rises with `smoothstep(0.15, 0.5, p)`, and the two are blended so together they always cover exactly what one copy would. By the middle of the flight the user already sees the cover the way it lands.
+
+A cover that becomes ready late takes over from that moment for at least 30 % of the flight. If the takeover has not finished by the landing, the rest plays as a crossfade in place.
+
+## The landing
+
+When `p` reaches 1 and the takeover is complete, both copies are released in the same frame. Nothing changes on screen: the cover's copy stays where it is, now as the cover's normal layer, and the free copy of the thumbnail is disposed.
+
+If the cover is not ready at the landing, the thumbnail waits on the target box for up to `wait` seconds, 2 by default, and keeps following it. Then the cover's DOM appears and the thumbnail fades over it for `crossfade` seconds, 0.25 by default. A target without effects lands the same way: the thumbnail fades into its DOM.
+
+If anything fails on the way, the HTML wins. The veil on the target comes off at the landing, on a failure, on a lost GPU device and when the app is destroyed, so the DOM is never left hidden.
+
+## Interruptions
+
+One transition runs at a time. When a new one starts in the middle of a flight, each key's visible copy becomes a source of the new transition from wherever it is:
+
+- before the takeover passes half, the free copy flies on; after it, the target's copy does;
+- a copy moving at speed carries its velocity into the new flight, adding `v * duration * p * (1 - p)^5` to the box, so it turns smoothly instead of stopping;
+- the new flight is shorter when the way back is shorter: its length is `duration * clamp(sqrt(path / previousPath), 0.3, 1)`;
+- a copy with no partner on the new page fades out where it is, slowing down as it fades.
+
+A long frame, such as the first compile of the cover's material, could make the next frame jump. The flight's clock advances by at most two display frames per frame, so a stall pauses the picture instead of skipping it.
+
+## Without motion
+
+Under reduced motion nothing flies. The free copy fades in place over 0.2 seconds and the target is not hidden: the new page shows its DOM, and its copies replace it as they get ready. Without WebGL or with the engine not loaded yet there are no copies to take, so the swap runs as a plain page change.

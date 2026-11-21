@@ -1,0 +1,31 @@
+.vt-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: 2cqi;
+  box-sizing: border-box;
+  padding: 0 7%;
+  background: #07090d;
+  color: #e9edf2;
+}
+.vt-hero .vt-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9aa6b4;
+}
+.vt-hero .vt-headline {
+  margin: 0;
+  font: 900 15cqi / 0.86 var(--font-text);
+  font-stretch: 75%;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #7fe0b8;
+}
+.vt-hero .vt-line {
+  max-width: 42ch;
+  margin: 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #c3ccd6;
+}

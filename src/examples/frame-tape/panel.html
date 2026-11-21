@@ -1,0 +1,16 @@
+<fieldset class="policy">
+  <legend>animate</legend>
+  <button type="button" data-policy="input" aria-pressed="false">'input'</button>
+  <button type="button" data-policy="hover" aria-pressed="true">'hover'</button>
+  <button type="button" data-policy="visible" aria-pressed="false">'visible'</button>
+</fieldset>
+<label><input class="reduce" type="checkbox" /> Reduced motion</label>
+<label><input class="hidden" type="checkbox" /> Hidden tab</label>
+<p>Frames: <output class="frames">0</output></p>
+<div class="tape" aria-hidden="true"></div>
+<p class="legend">
+  <span data-reason="none"></span> no frame
+  <span data-reason="invalidate"></span> invalidate
+  <span data-reason="hold"></span> hold
+  <span data-reason="timed"></span> timed
+</p>

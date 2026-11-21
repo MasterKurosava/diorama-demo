@@ -1,0 +1,57 @@
+---
+effect: liquid
+example:
+  description: Surf rolling onto a rocky shore; where the pointer passes, the picture bends as if under moving water, then settles.
+  caption: Move the pointer across the picture, or drag a finger over it. The trail fades on its own once you stop.
+  controls: [strength, radius, duration, swirl, shine, split]
+  variants: [style]
+related:
+  - learn/pointer
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A hero photo under water
+
+The default `water` style refracts the picture along the wake of the pointer and lights its edges with `shine`. It suits a studio landing page or a cover that should feel touchable without moving at rest.
+
+```html
+<img src="/studio/reef.avif" data-dio="liquid" />
+```
+
+### Covers smeared like wet paint
+
+`style="smear"` drags the picture along the path instead, like a finger through wet paint. A wider `radius` and a longer `duration` make the strokes linger on a portfolio grid; `swirl="0"` keeps them where they were drawn.
+
+```html
+<img
+  src="/work/poster.avif"
+  data-dio="liquid"
+  data-dio-style="smear"
+  data-dio-radius="120"
+  data-dio-duration="2.5"
+/>
+```
+
+### Color fringes on a product shot
+
+`style="prism"` smears the picture and splits the trail into red and blue fringes, as wide as `split` sets. With `touch-action: none` a finger draws without scrolling the page.
+
+```html
+<img
+  src="/drops/sneaker.avif"
+  data-dio="liquid"
+  data-dio-style="prism"
+  data-dio-split="2"
+  style="touch-action: none"
+/>
+```
+
+## Notes
+
+`liquid` reacts to movement, not to hover: a pointer resting on the image draws nothing, and the trail stills on its own about `duration` after the last move. `ripple` is the opposite: rings around the pointer for as long as it hovers.
+
+The trail is a small grid simulated on the CPU in fixed steps, so it looks the same at any frame rate and costs one extra texture read per pixel. Under reduced motion the effect is off and the image stays a plain `<img>`.
+
+`style` and `resolution` rebuild the effect; every other param changes live.

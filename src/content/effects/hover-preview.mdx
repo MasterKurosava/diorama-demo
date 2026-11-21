@@ -1,0 +1,73 @@
+---
+effect: hover-preview
+example:
+  description: An index of six design projects; the picture of the project under the pointer floats at the pointer and changes from row to row.
+  aspect: 3 / 2
+related:
+  - guides/performance
+---
+
+## Recipes
+
+### A preview column beside the list
+
+In `fixed` mode the picture holds one place: the middle of the list moved by `offset`, in CSS pixels, x and then y down. Lay the page out with a column for the preview and set `offset` to the distance between the list's middle and the column's. Here the list is 300 px wide and the column starts 40 px after it, so the picture moves 330 px to the right.
+
+<Example id="effects/hover-preview/column" description="Five project names on the left; the picture of the name under the pointer appears in the frame on the right and crossfades from one project to the next." aspect="3 / 2" show={['html']} controls={['width', 'offset', 'duration']} variants={[]} />
+
+### Keep srcset with an image inside the item
+
+Without `data-dio-src` the picture is the current source of the first `<img>` inside the item, so the browser picks the file from `srcset` and `sizes` as usual. Hide the image with the `hidden` attribute and give it an empty alt, since the name next to it says the same. Set `ratio` when every picture should share one frame.
+
+```html
+<ul
+  class="index"
+  data-dio="hover-preview"
+  data-dio-ratio="1.25"
+>
+  <li>
+    <a href="/work/outer-coast">Outer Coast
+      <img
+        src="/work/outer-coast-480.webp"
+        srcset="/work/outer-coast-480.webp 480w, /work/outer-coast-800.webp 800w"
+        sizes="320px"
+        hidden
+      />
+    </a>
+  </li>
+</ul>
+```
+
+### Names over the picture
+
+To put the names on top of the picture, draw the canvas under the page with `canvas: 'behind'` and give the names `mix-blend-mode: difference`, so they stay readable over light and dark pictures alike. The page has to be transparent where the picture shows: move its color from `body` to the `background` option.
+
+```ts
+import { start } from 'dioramajs'
+
+const app = start({ canvas: 'behind', background: '#f3e9d8' })
+```
+
+```html
+<ol
+  class="index"
+  data-dio="hover-preview"
+  data-dio-offset="40 -20"
+  data-dio-radius="8"
+>
+  <li data-dio-src="/media/work/polar-night.webp">
+    <a
+      href="/work/polar-night"
+      style="color: #fff; mix-blend-mode: difference"
+    >Polar Night</a>
+  </li>
+</ol>
+```
+
+## Notes
+
+The list stays the list you wrote: links, text selection and focus work as before, and on touch screens nothing loads. Keyboard focus shows the picture beside the focused item in every mode, so Tab through the example to see it. The pictures repeat what the names say, so they carry no alt text of their own.
+
+Each picture is decoded once and kept while it is near the item under the pointer, up to eight at a time. Files of 800 px or less on the long side keep the first appearance quick; the example uses 480 px pictures.
+
+`mode` and `items` rebuild the effect when they change. Set them in the markup rather than switching them while the pointer is over the list.

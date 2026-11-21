@@ -1,0 +1,48 @@
+---
+effect: hologram
+example:
+  description: "A satellite network launch page whose title is projected as a cyan hologram from an emitter disc, scanned in from the bottom."
+  caption: Switch the style and the trigger, or move the sliders. Move the pointer near the hologram to tip it toward you.
+  aspect: 16 / 8
+  controls: [layers, depth, scan, flicker, sway, tilt]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A call to action that powers up on hover
+
+With `trigger="hover"` the hologram rests at half power, still and readable, and powers up when the pointer or keyboard focus reaches it: the emitter brightens, the scan lines start to run and the text begins to sway. On a phone a tap switches it. Once the pointer leaves it powers down and draws nothing.
+
+```html
+<a href="/beta" data-dio="hologram" data-dio-trigger="hover" data-dio-color="#ffb84a">Join the beta</a>
+```
+
+### A holographic trading card
+
+`style="card"` mounts the slices on a dark card with a foil border and a glossy foil in front. Tip it with the pointer: the slices shift against each other behind the foil and a rainbow sheen sweeps across. The card keeps its last pose when the pointer leaves, so it draws nothing at rest.
+
+```html
+<h2 data-dio="hologram" data-dio-style="card" data-dio-color="#7cf3ff">Rare #07</h2>
+```
+
+### A ghost
+
+`style="ghost"` drops the projector: a pale, cool apparition that fades in from noise, drifts back and forth in depth and trails its echoes behind it. With `trigger="loop"` it keeps drifting while it is on screen.
+
+```html
+<h2 data-dio="hologram" data-dio-style="ghost" data-dio-trigger="loop">Apparition</h2>
+```
+
+## Notes
+
+The hologram is built in 3D, not painted: the text is a stack of `layers` translucent slices spread over `depth` ems in front of the page, the emitter is a disc lying below it and the cone of light a real cone between them. As the hologram sways and tips toward the pointer, the slices shift against each other in perspective and the depth shows. The emitter lights the page around it.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the hologram is drawn the DOM text is hidden without being removed. The default color is cyan; `color` takes any CSS color. On a light page the projection is drawn darker over the paper instead of adding light.
+
+With `trigger="view"` it draws frames only while it scans in, then rests; `hover` draws 30 frames a second while powered up; `loop` draws 30 a second while on screen and none off screen. Under reduced motion the hologram is still and at full power: no scan-in, no sweep, no flicker and no sway.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `trigger` and `color` rebuild the effect when they change; the other params change live.

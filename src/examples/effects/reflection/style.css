@@ -1,0 +1,29 @@
+/* A wall and a glossy shelf that meets it where the books stand. */
+.rf-shelf {
+  display: grid;
+  grid-template-rows: auto minmax(110px, 1fr);
+  min-height: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(#e2dbcd, #d3cab9);
+}
+.rf-wall {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: clamp(12px, 4%, 32px);
+  margin: 0;
+  padding: 28px 0 0;
+  list-style: none;
+  background: linear-gradient(#f7f4ee, #eee8dd);
+}
+.rf-wall li,
+.rf-wall li + li {
+  margin: 0;
+}
+.rf-wall img {
+  display: block;
+  width: clamp(80px, 21vw, 170px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+  box-shadow: 0 10px 24px -14px rgb(40 30 20 / 0.5);
+}

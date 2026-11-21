@@ -1,0 +1,38 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { blocks, inline as inlineMd } from '../lib/md.ts'
+import { load } from '../lib/tables.ts'
+
+interface Props {
+  readonly md: string
+  /** URL of the page itself: inline code never links to it. */
+  readonly self?: string
+  /** One run of text without a paragraph, to sit inside a sentence. */
+  readonly inline?: boolean
+}
+const { md, self, inline } = Astro.props
+const { linker } = load()
+const link = (code: string) => {
+  const href = linker.resolve(code)
+  return href && href.split('#')[0] !== self ? href : undefined
+}
+const list = inline ? [] : blocks(md, link)
+---
+
+{inline && <Fragment set:html={inlineMd(md.replace(/\s+/g, ' ').trim(), link)} />}
+
+{
+  list.map((b) =>
+    b.type === 'code' ? (
+      <Code code={b.code} lang={b.lang} />
+    ) : b.type === 'list' ? (
+      b.ordered ? (
+        <ol>{b.items.map((i) => <li set:html={i} />)}</ol>
+      ) : (
+        <ul>{b.items.map((i) => <li set:html={i} />)}</ul>
+      )
+    ) : (
+      <p set:html={b.html} />
+    ),
+  )
+}

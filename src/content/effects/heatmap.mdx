@@ -1,0 +1,52 @@
+---
+effect: heatmap
+example:
+  description: How full a climbing gym is by weekday and hour, as a heatmap of tiles that sweeps in on scroll.
+  aspect: 16 / 9
+  caption: Hover a cell for its value as written. The row and column of the hovered cell stay brighter than the rest.
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A year of activity
+
+The `calendar` mode reads rows of a date and a value and lays them out like a contributions chart: a column per week, a row per weekday, month names on top. The week starts on Monday or Sunday as the page's `lang` says. Days without a row stay empty.
+
+<Example id="effects/heatmap/calendar" description="A year of volunteer shifts as a calendar heatmap, busier on summer weekends." aspect="16 / 7" show={['html', 'script']} controls={['gap', 'radius', 'steps', 'dim']} variants={['style', 'motion']} />
+
+A date can be a `<time datetime>` in the cell, the cell's text in `2026-03-14` form, or `data-dio-date` on the cell. A `<dl>` of `<dt>` dates and `<dd>` values reads the same way.
+
+### Change on both sides of zero
+
+When values fall below and above zero, the scale turns into red for falls and blue for rises around a gray, with zero in the middle. `steps="0"` colors each value exactly instead of in bins.
+
+```html
+<table data-dio="heatmap" data-dio-steps="0">
+  <thead>
+    <tr>
+      <th>Region</th>
+      <th>Q1</th>
+      <th>Q2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><th>North</th><td>+12%</td><td>-4%</td></tr>
+    <tr><th>South</th><td>-9%</td><td>+3%</td></tr>
+  </tbody>
+</table>
+```
+
+### Several heatmaps on one scale
+
+Each heatmap takes its top from its own largest value. Give heatmaps that sit side by side the same `max` so their colors compare; `colors` sets the scale from the lowest value to the highest.
+
+## Notes
+
+The table is the source of truth. It stays in the page for screen readers and search engines, hidden only while the heatmap is drawn, and it shows as is without WebGL. A table grows to fit its rows whatever height it is given, so a long one needs `display: block` with a height and `overflow: auto`: the heatmap takes that box, and the plain table scrolls inside it.
+
+Numbers are read the way people write them, as in [`chart`](/docs/effects/chart): separators, a decimal comma, currency, `%` and suffixes. Zeros and empty cells stay faint, so gaps read as gaps. The default colors are one blue from light to dark that tells values apart with every common color vision deficiency; on a dark page the scale runs from dark to light. The legend under the cells names the lowest and the highest value.
+
+It draws only while the cells come in and for a few frames as a hovered cell fades in or out. Under reduced motion the heatmap stands complete from the first frame. Style the tooltip with `::part(tooltip)`.

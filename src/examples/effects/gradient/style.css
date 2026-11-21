@@ -1,0 +1,56 @@
+/* A launch card: the gradient fills the left part, the details sit beside it. Nothing sits over
+   the gradient, because the docs canvas is above the page. */
+.gd-launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #0b1020;
+  color: #e9e6f5;
+  font: 400 14px / 1.5 var(--font-text);
+}
+/* The look without WebGL: the same four colors as a CSS gradient. */
+.gd-wash {
+  background:
+    radial-gradient(60% 80% at 22% 30%, #3a2b8c 0%, transparent 70%),
+    radial-gradient(55% 75% at 80% 72%, #e35d6a 0%, transparent 70%),
+    radial-gradient(40% 55% at 72% 18%, #f6c177 0%, transparent 70%), #0b1d3a;
+}
+.gd-info {
+  align-self: center;
+  padding: 0 9%;
+}
+.gd-kicker {
+  margin: 0 0 8px;
+  font: 500 11px / 1.4 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f6c177;
+}
+.gd-info h2 {
+  margin: 0 0 12px;
+  font: 600 clamp(20px, 2.6vw, 28px) / 1.15 var(--font-display, var(--font-text));
+  color: #fff;
+}
+.gd-info p:not(.gd-kicker) {
+  margin: 0 0 18px;
+  color: #b9b4cf;
+}
+.gd-info a {
+  display: inline-block;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #f6c177;
+  color: #1a1030;
+  font-weight: 600;
+  text-decoration: none;
+}
+@media (max-width: 640px) {
+  .gd-launch {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .gd-info {
+    padding: 16px 20px 20px;
+  }
+}

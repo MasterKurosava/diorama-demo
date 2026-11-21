@@ -1,0 +1,42 @@
+/* Three book covers in the middle of the frame, the title under them. */
+.ex-root > .shelf {
+  position: relative;
+  top: 8%;
+  height: 72%;
+}
+.shelf {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+.shelf li {
+  flex: 0 0 auto;
+  height: 100%;
+}
+.shelf a {
+  display: block;
+  height: 100%;
+}
+.shelf img {
+  display: block;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 2px;
+}
+.shelf a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.shelf-title {
+  position: absolute;
+  bottom: 5%;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}

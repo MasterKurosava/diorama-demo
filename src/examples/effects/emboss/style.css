@@ -1,0 +1,45 @@
+.eb-desk {
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  background:
+    radial-gradient(80% 70% at 35% 25%, #3a3129 0%, transparent 70%),
+    linear-gradient(160deg, #2a231e 0%, #17130f 100%);
+}
+.eb-desk .eb-lift {
+  border-radius: 1cqi;
+  box-shadow:
+    0 0.4cqi 0.8cqi rgb(0 0 0 / 0.35),
+    0 2.4cqi 5cqi rgb(0 0 0 / 0.45);
+}
+.eb-desk .eb-card {
+  display: grid;
+  align-content: center;
+  gap: 1.1cqi;
+  box-sizing: border-box;
+  width: 64cqi;
+  aspect-ratio: 1.75;
+  padding: 0 6cqi;
+  border-radius: 1cqi;
+  background: #f2ede3;
+  color: #6b4a2b;
+}
+.eb-desk .eb-card p {
+  margin: 0;
+}
+.eb-desk .eb-name {
+  font: 800 max(28px, 7.4cqi) / 1 var(--font-text);
+  letter-spacing: -0.01em;
+  color: #1f2a44;
+}
+.eb-desk .eb-role {
+  margin-top: 0.8cqi;
+  font: 500 max(11px, 1.7cqi) / 1.3 var(--font-text);
+  letter-spacing: 0.04em;
+}
+.eb-desk .eb-meta {
+  font: 400 max(10px, 1.45cqi) / 1.3 var(--font-text);
+  letter-spacing: 0.03em;
+  color: #7d6c5a;
+}

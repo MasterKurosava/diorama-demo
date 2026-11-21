@@ -1,0 +1,81 @@
+.configurator {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.configurator .chair {
+  min-height: 0;
+}
+.configurator .chair > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.configurator .velvets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 6px 12px 16px;
+  border: 0;
+}
+.configurator .velvets legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.configurator .velvets label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 12px 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: 500 0.85rem / 1 var(--font-text);
+  cursor: pointer;
+}
+.configurator .velvets input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+  appearance: none;
+  cursor: pointer;
+}
+.configurator .velvets input:checked {
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.25),
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--text);
+}
+.configurator .velvets input:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+.configurator .velvets input[value="#434c27"] {
+  --swatch: #434c27;
+}
+.configurator .velvets input[value="#a8700f"] {
+  --swatch: #a8700f;
+}
+.configurator .velvets input[value="#8a3519"] {
+  --swatch: #8a3519;
+}
+.configurator .velvets input[value="#0d4a4f"] {
+  --swatch: #0d4a4f;
+}
+.configurator .velvets input[value="#232b42"] {
+  --swatch: #232b42;
+}
+.configurator .velvets input[value="#b9b09f"] {
+  --swatch: #b9b09f;
+}

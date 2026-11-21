@@ -1,0 +1,23 @@
+.wv-poster {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: #ffe9d6;
+  color: #2a1440;
+}
+.wv-poster .wv-date {
+  margin: 0;
+  font: 600 max(11px, 1.7cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6a2bd9;
+}
+.wv-poster .wv-title {
+  margin: 0;
+  font: 800 clamp(1.8rem, 8.4cqi, 5rem) / 1.05 var(--font-text);
+  letter-spacing: -0.02em;
+  color: #e0452b;
+}

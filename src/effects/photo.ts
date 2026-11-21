@@ -1,4 +1,4 @@
-import { effect } from 'diorama'
+import { effect } from 'dioramajs'
 import { color, mix, smoothstep, uniform, vec4 } from 'three/tsl'
 import { D, DEPTH, hero, inScene, LANDED, smooth, touchable } from './_hero'
 import { arch, glare, glareAt, paperSurface, WARM } from './_look'

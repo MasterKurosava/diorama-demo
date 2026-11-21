@@ -1,0 +1,87 @@
+---
+effect: model
+example:
+  description: A low lounge chair in moss velvet in 3D, resting in a three-quarter view, turned by a drag or the arrow keys and recolored by the color param.
+  aspect: 6 / 5
+  caption: Drag the chair, or focus it and press the arrow keys. The color slider repaints the velvet; spin and turn set it in motion.
+related:
+  - guides/models
+  - guides/loading
+  - guides/performance
+---
+
+## Recipes
+
+### A product configurator
+
+`swatches` points at a radio group or a `<select>`, and the part named in `part` takes the color of the picked value, easing to it over `duration` seconds in a perceptual color space. The radios stay a form: they submit, work with the keyboard and read as a group to a screen reader.
+
+<Example id="effects/model/swatches" description="The lounge chair over six velvet swatches; picking one repaints the seat and back." aspect="6 / 5.6" show={['html']} controls={[]} variants={[]} />
+
+`part` takes material or mesh names from the file, separated by commas. A name that is not there logs the names it has in development, so open the console when the color does not change. Give each velvet its own poster, too: without WebGL the `<img>` is all the visitor sees.
+
+### Turn it as the page scrolls
+
+`turn` adds that many degrees of turn while the element crosses the viewport, on top of the rest pose and whatever the visitor dragged, and it faces the rest pose when the element is in the middle. Inside a `data-dio-section` it takes the progress of the whole section instead, so it keeps turning while a sticky stage holds still.
+
+```html
+<section
+  class="materials"
+  data-dio-section
+  style="height: 300vh"
+>
+  <div
+    class="stage"
+    style="position: sticky; top: 0; height: 100vh"
+  >
+    <div
+      data-dio="model"
+      data-dio-src="/models/chair.glb"
+      data-dio-turn="360"
+      data-dio-drag="false"
+    >
+      <img src="/models/chair.avif" />
+    </div>
+  </div>
+</section>
+```
+
+### A hero that turns on its own
+
+`spin` turns it around the vertical axis in degrees per second. Keep it slow: 10 to 20 reads as a display stand, faster reads as a loading spinner. Under reduced motion it rests in its pose.
+
+```html
+<div
+  class="hero"
+  data-dio="model"
+  data-dio-src="/models/headphones.glb"
+  data-dio-spin="14.4"
+  data-dio-pitch="12"
+  data-dio-load="eager"
+>
+  <img src="/img/headphones.avif" />
+</div>
+```
+
+### Play an animation clip
+
+`clip` loops one of the file's animations by name, or the first with `*`. From code, the same params go to `attach()`.
+
+```ts
+app.attach('.robot', 'model', {
+  src: '/models/robot.glb',
+  clip: 'Walk',
+  drag: false,
+  scale: 0.8,
+})
+```
+
+## Notes
+
+The model draws only while something moves: a drag, spin, a clip, a color or pose easing, or the tilt settling. A chair at rest costs no frames. The file is the cost that matters: this chair is 1.5 MB, a quarter of it textures. Compress geometry with Meshopt or Draco and textures with KTX2 before you ship; the [3D models guide](/docs/guides/models) shows the commands.
+
+Put a poster `<img>` inside the element, rendered from the same view. It shows while the file loads, without WebGL and in search results, and the model takes its place only once it has drawn. Match `yaw`, `pitch` and `scale` to the poster so the swap does not jump.
+
+A turning model needs a name for assistive technology: `role="img"` with an `aria-label` that says what it is and how to turn it, and `tabindex="0"` for the arrow keys. Without `tabindex` it never takes focus, and `drag` alone needs a mouse or a finger.
+
+On touch screens nothing hovers, so `tilt` does nothing. A finger turns the model only with `touch-action: pan-y` or `none` on the element; otherwise the gesture scrolls the page, which is the right default for a model in the flow of a long page.

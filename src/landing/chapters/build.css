@@ -1,0 +1,89 @@
+/* 07 For developers, before the sunrise: what writing an effect looks like. */
+.build {
+  padding: clamp(96px, 14vh, 160px) var(--edge) clamp(80px, 12vh, 140px);
+}
+.build-head {
+  max-width: 46rem;
+}
+.build-title {
+  margin: 0;
+  font-size: var(--chapter-title);
+  font-weight: 780;
+  font-stretch: 115%;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.build-lede {
+  max-width: 36em;
+  margin: 22px 0 0;
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: rgb(243 233 216 / 0.78);
+}
+.build-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  margin: clamp(40px, 6vh, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.build-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(18px, 2.4vw, 26px);
+  border-radius: 18px;
+  border: 1px solid rgb(243 233 216 / 0.16);
+  background: rgb(40 8 10 / 0.34);
+}
+.build-facts h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+}
+.build-facts p {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: rgb(243 233 216 / 0.72);
+}
+.build-code {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: rgb(20 4 8 / 0.55);
+  font:
+    400 clamp(11px, 0.95vw, 12.5px) / 1.65 "JetBrains Mono",
+    monospace;
+  color: var(--cream);
+  white-space: pre;
+}
+.build-code .k {
+  color: #e2a18c;
+}
+.build-code .s {
+  color: #f6dcc0;
+}
+.build-code .p {
+  color: #ffcf98;
+}
+.build-code .c {
+  color: rgb(243 233 216 / 0.5);
+}
+/* Two by two on wide screens: four cards never leave one alone on a row. */
+@media (min-width: 900px) {
+  .build-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.build-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: clamp(36px, 5vh, 56px) 0 0;
+}

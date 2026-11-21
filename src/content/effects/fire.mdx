@@ -1,0 +1,44 @@
+---
+effect: fire
+example:
+  description: "A bonfire night poster whose headline burns: flames rise from its letters, sparks drift around it and firelight flickers on the page."
+  caption: Switch the style and the trigger, or move the sliders. The hover trigger lights the letters near the pointer.
+  aspect: 16 / 8
+  controls: [strength, height, speed, embers, char]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A menu that catches fire under the pointer
+
+With `trigger="hover"` each link stays plain text until the pointer reaches it: the letters near the pointer catch fire, and when it moves on they die down and their char fades. Keyboard focus lights the whole link, and on a phone a tap lights the letters around it for a moment. Once the fire is out the link draws nothing.
+
+<Example id="effects/fire/menu" description="A grill house menu of three uppercase links that burst into flames under the pointer." aspect="16 / 5" show={['html']} controls={[]} variants={[]} />
+
+### Candles on a quiet heading
+
+`style="candle"` puts one small flame on the top of each letter, with a blue base, a bright body and a soft glow on the page, swaying gently. It suits elegant pages, invitations and seasonal greetings. A candle sends up only a few sparks.
+
+<Example id="effects/fire/candle" description="A carol service invitation whose light serif heading has a candle flame on every letter." aspect="16 / 7" show={['html']} controls={['height', 'strength']} variants={[]} />
+
+### Flare up once
+
+`trigger="view"` sets the heading alight as it comes into view: the fire runs along the text from one letter, flares up, burns for a moment and dies down, and with `style="embers"` it settles to letters that glow like hot coals. After that nothing more is drawn.
+
+```html
+<h2 data-dio="fire" data-dio-trigger="view" data-dio-char="0.6">Ignition</h2>
+```
+
+## Notes
+
+The fire is built from the shape of the letters, not painted over them. Flames leave the tops of the strokes that face open air (a closed counter in an o or an e barely burns) and rise in a plume that spreads sideways and is stopped by the ink. Turbulence carried up through the plume sways the flames and tears them into tongues, each a little taller or lower as the fire breathes, and the temperature sets the color: white-yellow where the flames leave the strokes, orange higher up, red at the tips. Over the strokes the flames thin out, so the heading stays readable. The tops of the letters glow like embers, their faces warm toward the fire and darken with soot where it burned. A few sparks fly in front of the text and behind it, so the fire has depth and shifts with the page as it scrolls. The firelight flickers on the page around the text in step with the flames and casts a soft shadow below the letters.
+
+On a light page light would not show, so the flames are drawn more saturated with darker smoke at the tips, and the text stays readable. `color` tints the fire, for a blue gas flame or a brand color; empty keeps natural fire.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. The loop and scroll modes draw 30 frames a second while the text burns and is on screen; hover and view draw nothing once the fire is out. Under reduced motion the text holds a still warm glow with no moving flames and no sparks.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason. `style`, `trigger`, `color` and `seed` rebuild the effect; the other params change live.

@@ -1,0 +1,57 @@
+---
+import Atlas from '../landing/chapters/Atlas.astro'
+import Build from '../landing/chapters/Build.astro'
+import Dawn from '../landing/chapters/Dawn.astro'
+import Editor from '../landing/chapters/Editor.astro'
+import Lantern from '../landing/chapters/Lantern.astro'
+import Layout from '../landing/chapters/Layout.astro'
+import Night from '../landing/chapters/Night.astro'
+import Why from '../landing/chapters/Why.astro'
+import Hero from '../landing/Hero.astro'
+import Loader from '../landing/Loader.astro'
+import Top from '../landing/Top.astro'
+import Landing from '../layouts/Landing.astro'
+---
+
+<Landing title="Diorama · WebGL effects for plain HTML">
+  <Loader slot="before" />
+  <!-- The window pane: it freezes at night and the lantern thaws it. Drawn over the page, so the
+       text under the ice stays real and clickable; freeze.ts drives cover and the thaw. -->
+  <div
+    class="frost-pane"
+    slot="before"
+    aria-hidden="true"
+    data-dio="frost drops"
+    data-dio-frost-cover="0"
+    data-dio-frost-strength="0.1"
+    data-dio-frost-grain="0.62"
+    data-dio-frost-radius="95"
+    data-dio-frost-refog="16"
+    data-dio-frost-refill="0.35"
+    data-dio-frost-keep=".night-lead, .night-lede, .night-hint"
+    data-dio-frost-duration="3.2"
+    data-dio-frost-color="#d6e2f0"
+    data-dio-frost-resolution="96"
+    data-dio-drops-motion="thaw"
+    data-dio-drops-trigger="manual"
+    data-dio-drops-count="220"
+    data-dio-drops-scale="1"
+    data-dio-drops-duration="3.2"
+    data-dio-drops-dry="3"
+    data-dio-drops-color="#ffc98a"
+  ></div>
+  <div class="thaw-glow" slot="before" aria-hidden="true"></div>
+  <Top />
+
+  <main>
+    <Hero />
+    <Why />
+    <Atlas />
+    <Layout />
+    <Night />
+    <Lantern />
+    <Editor />
+    <Build />
+    <Dawn />
+  </main>
+</Landing>

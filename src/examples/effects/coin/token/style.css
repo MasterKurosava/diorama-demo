@@ -1,0 +1,14 @@
+.tokens {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6%;
+  place-items: center;
+  height: 100%;
+  padding: 0 8%;
+  background: #f1ece4;
+}
+.tokens img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}

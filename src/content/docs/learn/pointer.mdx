@@ -1,0 +1,79 @@
+---
+title: Follow the pointer
+label: 3. Follow the pointer
+description: Write a torch that follows the pointer over an image and fades in and out with hover, using the pointer and hover inputs.
+section: learn
+order: 3
+---
+
+In this step you write `torch`: while the pointer is over the image, the image dims except for a soft circle around the pointer. It reads two built-in inputs, `u.pointer` and `u.hover`. Diorama also ships a ready-made [`spotlight`](/docs/effects/spotlight) with softness, easing and touch support; `torch` is the small version you write yourself.
+
+## Read the pointer
+
+`u.pointer` is the pointer position in the element's box: 0 to 1 across, 0 to 1 from bottom to top. The color function gets the position of the pixel in the same units as `box`, so the distance between the two tells how far the pixel is from the pointer.
+
+```ts title="src/effects/torch.ts" twoslash
+import { effect } from 'dioramajs'
+import { smoothstep, vec4 } from 'three/tsl'
+
+export default effect({ radius: 0.35, dim: 0.6 }, ({ surface, u }) => {
+  surface.color((color, { box }) => {
+    // Distance in units of the box height, so
+    // the circle stays round on a wide image.
+    const d = box.sub(u.pointer).mul(u.size).length().div(u.size.y)
+    const spot = smoothstep(u.radius.mul(0.6), u.radius, d).oneMinus()
+    const shade = spot.oneMinus().mul(u.dim).oneMinus()
+    return vec4(color.rgb.mul(shade), color.a)
+  })
+})
+```
+
+`u.size` is the box size in CSS pixels. Box units stretch with the box, so without it the circle would be an ellipse on any image that is not square. `spot` is 1 inside the circle and falls to 0 at its edge, and `shade` turns it into a brightness: 1 in the spot, `1 - dim` outside.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="torch"
+/>
+```
+
+<Example id="torch-pointer" description="A photo dimmed by the torch effect except for a bright circle that follows the pointer and stays where the pointer left it." aspect="16 / 9" controls={[]} />
+
+Move the pointer over the image and the circle follows it. Move it away and the image stays dim, with no circle: `u.pointer` is not clamped to the box, so the circle follows the pointer past the edge of the image. The effect has no idea whether the pointer is over the image.
+
+## Fade with hover
+
+`u.hover` is 0 when the pointer is away and 1 when it is over the box. It changes smoothly between the two, so whatever you multiply by it fades in and out. Multiply the dimming by it.
+
+```ts title="src/effects/torch.ts" twoslash {8}
+import { effect } from 'dioramajs'
+import { smoothstep, vec4 } from 'three/tsl'
+
+export default effect({ radius: 0.35, dim: 0.6 }, ({ surface, u }) => {
+  surface.color((color, { box }) => {
+    const d = box.sub(u.pointer).mul(u.size).length().div(u.size.y)
+    const spot = smoothstep(u.radius.mul(0.6), u.radius, d).oneMinus()
+    const shade = spot.oneMinus().mul(u.dim, u.hover).oneMinus()
+    return vec4(color.rgb.mul(shade), color.a)
+  })
+})
+```
+
+<Example id="torch-hover" description="The photo with the torch multiplied by hover: plain at rest, dimmed around a bright circle while the pointer is over it." aspect="16 / 9" controls={[]} highlight={{ effect: '8' }} />
+
+At rest the image looks as it does in plain HTML. When the pointer enters, the image dims around the circle within a few tenths of a second, and when it leaves, the dimming fades out the same way.
+
+## Why it works
+
+Diorama measures the pointer and the box once per frame for each element, and the effect reads the result as uniforms. The hover value is eased towards its target on every frame and gets most of the way in 0.4 seconds. While it moves, Diorama keeps drawing frames so the fade does not stop halfway.
+
+This effect reads no time, so it draws only when something it reads changes: the pointer moves, the page scrolls, a param changes or the hover is still easing. A still pointer and a still page draw nothing. The [next step](/docs/learn/frames) counts those frames.
+
+`hover` is measured from the box, not from the element under the pointer. A caption laid over the image does not turn the torch off.
+
+## Related
+
+- [Inputs](/docs/api/inputs): `pointer`, `hover`, `size` and the rest.
+- [How a frame is decided](/docs/concepts/frames)

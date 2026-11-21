@@ -1,0 +1,40 @@
+.upgrade {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  background: #1a1430;
+  font-family: var(--font-text);
+  color: #c9c2e6;
+  text-align: center;
+}
+.upgrade .plan {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #fff;
+}
+.upgrade .badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffd75e;
+  color: #3a2a00;
+  font-size: 0.85rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.upgrade .pitch {
+  margin: 0 0 22px;
+  font-size: 1.1rem;
+}
+.upgrade .pro {
+  padding: 16px 44px;
+  border-radius: 14px;
+  font-size: 1.15rem;
+  background: linear-gradient(135deg, #7c3aed, #c026d3);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}

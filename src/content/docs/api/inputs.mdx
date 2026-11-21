@@ -1,0 +1,24 @@
+---
+title: Inputs
+description: The built-in values every effect can read, as shader nodes on u and as numbers on input.
+section: api
+order: 2
+---
+
+Inputs are values Diorama computes for every layer: the pointer, hover, scroll progress, time and more. An effect reads them in two forms. `u.<input>` is a shader node for TSL, and `input.<input>` is the same value as a number for code that runs on the CPU. Input names are never param names.
+
+## Shader nodes
+
+These are the members of `u` besides the params of the effect.
+
+<Api symbol="effects:InputUniforms" part="members" />
+
+## Numbers
+
+`input` holds the same values as numbers, plus the box of the element and its visibility. It is one object per layer, updated in place before each frame.
+
+<Api symbol="effects:EffectInput" part="members" prefix="input-" />
+
+## Inputs and frames
+
+Reading an input decides when the effect draws. An effect that reads `u.time` draws every frame while it is on screen, and one that reads `u.hoverTime` draws while the pointer is over it and while hover fades. Any other effect draws when the page scrolls, the pointer moves over it or a param changes. Under reduced motion `hover`, `velocity` and `motion` are 0, and `time` and `hoverTime` stand still.

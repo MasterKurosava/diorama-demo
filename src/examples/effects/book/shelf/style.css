@@ -1,0 +1,19 @@
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: clamp(20px, 6vw, 64px);
+  margin: 0;
+  padding: clamp(20px, 8%, 72px);
+  list-style: none;
+  background: #efe9dd;
+}
+.shelf a {
+  display: block;
+}
+.shelf img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+}

@@ -1,0 +1,41 @@
+---
+code: GLSL_PRAGMA
+level: error
+message: '`{key}={value}` is not a valid value'
+summary: A `// @diorama` line in a shader sets `when`, `reducedMotion` or `presence` to a value the effect cannot take, so the conversion fails.
+---
+
+The converter reports this at build time, with the file, the line and the values it accepts. The shader does not convert, so the effect is not built.
+
+## Why it happens
+
+- `reducedMotion` is something other than `static` or `off`.
+- `presence` is something other than `fade` or `custom`.
+- `when` is empty, for example `when=` or `when=""`.
+
+## How to fix
+
+Use one of the listed values. Put a media query with spaces in quotes: the line splits at spaces, so an unquoted `when=(min-width: 768px)` does not fail but reads as `when=(min-width:`, a query that never matches.
+
+```glsl
+// @diorama when=hover reducedMotion=off presence=custom
+// @diorama when="(min-width: 768px)"
+```
+
+A glue file sets the same options in TypeScript, where the type check catches a bad value before the build.
+
+```ts
+import { glslEffect } from '@dioramajs/glsl'
+import shader from './wave.frag?shader'
+
+export default glslEffect(shader, {
+  when: '(min-width: 768px)',
+  reducedMotion: 'off',
+})
+```
+
+## Related
+
+- `glslEffect()`
+- [Port a GLSL shader](/docs/guides/glsl)
+- [Reduced motion](/docs/guides/reduced-motion)

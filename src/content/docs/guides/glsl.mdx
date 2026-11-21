@@ -1,0 +1,488 @@
+---
+title: Port a GLSL shader
+label: Port GLSL
+description: Put a GLSL fragment shader in the effects folder and use it as an effect, then add typed params, fix converter errors or port it to TSL by hand.
+section: guides
+order: 2
+related: [guides/custom-effect, api/inputs, guides/gsap-lenis]
+---
+
+Diorama draws with the three.js `WebGPURenderer`, so its shaders are TSL nodes. `@dioramajs/glsl` converts GLSL written for `ShaderMaterial`, Shadertoy or The Book of Shaders into TSL at build time and turns the file into an effect. The converter runs in Node; the browser gets only the generated TSL. This guide ports `rgb-shift`, a channel split driven by scroll speed with noise and grain.
+
+## Add the plugin
+
+Install the package and add its Vite plugin next to the Diorama plugin. With both, every `.frag` file in the effects folder is an effect, named after the file.
+
+<Install packages="@dioramajs/glsl" />
+
+<Tabs sync="framework">
+<Tab label="Vite" value="vite">
+
+```ts title="vite.config.ts" twoslash
+import { glsl } from '@dioramajs/glsl/vite'
+import { diorama } from 'dioramajs/vite'
+
+export default { plugins: [diorama(), glsl()] }
+```
+
+</Tab>
+<Tab label="Astro" value="astro">
+
+```js title="astro.config.mjs"
+import { glsl } from '@dioramajs/glsl/vite'
+import diorama from 'dioramajs/astro'
+
+export default {
+  integrations: [diorama()],
+  vite: { plugins: [glsl()] },
+}
+```
+
+</Tab>
+<Tab label="Nuxt" value="nuxt">
+
+```ts title="nuxt.config.ts"
+import { glsl } from '@dioramajs/glsl/vite'
+
+export default defineNuxtConfig({
+  modules: ['dioramajs/nuxt'],
+  vite: { plugins: [glsl()] },
+})
+```
+
+</Tab>
+<Tab label="Next.js" value="next">
+
+Next.js builds with webpack or Turbopack, which use the loader instead of the Vite plugin. See [Next.js and the CLI](#nextjs-and-the-cli).
+
+</Tab>
+<Tab label="HTML" value="html">
+
+A page without a build converts its shaders ahead of time with the CLI. See [Next.js and the CLI](#nextjs-and-the-cli).
+
+</Tab>
+</Tabs>
+
+Add the import types to `tsconfig.json`, so TypeScript knows the `?shader`, `?effect` and `?entry` imports used below.
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "types": ["vite/client", "@dioramajs/glsl/client"]
+  }
+}
+```
+
+## Copy the shader
+
+Save the GLSL as it is in the effects folder. `src/effects/rgb-shift.frag` becomes the effect `rgb-shift`; names are the file name in kebab case, so `rgb_shift.frag` gives the same name.
+
+```glsl title="src/effects/rgb-shift.frag"
+uniform sampler2D uTexture;
+uniform float uTime;
+uniform float uVelocity;
+uniform float uStrength; // @default 0.02
+uniform float uGrain;    // @default 0.06
+varying vec2 vUv;
+
+float hash(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
+void main() {
+  float n = noise(vec2(vUv.y * 40.0, uTime * 4.0)) - 0.5;
+  vec2 shift = vec2(uStrength * uVelocity + n * 0.004 * abs(uVelocity), 0.0);
+  vec4 base = texture2D(uTexture, vUv);
+  float r = texture2D(uTexture, vUv + shift).r;
+  float b = texture2D(uTexture, vUv - shift).b;
+  float grain = (hash(vUv * 500.0 + uTime) - 0.5) * uGrain;
+  gl_FragColor = vec4(vec3(r, base.g, b) + grain, base.a);
+}
+```
+
+Put the effect on an image like any other.
+
+{/* nocheck: params of a .frag effect come from its uniforms, which the markup check does not read */}
+
+```html title="index.html" nocheck
+<img
+  src="/cover.jpg"
+  data-dio="rgb-shift"
+  data-dio-strength="0.04"
+/>
+```
+
+<Example id="rgb-shift" description="A photo with the rgb-shift shader: scrolling the page fast splits its red and blue channels, at rest only the grain moves." aspect="16 / 9" caption="Scroll this page fast to split the channels. The example uses the default strength of 0.02." />
+
+## Read the bindings
+
+Uniforms bind by name. The plugin strips the `u` or `u_` prefix, so `uWaveSize` and `u_wave_size` both read as `waveSize`, and binds a uniform to an input when the name and the type match. In development it prints one line per file on first load.
+
+```sh
+rgb-shift.frag: uTexture→media, uTime→input:time, uVelocity→input:velocity, uStrength→param:strength, uGrain→param:grain
+```
+
+| Uniform name, type                                                                          | Gets                                                               |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| The `sampler2D` named `texture`, `tex`, `map`, `image`, `diffuse`, `tDiffuse`, `tMap`, `iChannel0`, or the only one | The element's picture, cropped like `object-fit`, with its masks |
+| `time`, `globalTime` (`float`)                                                              | Seconds that stand still off screen and under reduced motion       |
+| `hoverTime` (`float`)                                                                       | Seconds that run only under the pointer and while hover fades      |
+| `mouse`, `pointer`, `cursor` (`vec2`)                                                       | Pointer in box UV, 0 to 1, y up                                    |
+| `u_mouse` (`vec2`), `iMouse` (`vec4`)                                                       | Pointer in device pixels of the box                                |
+| `resolution`, `res` (`vec2`), `iResolution` (`vec3`)                                        | Box size in device pixels                                          |
+| `imageSize`, `planeSize`, `meshSize`, `quadSize`, `textureSize` (`vec2`)                    | Box size in CSS pixels                                             |
+| `hover`, `hoverProgress` (`float`)                                                          | Hover, 0 to 1                                                      |
+| `progress`, `scrollProgress` (`float`)                                                      | Pass of the element through the viewport, 0 to 1                   |
+| `velocity`, `scrollVelocity` (`float`)                                                      | Scroll speed, -1 to 1, where 3000 px a second is 1                 |
+| `pin`, `pinProgress` (`float`)                                                              | Progress of a pinned section                                       |
+| `vec3` or `vec4` with `color` in the name                                                   | A color param                                                      |
+| Any other `float`, `int`, `bool`, `vec2` to `vec4`                                          | A param: `uStrength` is `data-dio-strength`                        |
+
+`vUv` and its usual spellings (`vUV`, `v_uv`, `vTexCoord`, `vTextureCoord`) are the box UV after the `uv` functions of other effects on the element. A param without `// @default` starts at 0 with a `GLSL_PARAM_DEFAULT` warning. `uOpacity` and `uAlpha` stay plain params, since the picture already follows the CSS opacity of the element.
+
+## Steer it with pragmas
+
+A comment after a uniform overrides its binding. A `// @diorama` line sets options for the whole file. The file wins over the plugin options and the CLI flags.
+
+```glsl
+// @diorama name=swell stage=uv|color colorSpace=srgb|linear segments=64 bleed=40 animate=input|hover|visible
+uniform float uStrength; // @default 0.02
+uniform vec2 uCenter;    // @default 0.5 0.5
+uniform vec2 uMouse;     // @input pointerNdc
+uniform float uProgress; // @param reveal @default 0
+uniform vec3 uTint;      // @color #ff8800
+uniform sampler2D uDisp; // @texture ./disp.png
+uniform sampler2D uPic;  // @media
+```
+
+`@param reveal` keeps a uniform named like an input as a param of your own, for a studio shader that tweens `uProgress` itself. `@texture` loads a second texture next to the shader. `@media` names the sampler that gets the element's picture when the names do not tell.
+
+The same line takes the options that decide where and how the effect runs: `when` (a media query, see [Reduced motion](/docs/guides/reduced-motion)), `reducedMotion` (`static` or `off`) and `presence` (`fade` or `custom`). Quote a media query with spaces.
+
+```glsl
+// @diorama when=hover reducedMotion=off presence=custom
+// @diorama when="(min-width: 768px)"
+```
+
+A value outside these fails the conversion with `GLSL_PRAGMA`.
+
+## Check the frames
+
+The converter picks the frame policy from what the shader reads. `uTime` draws every frame while the element is on screen, `uHoverTime` or `uHover` only around hover, and anything else only on input. `rgb-shift` reads time and velocity, so the converter adds the note `GLSL_ANIMATE`: a shader that moves only under the pointer saves frames with `uHoverTime` in place of `uTime`. Here the grain is meant to move at rest, so the policy stays.
+
+It also adds `GLSL_SEMANTICS` for `uVelocity`. Diorama's velocity runs from -1 to 1, while a shader written for Lenis may expect pixels per frame; scale the uniform if the split looks too weak or too strong.
+
+## Add a glue file
+
+A TypeScript file with the same name as the shader takes its place in the folder. Use it for typed params and for effect options that a pragma cannot set, such as a frame cap.
+
+```ts title="src/effects/rgb-shift.ts" twoslash
+/// <reference types="@dioramajs/glsl/client" />
+// ---cut---
+import { glslEffect } from '@dioramajs/glsl'
+import shader from './rgb-shift.frag?shader'
+
+export default glslEffect(shader, {
+  params: { strength: 0.02, grain: 0.06 },
+  // The grain moves at 24 frames a second; scroll frames run at full rate.
+  animate: { fps: 24 },
+})
+```
+
+The params of the glue override the defaults of the shader, and the effect types in `src/diorama.gen.d.ts` now carry `strength` and `grain` as numbers. `glslEffect` takes the other options of `effect()` too: `when`, `reducedMotion`, `presence`, `rebuild`, `bleed`. `uniforms` rebinds a uniform by GLSL name, as a binding string such as `'input:hover'` or as a function of the effect context.
+
+```ts title="src/effects/dissolve.ts" twoslash
+/// <reference types="@dioramajs/glsl/client" />
+// ---cut---
+import { glslEffect } from '@dioramajs/glsl'
+import shader from './dissolve.frag?shader'
+
+// A page transition fades the copy through
+// u.presence; this shader draws it as a dissolve.
+export default glslEffect(shader, {
+  presence: 'custom',
+  uniforms: { uPresence: (ctx) => ctx.u.presence },
+})
+```
+
+## Fix what the converter reports
+
+All errors of one file come together, each with the file, the line, the column and a one-line hint. In Vite they show in the error overlay. The development server checks every shader in the project at start and on save, so a broken shader on a distant page shows up at once.
+
+| Code                      | What happened                                                        | What to do                                                           |
+| ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `GLSL_SYNTAX`             | Invalid syntax, or a name that starts with `_`                       | Fix the line; if the GLSL is valid, port that function by hand       |
+| `GLSL_NO_ENTRY`           | No `main` or `mainImage`                                             | Bring a library file in with `#include`, not with an import          |
+| `GLSL_INCLUDE`            | The file is missing, includes itself, or is a three.js `#include <chunk>` | Use a path relative to the file or a package; paste three.js chunks as text |
+| `GLSL_ARRAY`              | An array                                                             | Unroll it into variables or port the function by hand                |
+| `GLSL_INOUT`              | An `out` or `inout` parameter                                        | Return a value or a `struct`                                         |
+| `GLSL_EARLY_RETURN`       | `return` inside a loop                                               | Move the condition into the loop or use `break`                      |
+| `GLSL_GLOBAL_STATE`       | A global variable that changes                                       | Make it local to `main` or a function parameter                      |
+| `GLSL_SAMPLER`            | It is not clear which sampler is the picture, or `texelFetch` reads it | Add `// @media`; read the picture with `texture()`                 |
+| `GLSL_VERTEX`             | `cameraPosition`, `gl_PointSize` or no `gl_Position` write           | Keep the vertex shader to moving the plane                           |
+| `GLSL_UNKNOWN_IDENTIFIER` | A name declared nowhere, such as `iFrame` or `iDate`                 | Declare a uniform or remove the Shadertoy input                      |
+| `GLSL_UNKNOWN_FUNCTION`   | A function neither in the shader nor in TSL                          | Check the similar names in the message, or supply it from TypeScript |
+| `GLSL_PRAGMA`             | A `// @diorama` line has a bad `when`, `reducedMotion` or `presence` | Use a listed value; quote a media query with spaces                  |
+
+Some GLSL turns into code that three.js r187 runs wrong without a word: a local changed later, an early `return` inside `if`, a write to a parameter's component, `mat2` from four numbers, integer division. The converter rewrites these itself and lists each fix as a note in the CLI output.
+
+### Supply one function from TypeScript
+
+When one function does not convert, leave its prototype in the GLSL and give the body in TSL. The rest stays GLSL.
+
+```glsl title="src/effects/mist.frag"
+float noise(vec2 p); // the body comes from TypeScript
+
+void main() {
+  gl_FragColor = vec4(vec3(noise(vUv * 8.0)), 1.0);
+}
+```
+
+```ts title="src/effects/mist.ts" twoslash
+/// <reference types="@dioramajs/glsl/client" />
+// ---cut---
+import { glslEffect } from '@dioramajs/glsl'
+import { dot, fract, sin, vec2 } from 'three/tsl'
+import type { Node } from 'three/webgpu'
+import shader from './mist.frag?shader'
+
+// Type the arguments as the prototype declares them.
+const noise = (p: Node<'vec2'>) =>
+  fract(sin(dot(p, vec2(12.9898, 78.233))).mul(43758.5453))
+
+export default glslEffect(shader, { functions: { noise } })
+```
+
+## Port it by hand
+
+A hand port is an ordinary effect file, and it is the way to go when you want to change the shader in TypeScript from now on. Map each GLSL construct to TSL; the imports come from `three/tsl`.
+
+| GLSL                                       | TSL                                                         |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| `a + b`, `a * b`, `-a`                     | `a.add(b)`, `a.mul(b)`, `a.negate()`                        |
+| `1.0 - x`                                  | `x.oneMinus()`                                              |
+| `float x = 1.0; x += y;`                   | `const x = float(1).toVar(); x.addAssign(y)`                |
+| `float lum = dot(c.rgb, w);`               | `const lum = dot(c.rgb, w).toConst()` when `c` changes later |
+| `c ? a : b`                                | `select(c, a, b)`                                           |
+| `if (c) { ... } else { ... }`              | `If(c, () => { ... }).Else(() => { ... })` inside `Fn`      |
+| `for (int i = 0; i < n; i++) { ... }`      | `Loop({ start: 0, end: n, type: 'int' }, ({ i }) => { ... })` |
+| `discard;`                                 | `Discard()` inside `Fn(() => { ... })()`                    |
+| `texture2D(uTexture, uv)`                  | `sample(uv)` in `surface.color`; `sample(clamp(uv, 0, 1))` for the edge |
+| `gl_FragColor = c;`                        | Return `c` from `surface.color`                             |
+| `gl_Position = ...`                        | Return the position from `surface.position`                 |
+| `uniform float uTime;`                     | `u.time`; params are `u.<name>`                             |
+| `varying float vWave;` written in `.vert`  | `const vWave = varying(expr)`                               |
+
+`sample()` returns linear color, while `ShaderMaterial` math usually runs on raw sRGB values. For a pixel-exact match, convert around the math with `sRGBTransferOETF` and `sRGBTransferEOTF`, as the port below does.
+
+```ts title="src/effects/rgb-shift.ts" twoslash
+import { effect } from 'dioramajs'
+import {
+  abs,
+  clamp,
+  dot,
+  Fn,
+  floor,
+  fract,
+  mix,
+  sRGBTransferEOTF,
+  sRGBTransferOETF,
+  vec2,
+  vec3,
+  vec4,
+} from 'three/tsl'
+import type { Node } from 'three/webgpu'
+
+const hash = (p: Node<'vec2'>): Node<'float'> => {
+  const q = fract(p.mul(vec2(123.34, 456.21)))
+  const r = q.add(dot(q, q.add(45.32)))
+  return fract(r.x.mul(r.y))
+}
+
+const noise = (p: Node<'vec2'>): Node<'float'> => {
+  const i = floor(p)
+  const f = fract(p)
+  const u = f.mul(f).mul(f.mul(-2).add(3))
+  return mix(
+    mix(hash(i), hash(i.add(vec2(1, 0))), u.x),
+    mix(hash(i.add(vec2(0, 1))), hash(i.add(vec2(1, 1))), u.x),
+    u.y,
+  )
+}
+
+export default effect(
+  { strength: 0.02, grain: 0.06 },
+  ({ surface, u }) => {
+    surface.color((_, { uv, sample }) =>
+      Fn(() => {
+        // The GLSL works on raw sRGB values.
+        const raw = (at: Node<'vec2'>) =>
+          sRGBTransferOETF(sample(clamp(at, 0, 1)).rgb) as Node<'vec3'>
+        const n = noise(vec2(uv.y.mul(40), u.time.mul(4))).sub(0.5)
+        const jitter = n.mul(0.004).mul(abs(u.velocity))
+        const shift = vec2(u.strength.mul(u.velocity).add(jitter), 0)
+        const grain = hash(uv.mul(500).add(u.time))
+          .sub(0.5)
+          .mul(u.grain)
+        const r = raw(uv.add(shift)).r
+        const b = raw(uv.sub(shift)).b
+        const rgb = vec3(r, raw(uv).g, b).add(grain)
+        return vec4(sRGBTransferEOTF(rgb) as Node<'vec3'>, sample(uv).a)
+      })(),
+    )
+  },
+)
+```
+
+`hash` and `noise` are plain TypeScript functions that build nodes, so they need no `Fn`. Long expressions inside `fract(...)` can lose their type in the three.js typings; a named variable in between fixes that. To start from the converter's output instead, run the CLI on the file and read the `.frag.js` it writes.
+
+## Port a vertex shader
+
+A `.vert` next to a `.frag` with the same name is part of the same effect, with the params of both. The vertex shader moves the plane of the element: its matrices are identity, x and y are fractions of the box from -0.5 to 0.5, and z is in CSS pixels, so an amplitude of 30 lifts the plane 30 pixels toward the viewer.
+
+```glsl title="src/effects/swell.vert"
+// @diorama animate=hover segments=64
+uniform float uTime;
+uniform float uHover;
+uniform float uAmplitude; // @default 30
+uniform float uFrequency; // @default 8
+varying vec2 vUv;
+varying float vWave;
+
+void main() {
+  vUv = uv;
+  vec3 pos = position;
+  float wave = sin(pos.x * uFrequency + uTime * 2.0) * cos(pos.y * uFrequency * 0.5 + uTime);
+  pos.z += wave * uAmplitude * uHover;
+  vWave = wave * uHover;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+}
+```
+
+```glsl title="src/effects/swell.frag"
+uniform sampler2D uTexture;
+uniform float uShade; // @default 0.4
+varying vec2 vUv;
+varying float vWave;
+
+void main() {
+  vec2 uv = vUv + vec2(0.0, vWave * 0.02);
+  vec4 color = texture2D(uTexture, uv);
+  color.rgb *= 1.0 - vWave * uShade;
+  gl_FragColor = color;
+}
+```
+
+`animate=hover` keeps frames to hover even though the shader reads `uTime`. A shader that needs a real projection or depth gives wrong results with identity matrices, and the converter cannot detect that.
+
+## Know the stages
+
+The converter sorts each shader into a stage, and the stage decides how it stacks with other effects on the element.
+
+- `uv`: the shader reads the picture once at bent coordinates, as its last statement. It becomes a `surface.uv()` function and adds to the other effects.
+- `color`: everything else. The shader sets the whole color and does not see the color of earlier effects, as in the original GLSL, so list it first in `data-dio`.
+- `position`: a vertex shader.
+
+`gl_FragCoord`, `iResolution` and `iMouse` are in device pixels of the element's box, counted from its bottom left corner, not of the screen. Output color matches `ShaderMaterial` by default, since the shader gets raw sRGB values and its result is encoded back. For a shader written for the linear pipeline of three.js, add `// @diorama colorSpace=linear`.
+
+## Next.js and the CLI
+
+Next.js reads `.frag` imports through the webpack loader `@dioramajs/glsl/loader`. With webpack the mode goes in the import query, as in Vite; Turbopack matches rules by path, so the mode goes in the file name. `withDiorama` does not pick up shaders from the effects folder, so give each shader a glue file there.
+
+```js title="next.config.mjs"
+import { withDiorama } from 'dioramajs/next'
+
+export default withDiorama({
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.(frag|vert|glsl)$/,
+      resourceQuery: /^\?(shader|effect|entry)$/,
+      use: [{ loader: '@dioramajs/glsl/loader' }],
+    })
+    return config
+  },
+  turbopack: {
+    rules: {
+      '*.shader.frag': {
+        loaders: [
+          {
+            loader: '@dioramajs/glsl/loader',
+            options: { mode: 'shader' },
+          },
+        ],
+        as: '*.js',
+      },
+    },
+  },
+})
+```
+
+<Callout kind="warning">
+The loader is tested against a stand-in webpack context. Neither configuration has been checked on a live Next.js project yet.
+</Callout>
+
+Without a bundler, convert ahead of time. The CLI writes `rgb-shift.frag.js` and `rgb-shift.frag.d.ts` next to the file and prints the bindings and diagnostics; `--check` only reports and exits with 1 on an error or a stale `.js`, for CI.
+
+<Run command="diorama-glsl src/effects/*.frag --check" />
+
+Other flags: `--out-dir` writes elsewhere and keeps the folder layout, `--watch` converts on save, `--json` prints the result with line counts and fixes, `--bind uMouse=input:pointerNdc` and `--default uStrength=1` set bindings and defaults from the command line.
+
+## Use a shader inside your own effect
+
+`shaderNode()` turns a fragment shader into a `vec4` node for a material you build, and `applyShader()` adds a shader to the element's picture from your own setup. Both take the effect context and the same `uniforms`, `textures`, `functions` and `colorSpace` options as `glslEffect`. `applyShader()` returns a function that removes the shader again.
+
+```ts title="src/effects/poster.ts" twoslash
+/// <reference types="@dioramajs/glsl/client" />
+// ---cut---
+import { applyShader, shaderNode } from '@dioramajs/glsl'
+import { effect } from 'dioramajs'
+import {
+  Mesh,
+  MeshBasicNodeMaterial,
+  PlaneGeometry,
+} from 'three/webgpu'
+import grain from './grain.frag?shader'
+import tint from './tint.frag?shader'
+
+export default effect({ strength: 0.5 }, { media: true }, (ctx) => {
+  const material = new MeshBasicNodeMaterial({ transparent: true })
+  material.colorNode = shaderNode(ctx, grain, {
+    uniforms: { uGrain: 'param:strength' },
+  })
+  ctx.place(new Mesh(new PlaneGeometry(1, 1), material))
+  applyShader(ctx, tint)
+})
+```
+
+## The whole port
+
+The converter path is two files: the shader as it was, with two `@default` pragmas, and an optional glue file.
+
+```ts title="src/effects/rgb-shift.ts" twoslash
+/// <reference types="@dioramajs/glsl/client" />
+// ---cut---
+import { glslEffect } from '@dioramajs/glsl'
+import shader from './rgb-shift.frag?shader'
+
+export default glslEffect(shader, {
+  params: { strength: 0.02, grain: 0.06 },
+  animate: { fps: 24 },
+})
+```
+
+```ts title="vite.config.ts" twoslash
+import { glsl } from '@dioramajs/glsl/vite'
+import { diorama } from 'dioramajs/vite'
+
+export default { plugins: [diorama(), glsl()] }
+```

@@ -1,0 +1,32 @@
+.nn-bar {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 2cqi, 18px);
+  padding: 0 8%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(70% 60% at 30% 45%, #1d1420 0%, transparent 70%),
+    linear-gradient(180deg, #120d14 0%, #0b080d 100%);
+  color: #ece6ef;
+}
+.nn-bar .nn-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9a8ea3;
+}
+.nn-bar .nn-sign {
+  justify-self: start;
+  margin: 0.15em 0;
+  font: 700 clamp(2.6rem, 14cqi, 8rem) / 1 var(--font-text);
+  letter-spacing: -0.01em;
+  color: #ff4fa8;
+}
+.nn-bar .nn-line {
+  max-width: 40ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #a99fb0;
+}

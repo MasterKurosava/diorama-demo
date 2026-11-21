@@ -1,0 +1,44 @@
+---
+effect: lens
+example:
+  description: A catalogue entry for an engraved sea chart on cream paper, with a heading, a paragraph and a line of fine print.
+  caption: Move the pointer over the text, or focus it and use the arrow keys. Change the zoom, the radius and the dispersion of the glass.
+  aspect: 16 / 9
+  controls: [radius, zoom, dispersion, thickness, tilt, ease]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Fine print a reader can inspect
+
+On terms, spec sheets and catalogue entries, the lens lets a visitor read the small text closely. A `tabindex` makes it reachable from the keyboard: the arrow keys walk it along the lines.
+
+```html
+<article data-dio="lens" tabindex="0">
+  <h2>Terms of carriage</h2>
+  <p>Liability for checked baggage is limited to…</p>
+</article>
+```
+
+### A stronger lens without color fringes
+
+A higher `zoom` reads tiny print; `dispersion="0"` turns off the colored fringes at the rim for a cleaner, technical look.
+
+```html
+<div class="specs" data-dio="lens" data-dio-zoom="3" data-dio-dispersion="0">
+  Sensor 24.6 MP…
+</div>
+```
+
+## Notes
+
+The lens is traced per pixel, not drawn as a picture of a lens. A ray from the camera meets the front face of a thick biconvex lens, bends through the glass to its back face, bends again and lands on the page; the lens hovers at the height that gives `zoom` in its middle, and leans toward the camera the way a hand holds a reading glass. Toward the rim the faces are steeper, so the text bends and the three colors, traced with slightly different refractive indices, drift apart; `dispersion` sets how far. The glass reflects a softbox and a dim studio, more strongly where you see it at a grazing angle, and on the page beside it lies its shadow, the bright spot of light it focuses and the shadow of its handle, all projected from the same light.
+
+What the lens shows is the element's own text, rastered from the DOM, over the element's background color, or the color of the page behind it when it has none. The engine cannot read other markup: images, underlines, borders and background images inside the element are not seen through the glass, and a background image shows as a flat color there, with a warning in development. Put the effect on a block of text on a solid background, such as an article, a column of fine print or a spec sheet.
+
+The text around the lens stays the real DOM text, so selection, find in page and screen readers work as always; the lens draws over it only while it shows. Nothing is drawn at rest. With a `tabindex` on the element the arrow keys walk the lens along the lines, Home and End jump to the ends of a line, and Escape puts it away. On a touch screen the lens appears while a finger is pressed on the text, a little above the finger.
+
+A very long element is rastered at a lower resolution to stay within about six million pixels, which softens the magnified text; put the effect on each section of a long page instead.

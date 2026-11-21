@@ -1,0 +1,20 @@
+/* The section is three viewports tall, so the box of the example grows with it. */
+.ex[data-id="lantern-pin"] .ex-stage {
+  aspect-ratio: auto !important;
+  overflow: clip;
+}
+.ex[data-id="lantern-pin"] .ex-root > .showcase {
+  height: 300vh;
+}
+.ex[data-id="lantern-pin"] .showcase-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  justify-items: center;
+  padding-top: calc(var(--header) + 24px);
+  box-sizing: border-box;
+}
+.ex[data-id="lantern-pin"] .showcase-sticky h2 {
+  margin: 0;
+}

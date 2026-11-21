@@ -1,0 +1,46 @@
+---
+code: ASSET_ABORTED
+level: error
+message: 'released before ready'
+summary: An asset lease was released or aborted before the asset finished loading, so its ready promise rejected.
+---
+
+This is cleanup, not a fault. Diorama never reports it: it only rejects `ready` of that lease, and the console shows it only when code awaits `ready` without handling the rejection.
+
+## Why it happens
+
+- The lease was released before the asset was ready, by `release()`, `dispose()` or by calling the lease. `ctx.onDispose(asset)` does this when an effect instance goes away during the load.
+- The `signal` passed in the load options aborted.
+- The app was destroyed while loads were pending.
+- A loader's request ended with an `AbortError`.
+
+When the last lease of an asset goes before the load ends, the request stops.
+
+## How to fix
+
+Handle the rejection where you await `ready`, and let this code pass:
+
+```ts
+import type { App } from 'dioramajs'
+
+export async function cover(
+  app: App,
+  url: string,
+  signal: AbortSignal,
+) {
+  const asset = app.assets?.load(url, { type: 'texture', signal })
+  try {
+    return await asset?.ready
+  } catch (error) {
+    if ((error as { code?: string }).code === 'ASSET_ABORTED')
+      return undefined
+    throw error
+  }
+}
+```
+
+## Related
+
+- `ASSET_LOAD`
+- `app.assets.load()`
+- `ctx.onDispose()`

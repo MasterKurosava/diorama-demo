@@ -1,0 +1,100 @@
+---
+title: Write your own effect
+label: 2. Write your own effect
+description: Write an effect file that turns an image monochrome, with a number param and a color param you set from markup.
+section: learn
+order: 2
+---
+
+In this step you write `mono`, an effect that turns an image monochrome and tints its shadows. It has two params: `strength`, how far the image goes from color to monochrome, and `ink`, the color of the shadows.
+
+## Create the file
+
+An effect is a file in `src/effects/` whose default export is `effect()`. The file name is the effect name, so `src/effects/mono.ts` is `mono`. Start with one param, `strength`, which defaults to 1.
+
+```ts title="src/effects/mono.ts" twoslash
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+
+export default effect({ strength: 1 }, ({ surface, u }) => {
+  surface.color((color) => {
+    const gray = vec3(luminance(color.rgb))
+    return vec4(mix(color.rgb, gray, u.strength), color.a)
+  })
+})
+```
+
+The first argument of `effect()` holds the params and their defaults. The second is the setup function. It gets the effect context, and this effect uses two parts of it:
+
+- `surface` is the picture of the element on the canvas. `surface.color()` takes a function that gets the color of each pixel and returns a new one.
+- `u` holds the params and the built-in inputs as shader nodes. `u.strength` is not the number 1 but a value the GPU reads on every frame.
+
+The functions `luminance`, `mix`, `vec3` and `vec4` come from `three/tsl`, the shading language of three.js. You write it in TypeScript, and three.js compiles it for WebGPU or WebGL 2.
+
+## Put it on an image
+
+Use the file name in `data-dio`, the same way as `ripple` in the [previous step](/docs/learn).
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="mono"
+/>
+```
+
+<Example id="mono-gray" description="A photo of paper ridges turned gray by the mono effect." aspect="16 / 9" controls={[]} />
+
+The image shows in gray. Set `data-dio-strength="0.6"` and some of the color comes back: `mix()` blends the original color and the gray by `strength`.
+
+## Add a color param
+
+A string default that reads as a CSS color makes a color param. Add `ink` and mix the gray between it and white, so the shadows take the ink and the highlights stay light.
+
+```ts title="src/effects/mono.ts" twoslash {5,9-10} 
+import { effect } from 'dioramajs'
+import { luminance, mix, vec3, vec4 } from 'three/tsl'
+
+export default effect(
+  { strength: 1, ink: '#1d2b53' },
+  ({ surface, u }) => {
+    surface.color((color) => {
+      const gray = luminance(color.rgb)
+      // Dark parts take the ink, light parts go to white.
+      const toned = mix(u.ink, vec3(1), gray)
+      return vec4(mix(color.rgb, toned, u.strength), color.a)
+    })
+  },
+)
+```
+
+Save the file. In development, the plugin replaces the effect on the open page without a reload. Set the ink from markup: a param in camel case becomes kebab case in the attribute, so a param `inkColor` would be `data-dio-ink-color`.
+
+```html title="index.html"
+<img
+  src="/cover.jpg"
+  width="800"
+  height="450"
+  data-dio="mono"
+  data-dio-strength="0.8"
+  data-dio-ink="#5b1a2e"
+/>
+```
+
+<Example id="mono-ink" description="The photo with mono at strength 0.8 and a wine red ink, with a slider for strength and a color picker for ink." aspect="16 / 9" highlight={{ effect: '5,9-10' }} />
+
+The shadows turn wine red, the highlights stay pale, and a fifth of the original color shows through.
+
+## Why it works
+
+Setup runs once per element, when the effect starts on it. It does not draw anything: it describes how the picture changes, and Diorama compiles that description into one shader for the element. When a param changes, only the value of its uniform changes, so a new value costs one frame and no compile.
+
+The param types come from the defaults: a number, a boolean, a tuple of 2 to 4 numbers, or a color. The plugin writes them to `src/diorama.gen.d.ts`, so code that uses the effect by name is type checked, as the [fifth step](/docs/learn/params) shows.
+
+## Related
+
+- [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes): a pointer light for a product photo, with `dioramajs/kit` helpers.
+- [Write an effect](/docs/guides/custom-effect): the full walkthrough, with update functions and own objects.
+- [Port a GLSL shader](/docs/guides/glsl), if you already have a fragment shader.
+- [Inputs](/docs/api/inputs): every value in `u`.

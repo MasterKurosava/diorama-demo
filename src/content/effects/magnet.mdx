@@ -1,0 +1,45 @@
+---
+effect: magnet
+example:
+  description: A concert poster headline whose red letters lift off the page as glossy slabs, push away from the pointer and cast soft shadows.
+  aspect: 16 / 7
+  caption: Move the pointer over the headline, then switch the style.
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Navigation links that turn to the pointer
+
+`style="attract"` turns each letter near the pointer to face it, so a link seems to look at the visitor as the pointer approaches. The radius is measured in em of the text, so the default reach of 2.5 em covers a word or two of a 16 px link and does not wake the whole menu. A hover color in your CSS shows on the moving letters too. Hover the links below.
+
+<Example id="effects/magnet/nav" description="A restaurant navigation bar whose link letters turn toward the pointer and take the hover color." aspect="16 / 3" show={['html']} controls={['radius', 'rotate']} variants={[]} />
+
+### A word mark that magnifies like a dock
+
+`style="lift"` raises the letters under the pointer toward the viewer, so they grow in the page's perspective, and slides their neighbors along the line to make room. It suits a short, large word such as a studio name or a product name in a hero.
+
+```html
+<p class="mark" data-dio="magnet" data-dio-style="lift">studio</p>
+```
+
+### Loose letters for a party poster
+
+`style="scatter"` tosses the letters up and apart, each at its own angle and spin. A low `damping` keeps them wobbling for a while after the pointer leaves, and a lower `stiffness` makes them float back more slowly.
+
+```html
+<h2 data-dio="magnet" data-dio-style="scatter" data-dio-damping="6" data-dio-stiffness="120">Party starts at nine</h2>
+```
+
+## Notes
+
+Each letter is drawn on its own as a thin slab with beveled edges, lit from the upper left, so its face brightens or darkens as it turns, its sides show, and it casts a soft shadow shaped like the letter. A letter at rest is flat and square to the viewer in exactly your CSS color, so the hand-over to the real text is invisible. Shadows show best on a light background; under text smaller than about 40 px they fade out, so a small link stays crisp.
+
+The element keeps its text as you wrote it, with no span per letter, so screen readers, search engines and find in page see the real words. While letters move a CSS filter hides the DOM text without removing it, and once they settle the element is real, selectable text again. Under reduced motion the effect is off.
+
+Put the effect on the text itself: on a button with a background, wrap the label in a `span` and put `data-dio="magnet"` there, since the element's own box is hidden while the letters move.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke`, underlines or vertical writing modes the way the browser does. An element with any of the first four keeps its text as it is, and a warning in development names the reason; an underline is hidden while the letters move. Keep it to headings, links and short lines: over 1500 letters the text stays as it is. `style` rebuilds the effect when it changes.

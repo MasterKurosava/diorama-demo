@@ -1,0 +1,40 @@
+---
+effect: prism
+example:
+  description: A crystal workshop's page on warm white paper whose name is glass in its own color, its edges splitting the light into crisp spectra that follow the pointer.
+  caption: Move the pointer over the page and watch the spectra slide around the letters. Switch the style or the trigger, or change the dispersion, the spread and the angle of the light.
+  aspect: 16 / 8
+  controls: [dispersion, spread, strength, bevel, light, follow]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### Cut crystal on a dark page
+
+`style="crystal"` cuts each stroke into flat facets that meet in a sharp ridge, the way a chiselled glass letter is cut, with small glints that flash as the light moves. Each facet that faces the light at the right angle lights up in one color of the spectrum, the way a cut stone flashes. On a dark page the spectra glow.
+
+```html
+<h2 data-dio="prism" data-dio-style="crystal" style="color: #c9d4e6">Brilliant cut</h2>
+```
+
+### A diamond line whose light orbits
+
+`style="diamond"` cuts finer facets, pulls the colors apart the most and sparkles with fire as the light passes. With `trigger="loop"` the light orbits slowly at `fps` frames a second while the text is on screen, and stops when it scrolls away.
+
+```html
+<p class="display" data-dio="prism" data-dio-style="diamond" data-dio-trigger="loop">Forever</p>
+```
+
+## Notes
+
+The glass is built from the shape of the letters: a distance field of the text gives every pixel its distance to the nearest edge, and a rounded profile over `bevel` turns that into the slope of the glass, so the edges catch the light the way a real bevel would. The face of each letter shows its ink as it is, crisp. Across a bevel the glass bends the view outward by its slope, and the light is split into seven colors, each bent a little more than the last: the edge of the ink comes apart into a thin spectrum inside the letter, and where a bevel faces away from the lamp at the right angle, the light leaves it in a saturated line of color that runs along the contour. Both gather near the lamp and slide around the curves as it moves, never as a blurred copy of the word. A fainter spectrum lands on the page right past the far edges; `spread` is how far, and 0 turns it off. It stays within a few hundredths of an em of the letters, so the element needs no extra room around it.
+
+The light sits about the size of the element away, at `light` when nothing moves it. With `trigger="pointer"` it follows a mouse or a pen anywhere on the page and drifts as the element scrolls; after it settles nothing more is drawn. Set `follow` to 0 for a fixed light. Under reduced motion the light stays at its angle.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. While the glass is drawn the element is hidden without being removed, so give the text a color that reads on its own, since that is what shows without WebGL. Use a bold, large font on a plain background: thin strokes have little glass to bend the light. The canvas cannot draw `background-clip: text`, `-webkit-text-stroke` or vertical writing modes the way the browser does, and an element with any of them keeps its text as it is, with a warning in development.
+
+`style` and `trigger` rebuild the effect when they change. `bevel` builds the glass again a moment after it changes; the other params change live.

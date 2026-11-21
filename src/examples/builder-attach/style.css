@@ -1,0 +1,25 @@
+.ex[data-id="builder-attach"] .t-rec {
+  display: grid;
+  align-items: center;
+  padding: 6% 7%;
+  box-sizing: border-box;
+  background: var(--bg-raised);
+}
+.ex[data-id="builder-attach"] .t-container {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 8%;
+  align-items: center;
+}
+.ex[data-id="builder-attach"] .t-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+.ex[data-id="builder-attach"] .t-title {
+  margin: 0 0 12px;
+}
+.ex[data-id="builder-attach"] .t-descr {
+  margin: 0;
+  color: var(--text-muted);
+}

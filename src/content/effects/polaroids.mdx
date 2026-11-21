@@ -1,0 +1,57 @@
+---
+effect: polaroids
+example:
+  description: "Five photos from the coast scattered like prints on a table; drag one to the top or click it to hold it up large."
+  caption: "Drag a print to bring it to the top, click it to hold it up, or focus the stack and use the arrow keys and Enter."
+related:
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A trip on the table
+
+For a travel story, an event recap or a studio's "about us" page, the photos lie scattered at seeded angles. The visitor drags one to the top or clicks it to hold it up large. With `tabindex` and an `aria-label` the stack is reachable from the keyboard too.
+
+```html
+<section
+  class="trip"
+  data-dio="polaroids"
+  tabindex="0"
+  aria-label="Photos from the coast. Arrow keys bring the next one to the top, Enter holds it up."
+>
+  <img src="/trip/1.avif" />
+  <img src="/trip/2.avif" />
+  <img src="/trip/3.avif" />
+</section>
+```
+
+### A pinboard of linked projects
+
+`style="grid"` keeps each print over its own place in the layout, slightly turned, like a pinboard; links inside the prints stay links.
+
+```html
+<ul
+  class="board"
+  data-dio="polaroids"
+  data-dio-style="grid"
+  data-dio-rotate="4"
+>
+  <li>
+    <a href="/work/kiln">
+      <img src="/work/kiln.avif" />
+    </a>
+  </li>
+  <li>
+    <a href="/work/loom">
+      <img src="/work/loom.avif" />
+    </a>
+  </li>
+</ul>
+```
+
+## Notes
+
+The pictures stay plain `<img>` elements with their `alt` text, so the stack reads as a list of photos without the effect. Under reduced motion the prints move at once, without easing; a print you carry still follows the pointer.
+
+`style` rebuilds the effect; the other params change live.

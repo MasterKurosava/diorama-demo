@@ -1,0 +1,46 @@
+---
+effect: keycaps
+example:
+  description: A keyboard maker's launch hero with the words Type less on white 3D keycaps that press down one after another as if typed.
+  caption: Scroll the example into view to see the word typed, then hover and click the keys. Switch the style and the trigger, or move the sliders.
+  aspect: 16 / 8
+  controls: [depth, gap, radius, speed]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### RGB caps for a game launch
+
+`style="glow"` draws dark translucent caps with an RGB light under each one. The light bleeds round the edges of the caps onto the plate and shines through the legends, and its colors run along the row like a rainbow wave while keys are typed or the pointer moves over them. `trigger="loop"` types the word again every few seconds while it is on screen, so a teaser keeps its rhythm.
+
+```html
+<h2 data-dio="keycaps" data-dio-style="glow" data-dio-trigger="loop">Press start</h2>
+```
+
+### Retro caps on a card
+
+`style="retro"` draws thick beige caps of the 1980s, each yellowed a little differently, with a gray accent key. When the element has a background of its own, the keyboard case takes its place and its color, with its rounded corners; otherwise the case fits round the keys.
+
+```html
+<p class="mark" style="background: #3a362f; padding: 0.3em 0.5em; border-radius: 16px" data-dio="keycaps" data-dio-style="retro">1984</p>
+```
+
+### A shortcut hint that clicks
+
+`trigger="hover"` types the word only when the pointer comes over the keys, and `sound="true"` plays a short synthesized click for each press. The sound only starts after the visitor has clicked, tapped or typed on the page, as browsers require, and it is off by default.
+
+```html
+<p data-dio="keycaps" data-dio-trigger="hover" data-dio-sound="true">Ctrl K</p>
+```
+
+## Notes
+
+Each key is a real 3D cap in the page's perspective: rounded, tapered toward a slightly dished top, lit as plastic with a soft sheen, on a switch, with a soft shadow on a darker plate. The keyboard leans back a little, so the fronts of the caps show and a press reads as travel. The letter is printed on the top in the text color, and a space between words becomes a wide space bar. With `style="keycap"` the caps contrast with the text: dark text sits on white caps and light text on graphite ones, the first letter on an accent key.
+
+Keys are about 1.35 em wide, wider than the letters, so give the element room: the case grows past a narrow box, aligned the way the text is, and the keys shrink when the container is too narrow. Keep it to a short word or phrase; over 240 letters the text stays as it is.
+
+The element keeps its text as you wrote it, so screen readers, search and find in page see the real words, while the keyboard stays drawn in their place. Frames run only while keys move or flash; at rest the keyboard draws nothing new. Under reduced motion the keys are drawn but never press. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `trigger`, `color` and `accent` rebuild the effect when they change.

@@ -1,0 +1,20 @@
+.gr-frame {
+  height: 100%;
+  padding: 20px 24px;
+  box-sizing: border-box;
+  background: #fbfaf7;
+  color: #2b2f38;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.gr-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 24px;
+}
+/* The list is the graph's box: without WebGL it shows as a nested list in the same height. */
+.gr-graph {
+  height: calc(100% - 32px);
+  margin: 0;
+  overflow: auto;
+}

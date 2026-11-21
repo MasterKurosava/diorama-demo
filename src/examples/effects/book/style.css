@@ -1,0 +1,10 @@
+.ex-root:has(> img.cover) {
+  display: grid;
+  place-items: center;
+  background: #efe9dd;
+}
+.ex-root > img.cover {
+  width: min(44%, 340px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+}

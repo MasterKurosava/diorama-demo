@@ -1,0 +1,22 @@
+.mg-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 4.5vw, 40px);
+  background: #f2ebdf;
+}
+.mg-nav a {
+  font: 500 clamp(0.95rem, 1.9vw, 1.1rem) / 1 var(--font-text);
+  color: #1c1a17;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.mg-nav a:hover,
+.mg-nav a:focus-visible {
+  color: #d8432a;
+}
+.mg-nav .mg-brand {
+  margin-right: clamp(8px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}

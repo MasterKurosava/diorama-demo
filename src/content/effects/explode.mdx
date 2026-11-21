@@ -1,0 +1,66 @@
+---
+effect: explode
+example:
+  description: "A rangefinder camera that comes apart as you scroll: the lens fans out forward, the dials lift off the top and the eyepiece comes off the back."
+  aspect: 3 / 2
+  caption: Scroll the page. The parts move apart one after another, the outer ones first, while the model shrinks to keep them all in the frame. Scrolling up puts the camera back together. Drag it to look from another side.
+  scroll: 150vh
+  controls: [spread, cascade, twist, ease]
+  variants: [mode]
+related:
+  - concepts/scroll
+  - guides/models
+---
+
+## Recipes
+
+### Offsets from the model file
+
+The most exact exploded view is the one the modeler lays out. Give each part node an `explode` entry in its glTF extras, an offset in the units of the file, and use `mode="extras"`. In Blender, a custom property named `explode` on the object with the value `[0, 0.17, 0]` exports as exactly that when "Include > Custom Properties" is on. Parts inside another part with extras move with it, then by their own offset.
+
+```html
+<section data-dio-section style="height: 300vh">
+  <div style="position: sticky; top: 0; height: 100vh">
+    <div class="viewer" data-dio="model explode" data-dio-src="/models/speaker.glb" data-dio-mode="extras"><img src="/models/speaker.png" alt="Desk speaker" /></div>
+  </div>
+</section>
+```
+
+### A stack along one axis
+
+Watches, speakers, phones and burgers come apart in layers. `mode="axis"` sorts the parts by their position along `axis` and spreads the layers evenly over one model size, the middle one staying put. Parts at the same height share a layer.
+
+```html
+<div class="viewer" data-dio="model explode" data-dio-src="/models/watch.glb" data-dio-mode="axis" data-dio-axis="0 0 1" data-dio-twist="54"><img src="/models/watch.png" alt="Watch" /></div>
+```
+
+### Pick the parts
+
+Without `pieces` the effect moves the children of the model root, below any chain of single wrapper nodes an exporter adds. Name nodes to move only some of them, or to go deeper in the hierarchy. A name that is not in the file logs the names it has in development.
+
+```html
+<div data-dio="model explode" data-dio-src="/models/headphones.glb" data-dio-pieces="Left cup, Right cup, Headband"><img src="/models/headphones.png" alt="Headphones" /></div>
+```
+
+### Open it with a button
+
+`by="manual"` leaves the scroll alone and follows `position`, so a button, a tab or a GSAP timeline can take the product apart.
+
+```ts
+const speaker = app.effects.get(document.querySelector('.viewer'), 'explode')
+toggle.addEventListener('click', () => {
+  speaker.params.position = speaker.params.position ? 0 : 1
+})
+```
+
+## Notes
+
+`explode` works on the `model` of the same element, so the file, the poster, the rest pose, drag, swatches and colors are all `model`'s. It moves the nodes of that model and never loads anything of its own; take it off the element and the parts go back.
+
+`radial` moves each part away from the center by its own distance. A one-piece shell whose center is the center of the model, like a sleeve around a speaker, stays where it is and hides what is inside: split it into halves in the file, or use `axis` or `extras` as this camera does.
+
+`contain` keeps the exploded model inside its box at every step: it scales the model down as it opens, measured in the rest pose and in perspective, and keeps the center of its exploded bounds in the middle. Turn it off when the stage has room around the model and the parts may fly out over the page.
+
+Under reduced motion the camera stands taken apart, still, wherever the page is scrolled: what is inside is the content, and scroll no longer moves it.
+
+Label the parts with [hotspots](/docs/effects/hotspots) on a parent of the model element: a label on a node follows its part as it moves.

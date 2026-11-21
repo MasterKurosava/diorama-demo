@@ -1,0 +1,89 @@
+---
+effect: grid
+example:
+  description: An event card for a synthwave night, with a neon grid floor running toward a striped sun beside the date and ticket price.
+  aspect: 16 / 8
+  caption: Switch style to blueprint or minimal, and set the colors to your brand.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A synthwave hero for a music night
+
+Put the grid on an empty `aria-hidden` element that fills the hero and start the app with `canvas: 'behind'`. Keep the heading in the sky above the horizon, where the background is darkest.
+
+```html
+<header class="hero">
+  <div
+    class="hero-bg"
+    aria-hidden="true"
+    data-dio="grid"
+    data-dio-horizon="0.62"
+  ></div>
+  <h1>Neon Nights, Friday 22:00</h1>
+  <a class="cta" href="/tickets">Get tickets</a>
+</header>
+```
+
+```css
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 80vh;
+  color: #fff;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, #0d0221 0 40%, #ff8a3d 62%, #0d0221 62%);
+}
+```
+
+```ts title="src/main.ts"
+import { start } from 'dioramajs'
+
+export const app = start({ canvas: 'behind' })
+```
+
+### A blueprint for a hardware page
+
+`blueprint` draws pale lines on blue paper with every fifth line heavier and the sun as a drawn circle. The colors below work well together.
+
+<Example id="effects/grid/blueprint" description="Pale blue grid lines on a deep blue floor running to a hazy horizon, with a thin circle for the sun." aspect="16 / 7" show={['html']} controls={['cells', 'speed', 'thickness', 'sun']} variants={[]} />
+
+### Calm lines for a developer tool
+
+`minimal` draws thin lines that fade out toward the horizon over a flat color, without glow. A gray line color on a near-black background, `sun` at 0 and a slow `speed` give a quiet tech backdrop.
+
+```html
+<div
+  class="bg"
+  aria-hidden="true"
+  data-dio="grid"
+  data-dio-style="minimal"
+  data-dio-color="#9aa4b2"
+  data-dio-background="#0b0d12"
+  data-dio-sun="0"
+  data-dio-speed="0.2"
+></div>
+```
+
+## Readable text
+
+- `neon`: white text in the sky above the horizon; set `horizon` to 0.55 or more for room. Over the floor, put text on a card.
+- `blueprint`: white or `#eaf2ff` text over the deep blue; the lines are pale, so keep `thickness` at 1.2 or below under body text.
+- `minimal`: light text such as `#e6e8ec`; the lines stay faint enough for text anywhere.
+
+## Notes
+
+The docs canvas sits above the page, so the examples here keep text beside the grid. Put text over it with `canvas: 'behind'`, as in the first recipe.
+
+Lines keep their width in CSS pixels at any distance and blend into an even, fading tone where they crowd near the horizon, so the floor never shimmers. The grid draws without textures.
+
+It draws up to `fps` frames a second while it is on screen and none off screen; the pointer and scroll draw at full rate while they move the floor. With `depth` at 0 the pointer draws nothing. On the low tier it draws at most 15 frames a second.
+
+`style` rebuilds the effect when it changes. Colors, cell count, horizon, speed, sun and line width change live.

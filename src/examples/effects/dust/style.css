@@ -1,0 +1,32 @@
+.du-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.2vw, 20px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(90% 70% at 85% 0%, #5b3a22 0%, transparent 60%),
+    radial-gradient(120% 90% at 10% 100%, #2b1a10 0%, #140c07 60%, #0b0705 100%);
+  color: #f4dfba;
+}
+.du-hero .du-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #d39a5c;
+}
+.du-hero .du-headline {
+  margin: 0;
+  max-width: 12ch;
+  font: 800 clamp(1.8rem, 8.6cqi, 5.2rem) / 0.98 var(--font-text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.du-hero .du-lede {
+  margin: 0;
+  max-width: 42ch;
+  font: 400 clamp(0.9rem, 2.2cqi, 1.2rem) / 1.45 var(--font-text);
+  color: #c4ab8c;
+}

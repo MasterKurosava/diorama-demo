@@ -1,0 +1,30 @@
+.as-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.2vw, 20px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: radial-gradient(120% 90% at 70% 10%, #1b2550 0%, #0a0f24 55%, #05070f 100%);
+  color: #f2f5ff;
+}
+.as-hero .as-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8fd3ff;
+}
+.as-hero .as-headline {
+  margin: 0;
+  max-width: 13ch;
+  font: 800 clamp(1.8rem, 8.4cqi, 5rem) / 0.98 var(--font-text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.as-hero .as-lede {
+  margin: 0;
+  max-width: 40ch;
+  font: 400 clamp(0.9rem, 2.2cqi, 1.2rem) / 1.45 var(--font-text);
+  color: #aab4d6;
+}

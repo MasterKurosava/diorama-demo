@@ -1,0 +1,20 @@
+.sn-spring {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 8%;
+  border-radius: var(--radius-panel);
+  background: linear-gradient(135deg, #e3ebdc, #cfdcc6);
+  color: #26331f;
+  font: 400 15px / 1.5 var(--font-text);
+}
+.sn-spring h2 {
+  margin: 0;
+  font: 600 clamp(22px, 3vw, 32px) / 1.1 var(--font-display, var(--font-text));
+}
+.sn-spring p {
+  margin: 0;
+  color: #4d5c45;
+}

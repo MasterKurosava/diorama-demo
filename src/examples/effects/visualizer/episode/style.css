@@ -1,0 +1,43 @@
+.vz-episode {
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 6px;
+  padding: 22px 26px;
+  box-sizing: border-box;
+  background: #0b1424;
+  color: #e8f1ff;
+  font: 400 15px / 1.4 var(--font-text);
+}
+.vz-episode .vz-ep-show {
+  margin: 0;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7fd3ff;
+}
+.vz-episode .vz-ep-title {
+  margin: 0;
+  font: 700 clamp(1.2rem, 3vw, 1.6rem) / 1.15 var(--font-text);
+}
+.vz-episode .vz-ep-about {
+  margin: 0 0 6px;
+  color: #a8bad6;
+}
+.vz-episode audio {
+  width: 100%;
+  height: 40px;
+}
+.vz-episode .vz-wave {
+  min-height: 48px;
+}
+@media (max-width: 560px) {
+  .vz-episode {
+    padding: 14px 16px;
+  }
+  .vz-episode .vz-ep-about {
+    display: none;
+  }
+  .vz-episode audio {
+    height: 32px;
+  }
+}

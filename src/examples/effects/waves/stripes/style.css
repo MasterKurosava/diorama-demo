@@ -1,0 +1,5 @@
+/* The look without WebGL: straight bands in the same two colors. */
+.wv-band {
+  border-radius: var(--radius-panel);
+  background: repeating-linear-gradient(180deg, #ff7a45 0 14px, #ffd9b8 14px 28px);
+}

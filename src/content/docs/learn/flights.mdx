@@ -1,0 +1,113 @@
+---
+title: Fly between pages
+label: 6. Fly between pages
+description: Give a thumbnail and a cover the same data-dio-key and swap the page inside transition(), so the thumbnail flies into the cover.
+section: learn
+order: 6
+---
+
+In this step a thumbnail flies into a cover when the page changes. The two pages live in one box: a list with the thumbnail and a project page with the cover. A click swaps the contents of the box inside `transition()`, the same way a router swaps the page.
+
+## Mark both images with a key
+
+Put the same `data-dio-key` on the thumbnail and on the cover. Both need an effect, so they are drawn on the canvas: `image` draws the picture as it is.
+
+```html title="index.html"
+<main class="box">
+  <a href="#cover">
+    <img
+      src="/work/aurora-thumb.jpg"
+      width="160"
+      height="120"
+      data-dio="image"
+      data-dio-key="aurora"
+    />
+  </a>
+</main>
+
+<template id="list">
+  <a href="#cover">
+    <img
+      src="/work/aurora-thumb.jpg"
+      width="160"
+      height="120"
+      data-dio="image"
+      data-dio-key="aurora"
+    />
+  </a>
+</template>
+
+<template id="cover">
+  <figure>
+    <img
+      src="/work/aurora.jpg"
+      width="640"
+      height="400"
+      data-dio="image ripple"
+      data-dio-key="aurora"
+    />
+    <figcaption>Aurora, paper and light</figcaption>
+  </figure>
+  <a href="#list">Back to the list</a>
+</template>
+```
+
+The `<template>` elements hold the two pages. Their contents are not part of the document, so Diorama does not draw them until they are copied into the box.
+
+## Swap inside transition()
+
+Catch clicks on links in the box, find the template the link points at and put a copy of it in the box. Wrap the swap in `transition()`.
+
+```ts title="src/main.ts" twoslash
+import { start, transition } from 'dioramajs'
+
+export const app = start()
+
+const box = document.querySelector('.box')
+if (box) {
+  box.addEventListener('click', (event) => {
+    const link =
+      event.target instanceof Element ? event.target.closest('a') : null
+    const page = link && document.querySelector(`template${link.hash}`)
+    if (!(page instanceof HTMLTemplateElement)) return
+    event.preventDefault()
+    transition(app, () =>
+      box.replaceChildren(page.content.cloneNode(true)),
+    )
+  })
+}
+```
+
+<Example id="learn-flight" description="A box with a thumbnail that flies into a cover with its caption on click, and back into the thumbnail on Back to the list." aspect="5 / 4" controls={[]} show={['html', 'script']} />
+
+Click the thumbnail. It grows into the cover over 0.8 seconds, changing its crop on the way, and the caption appears around it. Click Back and the cover flies back into the thumbnail.
+
+## Hold the caption until the landing
+
+While the thumbnail flies, the cover's element waits under it with `data-dio-state="entering"`. Use it in CSS to keep the caption hidden until the landing.
+
+```css title="src/style.css"
+figure:has([data-dio-state="entering"]) figcaption {
+  opacity: 0;
+}
+
+figcaption {
+  transition: opacity 0.3s;
+}
+```
+
+Click the thumbnail again: the caption now fades in after the cover lands.
+
+## Why it works
+
+`transition()` takes a snapshot of every drawn element with a key before the swap and runs the swap. After it, it looks for elements with the same keys in the new page. Each pair becomes a flight: the copy of the old element moves, resizes and recrops into the box of the new one, and hands over to the new element's own copy on the way. The canvas stays the same across the swap, so the same picture keeps moving while the DOM under it changes.
+
+Diorama also watches the DOM and pairs keyed elements that leave and arrive without `transition()`. That is how keyed elements fly with Astro's `<ClientRouter />`, Nuxt and Next.js without your code. `transition()` makes the change explicit: the snapshot is taken before the swap, a swap that returns a promise (a fetch of the next page) is awaited, and the call returns the transition, so `await transition(app, swap)` resolves once every flight has landed.
+
+Change the flight for every transition in `start()`, for example `start({ transitions: { duration: 1.2 } })`.
+
+## Related
+
+- [Your first page transition](/docs/start/first-transition): the setup for each framework.
+- [Page transitions with routers](/docs/guides/routers)
+- [How a flight flies](/docs/concepts/flights)

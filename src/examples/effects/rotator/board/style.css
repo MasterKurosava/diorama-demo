@@ -1,0 +1,39 @@
+.rt-board {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(8px, 1.8cqi, 16px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #14161b 0%, #0d0f12 100%);
+  color: #eef0f3;
+}
+.rt-board .rt-label,
+.rt-board .rt-time {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8d939d;
+}
+.rt-board .rt-time {
+  color: #7ee0b5;
+}
+.rt-board .rt-stop {
+  margin: 0;
+  font: 800 clamp(1.8rem, 7.6cqi, 5.2rem) / 1.05 var(--font-text);
+  font-stretch: 85%;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.rt-board [data-dio="rotator"] {
+  color: #ffd23f;
+}
+.rt-board [data-dio="rotator"] > * + * {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

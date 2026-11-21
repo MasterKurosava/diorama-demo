@@ -1,0 +1,36 @@
+---
+effect: label
+example:
+  description: A drinks can with a blue and cream Harbor Pale Ale label; it turns as the page scrolls and leans toward the pointer, the light running over the aluminium.
+  aspect: 4 / 3
+  caption: Scroll the page to turn the can, drag it, or focus it and press the arrow keys. Try the bottle and the jar.
+  controls: [yaw, pitch, tilt, turn, spin, gloss, shadow]
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A wine bottle turned by a drag
+
+`style="bottle"` puts the label on a 750 ml bottle of colored glass with a foil cap. A wine label is narrow, so it covers part of the body, as on a real bottle. `turn="0"` stops the scroll turn and leaves the bottle to a drag and the arrow keys.
+
+<Example id="effects/label/bottle" description="A dark green wine bottle with a cream Hillside Riesling 2024 label, turned a little to the left; a drag turns it all the way round." aspect="4 / 3" show={['html']} controls={['yaw', 'gloss']} variants={[]} />
+
+### A jar with a colored lid
+
+`style="jar"` is a squat glass jar with a twist lid. `color` is what fills the jar, seen through the glass, and `cap` is the lid. A higher `pitch` shows the top of the lid.
+
+<Example id="effects/label/jar" description="A glass jar of amber honey with a gold lid and a dark label with honeycomb and Wildflower Honey on it." aspect="4 / 3" show={['html']} controls={['pitch', 'turn']} variants={[]} />
+
+## Notes
+
+Use the flat label as it goes to print, its whole width. The label keeps its proportions: its height takes the label band of the container and its width decides how far around it reaches. A label longer than the body goes once round and gets a lower band. A label with transparent edges, such as a die-cut shape, shows the glass or the metal around it.
+
+Size the image's box for the container and keep the label undistorted with `object-fit: contain`: the container stands in the box as tall as fits. Without WebGL the flat label shows in the same box, all of it readable.
+
+The container draws only while it moves: the scroll with `turn`, a drag, the lean or the idle `spin`. On touch screens the scroll turns it; a finger turns it only when the image has `touch-action: pan-y` or `none`.
+
+`style`, `color` and `cap` rebuild the effect; every other param changes live.

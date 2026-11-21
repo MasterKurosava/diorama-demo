@@ -1,0 +1,32 @@
+.ej-feed {
+  display: grid;
+  align-content: end;
+  justify-items: end;
+  gap: 10px;
+  padding: 16px 20px;
+  box-sizing: border-box;
+  background: #15131c;
+  font-family: var(--font-text);
+  color: #b9b3c9;
+}
+.ej-feed .ej-note {
+  margin: 0;
+  font-size: 14px;
+}
+.ej-feed .ej-picks {
+  display: flex;
+  gap: 8px;
+}
+.ej-feed .ej-picks button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #39344a;
+  border-radius: 50%;
+  background: #221f2d;
+  font-size: 20px;
+  cursor: pointer;
+}
+.ej-feed .ej-picks button:focus-visible {
+  outline: 3px solid #ffb3c1;
+  outline-offset: 2px;
+}

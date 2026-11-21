@@ -1,0 +1,20 @@
+---
+import { render } from 'astro:content'
+import { components } from '../../../docs/components/mdx.ts'
+import ErrorLayout from '../../../docs/layouts/Error.astro'
+import { type ErrorPage, errorPages } from '../../../docs/lib/errors.ts'
+
+export async function getStaticPaths() {
+  return (await errorPages()).map((page) => ({
+    params: { code: page.url.slice('/docs/errors/'.length) },
+    props: { page },
+  }))
+}
+
+const { page } = Astro.props as { page: ErrorPage }
+const { Content, headings } = await render(page.entry)
+---
+
+<ErrorLayout page={page} headings={headings}>
+  <Content components={components} />
+</ErrorLayout>

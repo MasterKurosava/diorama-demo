@@ -1,0 +1,25 @@
+.pn-dots {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(10px, 2.4cqi, 20px);
+  padding: 0 6%;
+  box-sizing: border-box;
+  background: radial-gradient(80% 120% at 50% 0%, #2d3540 0%, transparent 70%), #171b21;
+  text-align: center;
+}
+.pn-dots .pn-read {
+  margin: 0;
+  padding: 0.08em 0.24em;
+  border-radius: 0.18em;
+  font: 900 clamp(2.4rem, 11cqi, 7rem) / 1.05 var(--font-text);
+  letter-spacing: 0.02em;
+  color: #ece6dc;
+}
+.pn-dots .pn-line {
+  max-width: 40ch;
+  margin: 0;
+  font: 400 max(13px, 1.8cqi) / 1.45 var(--font-text);
+  color: #a9b1bc;
+}

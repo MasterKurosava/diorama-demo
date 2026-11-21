@@ -1,0 +1,57 @@
+---
+effect: chart
+example:
+  description: A food bank's annual report table of meals served by five programs, drawn as horizontal bars that grow in on scroll.
+  aspect: 16 / 9
+  caption: Hover a bar for its value. Switch style to column, line or area; the table under the chart stays the same.
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### Two series over time
+
+A table with a header row gives one series per value column, named by its header. `line` draws a line per column and the tooltip lists every column of the hovered month; `colors` sets the series colors in column order.
+
+<Example id="effects/chart/saas" description="Monthly new and lost customers of a software company as two lines, with a tooltip for the hovered month." aspect="16 / 9" show={['html']} controls={['duration', 'stagger']} variants={[]} />
+
+### A ranking from a definition list
+
+A `<dl>` of `<dt>` labels and `<dd>` values is one series. Bars are the default style and suit long labels: each bar gets its value as written at its end.
+
+```html
+<dl class="budget" data-dio="chart">
+  <dt>Programs</dt><dd>78%</dd>
+  <dt>Fundraising</dt><dd>14%</dd>
+  <dt>Administration</dt><dd>8%</dd>
+</dl>
+```
+
+### Several charts on one scale
+
+Each chart picks a round top for its own numbers. Give charts that sit side by side the same `max` so their bars compare. Cells whose text is not a number take their value from `data-dio-value`.
+
+```html
+<table
+  class="region"
+  data-dio="chart"
+  data-dio-style="column"
+  data-dio-max="5000"
+>
+  <tr>
+    <th>North</th>
+    <td data-dio-value="4200">about 4,200</td>
+  </tr>
+  <tr><th>South</th><td>3,150</td></tr>
+</table>
+```
+
+## Notes
+
+The table or list is the source of truth. It stays in the page for screen readers, search engines and copying, hidden only while the chart is drawn, and it shows as is without WebGL. Size it with CSS: a table takes the `height` you give it for the chart, and the plain table uses that height too when it shows.
+
+Numbers are read the way people write them: thousand separators in English, German, French or Swiss style, a decimal comma, currency signs, `%`, a minus sign, accounting parentheses and `k`, `M`, `bn` suffixes. A shared currency sign or `%` carries over to the value axis. Empty and unreadable cells leave a gap.
+
+It draws only while the marks grow in and for a few frames as a hovered category fades in or out. Under reduced motion the chart stands complete from the first frame, and hover and the tooltip still work. Style the tooltip with `::part(tooltip)`.

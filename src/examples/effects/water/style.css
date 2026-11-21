@@ -1,0 +1,33 @@
+.wa-pool {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: 2.4cqi;
+  box-sizing: border-box;
+  padding: 0 8%;
+  background: #f2f6f7;
+  color: #0b2a44;
+}
+.wa-pool .wa-kicker {
+  margin: 0;
+  font: 600 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #3d7f99;
+}
+.wa-pool .wa-headline {
+  justify-self: start;
+  /* Room for the water around the letters, without moving them. */
+  margin: -0.3em -0.45em;
+  padding: 0.3em 0.45em;
+  font: 900 13.5cqi / 1 var(--font-text);
+  font-stretch: 85%;
+  letter-spacing: -0.015em;
+  color: #0b2a44;
+}
+.wa-pool .wa-line {
+  max-width: 46ch;
+  margin: 0.6cqi 0 0;
+  font: 400 max(13px, 1.9cqi) / 1.45 var(--font-text);
+  color: #46627a;
+}

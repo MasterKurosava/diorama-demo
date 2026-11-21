@@ -1,0 +1,53 @@
+---
+effect: physics
+example:
+  description: A toy fair banner whose red heading drops into a pile of thick 3D letter tiles at the bottom of the banner, ready to be thrown about.
+  caption: Click the heading to drop it, drag a letter to throw it, then press Stand it up. Switch the style for scatter or stack.
+  aspect: 16 / 9
+  controls: [gravity, bounce, friction, depth, throw]
+  variants: [style]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A hero heading that falls once in view
+
+The default `view` trigger lets the heading fall a moment after it comes into view. Point `data-dio-container` at the hero, so the letters pile up at its bottom edge rather than inside the heading's own line, and give the visitor a way back with a button that carries `data-dio-reset`.
+
+```html
+<section class="hero">
+  <h1 data-dio="physics" data-dio-container=".hero">Gravity wins</h1>
+  <button data-dio-reset="">Reset</button>
+</section>
+```
+
+While letters are off their places the heading carries `data-dio-physics="moving"` or `"piled"`, so CSS can show the button only then: `.hero:has([data-dio-physics]) button { visibility: visible }`.
+
+### Letters that stack in one by one
+
+`data-dio-style="stack"` drops each letter in from above into its own place, one after another, with a bounce and a wobble. On the first screen the heading stays hidden until the letters land, so it never shows as flat text first.
+
+```html
+<h2 data-dio="physics" data-dio-style="stack">Built to stack</h2>
+```
+
+### A word mark you can knock apart
+
+With `data-dio-trigger="hover"` the letters the pointer touches fall off, and the rest stay in place. When the pointer leaves the container and the pile is still, the letters fly back. On a touch screen a tap knocks a letter off.
+
+```html
+<header><p class="mark" data-dio="physics" data-dio-trigger="hover" data-dio-container="header">loose</p></header>
+```
+
+`data-dio-trigger="scroll"` lets the heading fall as it scrolls past the upper third of the viewport and stands it back up when it comes back, and from code `element.dispatchEvent(new Event('dio:reset'))` stands it up at any time. A `dio:physics` event reports each change with `detail.state` set to `moving`, `piled` or `upright`.
+
+## Notes
+
+Each letter is a real 3D tile cut in the shape of its glyph from the heading's own text, as the browser laid it out, so it keeps its font, color and weight. The tiles are boxes in a small rigid-body simulation written for this effect: gravity, the walls of the container, contacts between tiles with friction and restitution, all on a fixed step, and each tile goes to sleep once it lies still. In the drawing every tile is marched from its box to the glyph, so its walls are the letter's own outline seen from any angle, lit by their normals, with a bevel round the face, and each casts a soft shadow on the page behind it and on the floor below.
+
+The container is the heading's own box unless `data-dio-container` names an ancestor; the room also reaches a little toward the viewer, so letters can lie flat and lean on each other in depth. A loose letter can be grabbed and thrown: `throw` scales the speed it leaves the pointer with, and 0 turns the pointer off. While a letter is held the page does not scroll under a finger.
+
+Nothing is drawn once everything is still: the pile stays where it lies without frames, and once the letters are back in their places the heading is plain DOM text again. Under reduced motion the effect is off and the heading stays upright as text. Text with `text-shadow`, `-webkit-text-stroke`, `background-clip: text` or a vertical writing mode stays as it is, with a warning in development. `style`, `trigger` and `container` rebuild the effect when they change.

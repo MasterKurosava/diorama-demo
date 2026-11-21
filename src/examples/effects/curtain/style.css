@@ -1,0 +1,25 @@
+.cover {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.ex-root .cover > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.cover-title {
+  margin: 0;
+  font: 600 1.05rem / 1.3 var(--font-text);
+  color: var(--text);
+}
+.cover-title span {
+  display: block;
+  font: 500 0.72rem / 1.6 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

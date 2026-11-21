@@ -1,0 +1,55 @@
+---
+effect: reflection
+example:
+  description: "Three books standing on a pale shelf, each with a soft reflection on the glossy surface below it."
+  caption: "The reflection fades and blurs with distance. Move the sliders to change how far it reaches, how strong it is and the contact shadow."
+related:
+  - guides/performance
+---
+
+## Recipes
+
+### A product cutout on a glossy shelf
+
+For e-commerce product shots, a transparent PNG or WebP gets a reflection below it without baking one into the image. Leave room under the image with a margin: the reflection draws below the element's box and never shifts the layout.
+
+```html
+<img
+  src="/shop/speaker.png"
+  data-dio="reflection"
+  data-dio-shadow="0.35"
+  style="margin-bottom: 160px"
+/>
+```
+
+### A phone mockup on dark glass
+
+A lower `strength`, a short `reach` and a little `blur` read as dark glass.
+
+```html
+<img
+  src="/app/phone.png"
+  data-dio="reflection"
+  data-dio-strength="0.25"
+  data-dio-reach="0.3"
+  data-dio-blur="4"
+/>
+```
+
+### A photo over still water
+
+On a full photo the bottom edge is mirrored; `ripple` adds a gentle wave, as over water.
+
+```html
+<img
+  src="/stays/boathouse.avif"
+  data-dio="reflection"
+  data-dio-strength="0.6"
+  data-dio-reach="0.6"
+  data-dio-ripple="6"
+/>
+```
+
+## Notes
+
+The reflection takes no clicks and adds nothing to the page layout; give the image room below with a margin. Under reduced motion the ripple stands still.

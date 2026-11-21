@@ -1,0 +1,11 @@
+.ex-root > a.pass {
+  display: grid;
+  place-items: center;
+  background: #081634;
+}
+.pass img {
+  width: min(62%, 500px);
+  height: auto;
+  aspect-ratio: 1080 / 680;
+  border-radius: 16px;
+}

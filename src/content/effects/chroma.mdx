@@ -1,0 +1,122 @@
+---
+effect: chroma
+example:
+  description: A black rangefinder camera turning on a warm page; it was filmed on a green screen, and the green is gone.
+  aspect: 3 / 2
+  controls: [similarity, softness, spill, blur]
+related:
+  - guides/performance
+  - guides/reduced-motion
+---
+
+## Recipes
+
+### A product that turns on the page
+
+Film the product on a green screen, or render it on one, and export an ordinary MP4 or WebM. `chroma` takes the screen out while it plays, so the product stands on your page with its own soft shadow gone and the page behind it. This works in every browser: Safari plays no WebM with alpha, and HEVC with alpha needs Apple tools to make.
+
+```html
+<video
+  src="/film/bottle.mp4"
+  poster="/film/bottle.webp"
+  autoplay
+  muted
+  loop
+  playsinline
+  aria-label="The bottle, turning"
+  data-dio="chroma"
+></video>
+```
+
+Make the poster the first frame, on the same green: the effect keys it too, so the page shows the product before the film loads.
+
+### Tune the key
+
+Start from the defaults and change one value at a time while the film plays.
+
+- `similarity` is how far from the screen color a pixel may be and still turn clear. Raise it if patches of screen stay; lower it if the edges of the product go see-through.
+- `softness` softens the cut from clear to opaque. Hair, fur and motion blur want more.
+- `spill` takes the screen's green out of the product, where light from the screen fell on it. All of it is taken out of the see-through edge; 0 keeps every color as shot, for a product that is green itself.
+- `blur` averages each pixel's key with neighbors that many pixels away, so a noisy edge does not crawl.
+- `crop` cuts the top, right, bottom and left of the frame, for light stands or the end of the screen in the shot.
+
+### Unevenly lit footage
+
+A screen that is brighter in the middle than in the corners has more than one green. With `by` set to `auto` the key is read from each frame instead of `screen`, from whichever top corner is greener, so it follows the light as it changes. Keep at least one top corner on the screen, or move them in with `crop`.
+
+```html
+<video
+  src="/film/studio.mp4"
+  autoplay
+  muted
+  loop
+  playsinline
+  data-dio="chroma"
+  data-dio-by="auto"
+></video>
+```
+
+### A blue screen
+
+Set `screen` to the color of the screen. Blue suits products with green in them.
+
+```html
+<video
+  src="/film/plant.mp4"
+  autoplay
+  muted
+  loop
+  playsinline
+  data-dio="chroma"
+  data-dio-screen="#0047bb"
+></video>
+```
+
+### A presenter with your own controls
+
+The copy hides the video element, and with it the browser's own controls and captions. Give the video a play button and captions next to it; the effect follows whatever the video does.
+
+```html
+<figure class="host">
+  <video
+    class="talk"
+    src="/talk/intro.mp4"
+    poster="/talk/intro.webp"
+    playsinline
+    data-dio="chroma"
+  ></video>
+  <button class="play" aria-pressed="false">Play</button>
+</figure>
+```
+
+```ts
+const talk = document.querySelector('.talk')
+const play = document.querySelector('.play')
+play.addEventListener('click', () =>
+  talk.paused ? talk.play() : talk.pause(),
+)
+talk.addEventListener('play', () =>
+  play.setAttribute('aria-pressed', 'true'),
+)
+talk.addEventListener('pause', () =>
+  play.setAttribute('aria-pressed', 'false'),
+)
+```
+
+## Notes
+
+Without WebGL the visitor would see the green screen. Hide the video then with one rule, as the example does:
+
+```css
+[data-dio~="chroma"][data-dio-state="off"] {
+  visibility: hidden;
+}
+```
+
+On the first screen the video waits hidden until its keyed copy is drawn, at most 3 seconds, so the green never flashes. The effect turns `preload="none"` into `metadata`, since a video without a frame has nothing to key.
+
+Footage filmed on black, such as fire, smoke or sparks, needs no key: `mix-blend-mode: screen` on the video lays it over a dark page.
+
+A video from another origin needs `crossorigin="anonymous"` and a server that sends `Access-Control-Allow-Origin`.
+
+`by` rebuilds the effect when it changes. Set it in the markup.

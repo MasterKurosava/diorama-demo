@@ -1,0 +1,33 @@
+.sh-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.2vw, 20px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(80% 70% at 82% 8%, #1d3a3f 0%, transparent 62%),
+    radial-gradient(120% 90% at 0% 100%, #0f1c22 0%, #091015 60%, #06090c 100%);
+  color: #eef6f5;
+}
+.sh-hero .sh-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7fc4bd;
+}
+.sh-hero .sh-headline {
+  margin: 0;
+  max-width: 11ch;
+  font: 800 clamp(1.8rem, 9cqi, 5.6rem) / 0.98 var(--font-text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  cursor: pointer;
+}
+.sh-hero .sh-lede {
+  margin: 0;
+  max-width: 44ch;
+  font: 400 clamp(0.9rem, 2.2cqi, 1.2rem) / 1.45 var(--font-text);
+  color: #a9c2c0;
+}

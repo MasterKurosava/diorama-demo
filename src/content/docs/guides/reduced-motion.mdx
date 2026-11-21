@@ -1,0 +1,171 @@
+---
+title: Reduced motion
+description: What effects do under prefers-reduced-motion, on touch devices and without WebGL, and how to choose for your own effects.
+section: guides
+order: 8
+related: [guides/custom-effect, guides/performance, api/inputs]
+---
+
+Every visitor gets a working page: Diorama only ever adds to the HTML. This page covers the three cases where it adds less or nothing: visitors who asked for reduced motion, touch devices without hover, and browsers without WebGPU or WebGL 2.
+
+## Reduced motion
+
+When the system setting `prefers-reduced-motion: reduce` is on, effects keep running but stop moving on their own. Motion inputs read zero and clocks stand still.
+
+| Input or option                       | Under reduced motion                                           |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `hover`, `velocity`                   | 0                                                              |
+| `motion`                              | 0, otherwise 1                                                 |
+| `time`, `hoverTime`                   | Stand still                                                    |
+| `animate: 'hover'`, `animate: 'visible'` | Ask for no frames                                           |
+| `pointer`, `progress`, `pin`          | Unchanged: the visitor moves them                              |
+| `over` on `input`                     | Unchanged: it is a position, not a motion                      |
+
+So a hover ripple shows a still picture, a scroll-speed bend lies flat, and an effect driven by `time` holds one frame. The visitor still sees the effect's picture, colors and layout.
+
+The setting can change while the page is open. Diorama reads it live: inputs are recomputed and a frame is drawn at once.
+
+<Example id="reduced-motion" description="A photo with ripple and bend and a checkbox that emulates reduced motion: with it on, the photo stays still under the pointer and while the page scrolls." aspect="16 / 9" controls={[]} show={['html']} caption="The checkbox emulates the setting for this whole page, the same way the Rendering panel of DevTools does." />
+
+### Turn an effect off
+
+`reducedMotion: 'off'` removes the effect for these visitors. The instance is off, the element stays plain HTML with `data-dio-state="off"`, and the device does not start the engine for it.
+
+```ts title="src/effects/sway.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { vec2 } from 'three/tsl'
+
+export default effect(
+  { speed: 1 },
+  { reducedMotion: 'off' },
+  ({ surface, u }) => {
+    surface.uv((uv) =>
+      uv.add(vec2(u.time.mul(u.speed).sin().mul(0.01), 0)),
+    )
+  },
+)
+```
+
+The default, `'static'`, keeps the effect with motion inputs at zero. Choose `'off'` when the still frame makes no sense, such as particles frozen mid-flight.
+
+### Keep inputs still yourself
+
+`pointer`, `progress` and `pin` keep moving, because they follow what the visitor does. When an effect turns them into large motion, scale that part by `u.motion`, which is 1 normally and 0 under reduced motion.
+
+```ts title="src/effects/slide.ts" twoslash {6}
+import { effect } from 'dioramajs'
+import { vec2 } from 'three/tsl'
+
+export default effect({ depth: 0.08 }, ({ surface, u }) => {
+  // Slides the picture as the element passes through the viewport.
+  const shift = u.progress.sub(0.5).mul(u.depth, u.motion)
+  surface.uv((uv) => uv.add(vec2(0, shift)))
+})
+```
+
+On the CPU, `input.reducedMotion` is `true` under reduced motion. Read it in `update`, which asks for frames by returning `true` and gets them under reduced motion too, or in a function passed to `animate`, which decides frames on its own.
+
+### Page transitions
+
+Under reduced motion page transitions do not fly. A keyed copy fades out in place in 0.2 seconds, and its target shows its DOM until its own copy is ready. Inside a browser view transition, copies fade with the root crossfade over 0.25 seconds. Durations and timelines you set for leaving and entering copies do not play.
+
+### Test it
+
+- Chrome DevTools: open the Rendering panel and set "Emulate CSS media feature prefers-reduced-motion" to `reduce`.
+- Playwright: `await page.emulateMedia({ reducedMotion: 'reduce' })`.
+- Windows: Settings, Accessibility, Visual effects, Animation effects off. macOS: System Settings, Accessibility, Display, Reduce motion.
+
+## Touch devices
+
+An effect that moves only under the pointer shows nothing new on a phone, while the engine costs about 225 KB to download. Set `when: 'hover'` on such effects. It is short for the media query `'(hover: hover)'`; on a device where it does not match, the instance is off, the element stays plain HTML with `data-dio-state="off"` and the engine does not start for it.
+
+```ts title="src/effects/brighten.ts" twoslash {5}
+import { effect } from 'dioramajs'
+
+export default effect(
+  { strength: 1 },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    surface.color((color) => color.mul(u.strength.mul(u.hover).add(1)))
+  },
+)
+```
+
+The built-in `ripple` declares `when: 'hover'` in its registry entry as well, so a touch device downloads neither its module nor the engine for it. An effect from your folder has its `when` in the file, which the device reads first: the module downloads, the engine does not start. `when` takes any media query, such as `'(min-width: 768px)'`, and follows it live: when the query starts or stops matching, instances turn on or off.
+
+`when` is never guessed from the code, since an effect can react to a tap on purpose: `pointer` follows touch too. To enable one of your effects on touch without editing its file, register it in `start()` with `when: 'all'`. An entry's `when` beats the one in the definition, and an entry with `when: 'hover'` saves the module download on touch devices.
+
+```ts title="src/main.ts" twoslash
+// @filename: src/effects/brighten.ts
+import { effect } from 'dioramajs'
+export default effect(
+  { strength: 1 },
+  { when: 'hover' },
+  ({ surface, u }) => {
+    surface.color((color) => color.mul(u.strength.add(1)))
+  },
+)
+// @filename: src/main.ts
+// ---cut---
+import { start } from 'dioramajs'
+
+export const app = start({
+  effects: {
+    brighten: { load: () => import('./effects/brighten'), when: 'all' },
+  },
+})
+```
+
+To keep the engine off every device without hover, pass the query to `enabled`.
+
+```ts title="src/main.ts" twoslash
+import { start } from 'dioramajs'
+
+export const app = start({
+  enabled: matchMedia('(hover: hover)').matches,
+})
+```
+
+Effects driven by scroll speed, such as `bend`, trail native touch scrolling by one frame, because the browser scrolls on its compositor. Lenis with `syncTouch: true` scrolls touch on the main thread in step with the canvas; see [GSAP and Lenis](/docs/guides/gsap-lenis). To test touch, turn on device emulation in DevTools: it reports `(hover: none)`.
+
+## Without WebGL
+
+Before it downloads three.js or any effect module, Diorama checks the device once per app: Save-Data first, then the GPU, a WebGPU adapter or a WebGL 2 context. The check runs when the first element with an effect nears the viewport, or earlier for the idle-time prefetch after the window `load` event. The table also lists the cases from the sections above, since they leave the element the same way.
+
+| Case                                              | `app.effects.status` | Elements                                |
+| ------------------------------------------------- | -------------------- | --------------------------------------- |
+| Neither WebGPU nor WebGL 2                        | `'unavailable'`      | Plain HTML, `data-dio-state="off"`      |
+| Save-Data is on, with `enabled: 'auto'`           | `'off'`              | Plain HTML, `data-dio-state="off"`      |
+| `enabled: false`                                  | `'off'`              | Plain HTML, `data-dio-state="off"`      |
+| `when` does not match, for example on touch       | Unchanged            | Plain HTML, `data-dio-state="off"`      |
+| Reduced motion and `reducedMotion: 'off'`         | Unchanged            | Plain HTML, `data-dio-state="off"`      |
+| The GPU device is lost or the renderer stops      | `'unavailable'`      | Plain HTML in the same frame, `off`     |
+
+In the first three cases nothing of three.js or the effects is downloaded, not even by the idle-time prefetch, and the page works as written. Page transitions still swap the page, without flights. A browser without a GPU prints the `RENDER_UNAVAILABLE` warning once, in development builds only; production stays silent, since such visitors are expected. A lost device is a real failure: `RENDER_LOST` is reported once as an error.
+
+`enabled` sets the check: `'auto'` applies both rules, `true` ignores Save-Data but still checks the GPU, so a browser without one stays plain as with `'auto'`, and `false` turns the effects off.
+
+Style the fallback with the attribute. A hint that only makes sense with the effect, for example, can hide without it.
+
+```css
+figure:has([data-dio-state="off"]) .hover-hint {
+  display: none;
+}
+```
+
+To react in code, wait until the app runs and watch the status.
+
+```ts title="src/main.ts" twoslash
+import { ready, start } from 'dioramajs'
+
+export const app = start()
+
+void ready(app).then((app) => {
+  app.effects.status.subscribe((status) => {
+    const flat = status === 'unavailable' || status === 'off'
+    document.documentElement.classList.toggle('no-3d', flat)
+  })
+})
+```
+
+To try the WebGL 2 path on a machine with WebGPU, pass `render: { forceWebGL: true }` to `start()`.

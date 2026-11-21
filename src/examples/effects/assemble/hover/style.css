@@ -1,0 +1,22 @@
+.as-touch {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 0 6%;
+  box-sizing: border-box;
+  background: #0b0812;
+  color: #f4ecff;
+  text-align: center;
+}
+.as-touch .as-touch-title {
+  margin: 0;
+  font: 800 clamp(1.8rem, 9cqi, 5.2rem) / 1 var(--font-text);
+  letter-spacing: -0.03em;
+}
+.as-touch .as-touch-note {
+  margin: 0;
+  font: 400 clamp(0.85rem, 1.9cqi, 1rem) / 1.4 var(--font-text);
+  color: #a99cc0;
+}

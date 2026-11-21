@@ -1,0 +1,5 @@
+/* A pale blueprint panel; its own color stays under the marks. */
+.dt-blueprint {
+  border-radius: var(--radius-panel);
+  background: #eef3fa;
+}

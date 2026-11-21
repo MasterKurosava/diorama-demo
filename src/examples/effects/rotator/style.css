@@ -1,0 +1,42 @@
+.rt-hero {
+  container-type: inline-size;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.2cqi, 20px);
+  padding: 0 7%;
+  box-sizing: border-box;
+  background:
+    radial-gradient(60% 70% at 80% 20%, #fbe3cf 0%, transparent 70%),
+    linear-gradient(180deg, #f7f2ea 0%, #efe7da 100%);
+  color: #1b1712;
+}
+.rt-hero .rt-kicker {
+  margin: 0;
+  font: 500 max(11px, 1.5cqi) / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a7a66;
+}
+.rt-hero .rt-title {
+  margin: 0;
+  font: 800 clamp(2rem, 8.4cqi, 6rem) / 1.04 var(--font-text);
+  letter-spacing: -0.035em;
+}
+.rt-hero .rt-word {
+  color: #e2481c;
+}
+.rt-hero .rt-line {
+  max-width: 44ch;
+  margin: 0;
+  font: 400 max(13px, 1.7cqi) / 1.45 var(--font-text);
+  color: #6b5f51;
+}
+/* Before the effect runs, and without WebGL, only the first word shows; screen readers read all. */
+.rt-hero [data-dio="rotator"] > * + * {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

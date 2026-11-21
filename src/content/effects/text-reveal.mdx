@@ -1,0 +1,60 @@
+---
+effect: text-reveal
+example:
+  description: A roastery headline that rises into place letter by letter, tipped back and blurred at first.
+  aspect: 16 / 7
+  variants: [motion, by]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A hero headline and its subline
+
+Let the headline's words slide up out of a mask, then fade the subline in line by line. A `delay` on the subline makes the two read as one entrance instead of two animations that start together.
+
+<Example id="effects/text-reveal/hero" description="A finance app headline whose words slide up out of a mask, then a subline that fades in line by line." aspect="16 / 8" show={['html']} controls={[]} variants={[]} />
+
+### Section headings that follow the scroll
+
+With `data-dio-trigger="scroll"` a heading plays as it rises from the bottom of the viewport to the middle, and plays backward when you scroll up. Use it for the headings between the sections of a long landing page, where each one marks a step of the story. Scroll past this example to see it.
+
+<Example id="effects/text-reveal/steps" description="A section heading whose words come in as it rises up the page and go back as it sinks." aspect="16 / 8" show={['html']} controls={[]} variants={[]} />
+
+A longer `stagger`, 0.2 s here, spreads the words along the scroll; with the default they arrive almost together. `threshold` sets how much of the heading must be in view before it starts. A heading that is on screen when the page opens stays as it is until scrolling would have played it.
+
+### An editorial masthead
+
+Lines that slide up out of their own band read like type being set. Break the lines yourself with `<br>` so each one is a phrase, and give them a longer stagger than letters need.
+
+```html
+<h1
+  class="masthead"
+  data-dio="text-reveal"
+  data-dio-by="line"
+  data-dio-motion="mask"
+  data-dio-stagger="0.12"
+>
+  The slow issue:<br />six makers who refuse to hurry
+</h1>
+```
+
+### A command that types itself
+
+`motion="type"` shows each letter at once when its turn comes, so `stagger` alone sets the pace. On a developer site it makes the install line the first thing the reader watches happen.
+
+<Example id="effects/text-reveal/install" description="An install command typed one letter at a time." aspect="16 / 5" show={['html']} controls={[]} variants={[]} />
+
+## Notes
+
+The element keeps its text as you wrote it, with no span per letter. Screen readers read words rather than single letters, search engines index the heading, and find in page works. While units move, a CSS filter hides the DOM text without removing it, so assistive technology still reads it, and once the last unit lands the heading is real, selectable text again. Under reduced motion the effect is off and the text shows at once.
+
+Text on screen when the page opens is hidden until the effect is ready and then plays. If the engine takes over 3 seconds to get there, the text shows as it is instead of waiting longer.
+
+The canvas cannot draw some text the way the browser does: `background-clip: text`, `text-shadow`, `-webkit-text-stroke` and vertical writing modes. An element with any of them keeps its text as it is, and a warning in development names the reason.
+
+Keep it to headings, short paragraphs and labels. Over 1500 letters it moves by words, over 1500 words by lines, and each element keeps a raster of its text for as long as it lives.
+
+`by`, `trigger` and `motion` rebuild the effect when they change. Set them in the markup rather than switching them while the text is on screen.

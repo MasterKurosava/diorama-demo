@@ -1,0 +1,46 @@
+---
+effect: shimmer
+example:
+  description: A watch launch on a dark page whose heavy heading is polished chrome, with reflections that slide as the pointer moves.
+  caption: Move the pointer over the page and point at the heading to sweep the light. Switch the style or the trigger; with trigger pointer, a lamp follows the pointer.
+  aspect: 16 / 8
+  controls: [bevel, angle, width, strength, follow, shadow]
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A gold plan badge that glints
+
+`style="gold"` with `trigger="loop"` sweeps a light over a short label every few seconds and draws nothing in between. A smaller `bevel` suits small text, where a wide bevel would round the letters off. Gold reads well on a light page; `colors` turns it into rose or white gold.
+
+<Example id="effects/shimmer/badge" description="The header of a bookkeeping app on a cream page, with a gold Pro badge beside its name that glints every few seconds." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### Holographic foil for a limited drop
+
+`style="holo"` turns the letters into a rainbow foil whose colors move with the viewing angle, with fine glitter that flashes as the angle changes. With `trigger="pointer"` a lamp follows the pointer over the letters. On a light page the foil is deeper and more saturated so the name stays readable. Point at the name below.
+
+<Example id="effects/shimmer/drop" description="A sneaker drop announcement on a pale gray page, the shoe name in holographic foil lit by a lamp at the pointer." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### Glass that sweeps once in view
+
+`style="glass"` draws clear letters with a tinted rim, tinted by the text color or the first of `colors`. On a dark page the rim catches the light; on a light page it darkens like the edge of real glass, and the shadow carries the tint with a little gathered light inside it.
+
+```html
+<h2 data-dio="shimmer" data-dio-style="glass" data-dio-trigger="view" data-dio-colors="#4aa8ff">Clear thinking</h2>
+```
+
+## Notes
+
+The bevel is built from the shape of each letter: a distance field of the text gives every pixel its distance to the nearest edge, and a rounded profile over `bevel` turns that into a slope, so the edges catch the studio's lights the way a real bevel would. Each line also curves back a little at the top and bottom, which is what puts the horizon of the studio across the middle of chrome letters. The outline and anti-aliasing of the letters are the browser's own: the shape is read from a raster of the text, not redrawn.
+
+The reflections follow the pointer anywhere on the page and turn as the heading scrolls through the viewport. After the pointer stops they settle in a fraction of a second and nothing more is drawn. Set `follow` to 0 to hold them still, and `speed` to 0 to turn the sweep off.
+
+The heading stays real text in the DOM: screen readers read it, search engines index it, and find in page works. A CSS filter hides the DOM text while the material is drawn, so give the text a color that reads on its own, since that is what shows without WebGL. Text on screen when the page opens is hidden until the material is ready, at most a few seconds.
+
+Use a bold, large font: the bevel needs room, and thin strokes show little of the material. The canvas cannot draw `background-clip: text`, `-webkit-text-stroke` or vertical writing modes the way the browser does, and an element with any of them keeps its text as it is, with a warning in development. A `text-shadow` is fine: the effect casts its own shadow instead.
+
+`style`, `trigger` and `colors` rebuild the effect when they change. `bevel` builds the surface again a moment after it changes; the other params change live.

@@ -1,0 +1,1020 @@
+---
+/**
+ * A live example: the markup of src/examples/<id>/index.html is drawn into the page
+ * with its effect running, the code that draws it is shown under it, and sliders change params.
+ *
+ * Folder src/examples/<id>/:
+ *   index.html   markup fragment with data-dio, drawn as is (keep images in /public)
+ *   <name>.ts    optional own effects, registered under the file name (`brighten.ts` is `brighten`);
+ *                `<name>.frag` works the same through @dioramajs/glsl, `_helper.ts` is shown only
+ *   script.ts    optional, shown in the 'script' tab; its default export runs once the markup is
+ *                live, gets the <doc-example> element and may return a cleanup
+ *   panel.html   optional controls of the example itself, under the preview, never shown as code
+ *   style.css    optional styles of the example, never shown as code
+ *   *.d.ts       optional types for the type check, such as the SiteEffects of an own effect
+ *   card.html    optional, effects/<name> only: smaller markup for the gallery card's live preview
+ *   card.ts      optional, effects/<name> only: runs on the gallery card like script.ts here
+ *   poster.png   optional, effects/<name> only: still for the gallery (scripts/posters.mjs)
+ * The id may name a nested folder: 'effects/reveal' is src/examples/effects/reveal/.
+ *
+ * Props:
+ *   id           folder name, required
+ *   description  one sentence on what the example shows, required; read by screen readers and
+ *                shown when the preview cannot run
+ *   show         code tabs in order; default ['html', 'attach', 'import'] for a library effect,
+ *                ['html', 'effect'] when the folder has the effect file
+ *   controls     'live' (default: params that do not rebuild), 'all', a list of param names, or []
+ *   variants     choice params of a library effect shown as switches: 'auto' (default, all of
+ *                them, variant keys first) or a list; [] hides them. A switch rebuilds the effect
+ *                and fires 'doc-example:change' on the element, so script.ts can replay it
+ *   slot "code"  markup between the controls and the code tabs: an effect page puts Usage there
+ *   aspect       box reserved before load, CSS aspect-ratio; default '3 / 2'
+ *   highlight    lines per tab, Expressive Code syntax: { html: '1', effect: '3-4' }
+ *   caption      text under the preview
+ *   scroll       extra scroll, a CSS length such as '150vh': the frame pins under the header
+ *                inside a section that much taller (data-dio-section), for effects driven by the
+ *                pin of a sticky stage. A pinned frame is at least half the viewport tall, so
+ *                the canvas holds still while it is pinned
+ *
+ * <Example id="first-effect" description="A photo made brighter by the brighten effect." />
+ */
+import { Code } from 'astro-expressive-code/components'
+import { kebab } from '../lib/check-markup.ts'
+import { type ParamMeta, valueNotes, variantParams } from '../lib/effects.ts'
+import { load } from '../lib/tables.ts'
+import {
+  attachCode,
+  importCode,
+  markupValue,
+  ownDefaults,
+  type ParamControl,
+  type ParamValue,
+  parseValue,
+  readMarkup,
+} from '../lib/usage.ts'
+import Tab from './Tab.astro'
+import Tabs from './Tabs.astro'
+
+type Show = 'html' | 'attach' | 'import' | 'effect' | 'script'
+
+interface Props {
+  readonly id: string
+  readonly description: string
+  readonly show?: readonly Show[]
+  readonly controls?: 'live' | 'all' | readonly string[]
+  readonly variants?: 'auto' | readonly string[]
+  readonly aspect?: string
+  readonly highlight?: Partial<Record<Show, string>>
+  readonly caption?: string
+  readonly scroll?: string
+}
+
+const {
+  id,
+  description,
+  show,
+  controls = 'live',
+  variants = 'auto',
+  aspect = '3 / 2',
+  highlight = {},
+  caption,
+  scroll,
+} = Astro.props
+
+const files = import.meta.glob<string>(
+  [
+    '/src/examples/**/*.html',
+    '/src/examples/**/*.ts',
+    '/src/examples/**/*.frag',
+    '/src/examples/**/*.css',
+  ],
+  { query: '?raw', import: 'default', eager: true },
+)
+const dir = `/src/examples/${id}/`
+/** A file of this folder itself, not of a folder nested in it. */
+const inDir = (path: string) => path.startsWith(dir) && !path.slice(dir.length).includes('/')
+const html = files[`${dir}index.html`]
+if (html === undefined) throw new Error(`Example: ${dir}index.html is missing`)
+const script = files[`${dir}script.ts`]
+const markup = readMarkup(html)
+// Markup without data-dio is fine when the script attaches the effects.
+if (!markup && script === undefined)
+  throw new Error(`Example ${id}: index.html has no element with data-dio`)
+
+// Effect files and helpers in name order; a .ts glue file wins over the .frag of the same name.
+const sourceFiles = Object.entries(files)
+  .filter(
+    ([path]) =>
+      inDir(path) && /\.(ts|frag)$/.test(path) && !/(\/script|\/card|\.d)\.ts$/.test(path),
+  )
+  .map(([path, source]) => ({ path, source, base: path.slice(dir.length) }))
+const own = new Map(
+  sourceFiles
+    .filter((f) => !f.base.startsWith('_'))
+    .map((f) => [kebab(f.base.replace(/\.(ts|frag)$/, '')), f] as const),
+)
+const meta = load().effects.effects as unknown as readonly {
+  name: string
+  import?: string
+  params: readonly ParamMeta[]
+}[]
+const effect = markup?.effects[0] ?? [...own.keys()][0] ?? ''
+const library = meta.find((e) => e.name === effect)
+const file = own.get(effect)
+if (markup && !library && !file)
+  throw new Error(`Example ${id}: effect "${effect}" is neither in the metadata nor in ${dir}`)
+
+const asType = (type: string, value: ParamValue): ParamControl['type'] =>
+  type === 'boolean' || typeof value === 'boolean'
+    ? 'boolean'
+    : type === 'choice'
+      ? 'choice'
+      : type === 'color' || (typeof value === 'string' && /^(#|rgb|hsl)/.test(value))
+        ? 'color'
+        : Array.isArray(value) || /^vec/.test(type)
+          ? 'vector'
+          : 'number'
+
+const specs: (ParamControl & { live: boolean; variant: boolean })[] = !markup
+  ? []
+  : library
+    ? library.params.map((p) => {
+        const type = asType(p.type, p.default)
+        const raw = markupValue(markup, effect, p.name)
+        return {
+          name: p.name,
+          type,
+          default: p.default,
+          value: raw === undefined ? p.default : parseValue(raw, type),
+          min: p.range?.[0],
+          max: p.range?.[1],
+          step: p.step,
+          values: p.values,
+          description: p.description,
+          live: p.live !== false,
+          variant: false,
+        }
+      })
+    : ownDefaults(file?.source ?? '').map((p) => {
+        const type = asType('', p.value)
+        const raw = markupValue(markup, effect, p.name)
+        const n = typeof p.value === 'number' ? p.value : 1
+        return {
+          name: p.name,
+          type,
+          default: p.value,
+          value: raw === undefined ? p.value : parseValue(raw, type),
+          min: Math.min(0, n),
+          max: Math.max(1, Math.abs(n) * 3),
+          live: type !== 'choice',
+          variant: false,
+        }
+      })
+// Choice params of a library effect become switches above the sliders.
+const switches =
+  !markup || !library || (Array.isArray(variants) && !variants.length)
+    ? []
+    : variantParams(library)
+        .filter((p) => variants === 'auto' || (variants as readonly string[]).includes(p.name))
+        .flatMap((p) => {
+          const spec = specs.find((s) => s.name === p.name)
+          if (!spec) return []
+          return [
+            {
+              ...spec,
+              live: false,
+              variant: true,
+              notes: valueNotes(p),
+              inMarkup: markupValue(markup, effect, p.name) !== undefined,
+            },
+          ]
+        })
+const shown = [
+  ...switches,
+  ...specs.filter(
+    (s) =>
+      !switches.some((v) => v.name === s.name) &&
+      (controls === 'all'
+        ? true
+        : controls === 'live'
+          ? s.live
+          : (controls as readonly string[]).includes(s.name)),
+  ),
+]
+const sliders = shown.filter((s) => !s.variant)
+
+const tabs: readonly Show[] =
+  show ??
+  (!markup
+    ? ['html', ...(sourceFiles.length ? (['effect'] as const) : []), 'script']
+    : file
+      ? ['html', 'effect']
+      : library?.import
+        ? ['html', 'attach', 'import']
+        : ['html', 'attach'])
+interface Panel {
+  readonly kind: Show
+  readonly value: string
+  readonly label: string
+  readonly code: string
+  readonly lang: string
+  readonly mark: string | undefined
+}
+// The 'effect' tab is one tab per file, the shown effect first.
+const panels: Panel[] = tabs.flatMap((tab): Panel[] => {
+  if (tab === 'effect')
+    return [...sourceFiles]
+      .sort((a, b) => Number(b === file) - Number(a === file))
+      .map((f, j) => ({
+        kind: tab,
+        mark: j === 0 ? highlight.effect : undefined,
+        value: f.base,
+        label: f.base,
+        code: f.source.trim(),
+        lang: f.base.endsWith('.frag') ? 'glsl' : 'ts',
+      }))
+  const one = (label: string, code: string, lang: string): Panel[] => [
+    { kind: tab, value: tab, label, code, lang, mark: highlight[tab] },
+  ]
+  if (tab === 'html') return one('HTML', html.trim(), 'html')
+  if (tab === 'attach')
+    return one('attach', attachCode(markup?.selector ?? '', effect, shown), 'ts')
+  if (tab === 'import')
+    return one(
+      'import',
+      importCode(markup?.selector ?? '', effect, library?.import ?? '', shown),
+      'ts',
+    )
+  return one('script.ts', (script ?? '').trim(), 'ts')
+})
+// Elements are drawn without data-dio until the example has registered its effects. Templates
+// keep theirs: their copies go live when a script clones them.
+const stage = html
+  .split(/(<template\b[\s\S]*?<\/template>)/i)
+  .map((part, i) =>
+    i % 2 ? part : part.replace(/(<[a-z][\w-]*\b[^>]*?\s)data-dio=/gi, '$1data-ex-dio='),
+  )
+  .join('')
+const hash = (text: string) => {
+  let h = 0
+  for (let i = 0; i < text.length; i++) h = (Math.imul(h, 31) + text.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36)
+}
+const config = {
+  effect,
+  // Why the effect may be off on a device, for the note: its media query and reduced-motion mode.
+  when: (library as { when?: string } | undefined)?.when,
+  reduce: (library as { reducedMotion?: { mode?: string } } | undefined)?.reducedMotion?.mode,
+  own: [...own].map(([name, f]) => ({ name, path: f.path, hash: hash(f.source) })),
+  script: script === undefined ? undefined : `${dir}script.ts`,
+  controls: shown.map((c) => ({
+    name: c.name,
+    type: c.type,
+    value: c.value,
+    default: c.default,
+    variant: c.variant,
+    // Params the markup leaves out get their attribute in the HTML tab while not at the default.
+    inMarkup: !markup || !library || markupValue(markup, effect, c.name) !== undefined,
+    notes: 'notes' in c ? c.notes : undefined,
+  })),
+}
+const panel = files[`${dir}panel.html`]
+const css = files[`${dir}style.css`]
+const uid = `ex-${id.replace(/[^a-z0-9]+/gi, '-')}`
+// With scroll the frame is the sticky stage of a taller section; without it the wrapper is none.
+const Section = scroll ? 'div' : Fragment
+const section = scroll
+  ? { class: 'ex-scroll', 'data-dio-section': '', style: `--ex-scroll: ${scroll}` }
+  : {}
+const decimals = (c: ParamControl) => {
+  const step = c.step ?? ((c.max ?? 1) - (c.min ?? 0)) / 100
+  return Math.max(0, Math.min(3, Math.ceil(-Math.log10(step))))
+}
+---
+
+<doc-example class="ex" data-id={id} data-config={JSON.stringify(config)}>
+  <figure>
+    <Section {...section}>
+      <div class="ex-stage" style={`aspect-ratio: ${aspect}`} role="group" aria-label={description}>
+        <div class="ex-root" set:html={stage} />
+        <div class="ex-bar" aria-hidden="true"></div>
+        <p class="ex-note" data-note="off"><span data-off>Live preview needs WebGPU or WebGL 2.</span> {description}</p>
+        <p class="ex-note" data-note="failed">This example failed to draw<span data-error></span>.</p>
+      </div>
+    </Section>
+    {caption && <figcaption>{caption}</figcaption>}
+  </figure>
+  {panel && <div class="ex-panel" data-pagefind-ignore set:html={panel} />}
+  {css && <Fragment set:html={`<style>${css}</style>`} />}
+  {
+    shown.length > 0 && (
+      <fieldset class="ex-controls" data-pagefind-ignore>
+        <legend class="sr-only">Params of {effect}</legend>
+        {switches.length > 0 && (
+          <div class="ex-variants">
+            {switches.map((v) => (
+              <div class="ex-variant" data-variant={v.name}>
+                <span class="ex-name" id={`${uid}-${v.name}`}>{v.name}</span>
+                <div class="ex-seg" role="radiogroup" aria-labelledby={`${uid}-${v.name}`}>
+                  {(v.values ?? []).map((value) => (
+                    <button type="button" role="radio" aria-checked={value === v.value ? 'true' : 'false'} tabindex={value === v.value ? '0' : '-1'} data-value={value} title={v.notes[value]}>
+                      {value}
+                    </button>
+                  ))}
+                </div>
+                <p class="ex-vnote" aria-live="polite">
+                  {v.notes[String(v.value)] && (
+                    <Fragment>
+                      <code>{String(v.value)}</code> {v.notes[String(v.value)]}
+                    </Fragment>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+        {sliders.length > 0 && (
+        <div class="ex-sliders">
+        {sliders.map((c) => (
+          <label class="ex-control" data-param={c.name} title={c.description}>
+            <span class="ex-name">{c.name}</span>
+            {c.type === 'number' && (
+              <Fragment>
+                <input type="range" min={c.min ?? 0} max={c.max ?? 1} step={c.step ?? 'any'} value={String(c.value)} data-input />
+                <output data-digits={decimals(c)}>{typeof c.value === 'number' ? c.value.toFixed(decimals(c)) : String(c.value)}</output>
+              </Fragment>
+            )}
+            {c.type === 'vector' && Array.isArray(c.value) && (
+              <span class="ex-vector">
+                {(c.value as number[]).map((v, i) => (
+                  <input type="range" min={c.min ?? Math.min(0, v * 2)} max={c.max ?? Math.max(1, Math.abs(v) * 2)} step={c.step ?? 'any'} value={String(v)} data-component={i} aria-label={`${c.name} ${'xyzw'[i]}`} />
+                ))}
+                <output data-digits={decimals(c)}>{(c.value as number[]).map((v) => v.toFixed(decimals(c))).join(' ')}</output>
+              </span>
+            )}
+            {c.type === 'boolean' && <input type="checkbox" checked={c.value === true} data-input />}
+            {c.type === 'color' && <input type="color" value={String(c.value)} data-input />}
+            {c.type === 'choice' && (
+              <select data-input>
+                {(c.values ?? []).map((v) => (
+                  <option selected={v === c.value}>{v}</option>
+                ))}
+              </select>
+            )}
+          </label>
+        ))}
+        </div>
+        )}
+      </fieldset>
+    )
+  }
+  {Astro.slots.has('code') && <slot name="code" />}
+  <Tabs label={`Code of the ${effect || id} example`}>
+    {
+      panels.map((p) => (
+        <Tab label={p.label} value={p.value}>
+          <div data-code={p.kind} data-pagefind-ignore={p.kind === 'attach' || p.kind === 'import' ? '' : undefined}>
+            <Code code={p.code} lang={p.lang} mark={p.mark} />
+          </div>
+        </Tab>
+      ))
+    }
+  </Tabs>
+</doc-example>
+
+<style>
+  .ex {
+    display: block;
+    margin: var(--s-6) 0;
+  }
+  .ex figure {
+    margin: 0;
+  }
+  .ex-stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-panel);
+    background: var(--bg-code);
+  }
+  /* The section around a pinned frame: its own height plus the scroll the effect plays over. */
+  .ex :global(.ex-scroll)::after {
+    content: '';
+    display: block;
+    height: var(--ex-scroll);
+  }
+  .ex :global(.ex-scroll) > .ex-stage {
+    position: sticky;
+    top: calc(var(--header) + var(--s-4));
+    /* A definite width keeps min-height from widening it through the aspect ratio. */
+    width: 100%;
+    min-height: 52vh;
+    max-height: calc(100vh - var(--header) - 2 * var(--s-4));
+  }
+  .ex-root,
+  .ex-root > :global(*) {
+    width: 100%;
+    height: 100%;
+  }
+  .ex-root :global(img),
+  .ex-root :global(video) {
+    display: block;
+    object-fit: cover;
+  }
+  /* A picture that fills the box takes its corners, so the drawn copy is rounded too. */
+  .ex-root > :global(img),
+  .ex-root > :global(video) {
+    border-radius: var(--radius-panel);
+  }
+  .ex figcaption {
+    margin-top: var(--s-2);
+    font-size: 0.89em;
+    color: var(--text-muted);
+  }
+  .ex-bar {
+    position: absolute;
+    inset: auto 0 0;
+    height: 3px;
+    background: var(--link);
+    transform-origin: left;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ex[data-state='loading'] .ex-bar {
+    opacity: 0.7;
+    animation: ex-load 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+  }
+  @keyframes ex-load {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ex[data-state='loading'] .ex-bar {
+      animation: none;
+    }
+  }
+  .ex-note {
+    position: absolute;
+    inset: auto var(--s-3) var(--s-3);
+    display: none;
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
+    background: var(--bg-raised);
+    border-radius: var(--radius-paper);
+    font-size: 0.89em;
+    line-height: 1.5;
+  }
+  .ex[data-state='off'] [data-note='off'],
+  .ex[data-state='unavailable'] [data-note='off'],
+  .ex[data-state='failed'] [data-note='failed'] {
+    display: block;
+  }
+  .ex-controls {
+    display: grid;
+    gap: var(--s-3);
+    min-width: 0;
+    margin: var(--s-3) 0 0;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+  }
+  .ex-sliders {
+    display: grid;
+    gap: var(--s-2) var(--s-5);
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .ex-variants + .ex-sliders {
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--border);
+  }
+  .ex-variants {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .ex-variant {
+    display: grid;
+    grid-template-columns: minmax(5em, auto) minmax(0, 1fr);
+    gap: var(--s-1) var(--s-3);
+    align-items: center;
+    font: 400 0.85rem var(--font-mono);
+  }
+  .ex-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1);
+  }
+  .ex-seg button {
+    min-height: 32px;
+    padding: 2px var(--s-3);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background-color var(--t-fast) var(--ease),
+      color var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease);
+  }
+  .ex-seg button:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .ex-seg button[aria-checked='true'] {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .ex-vnote {
+    grid-column: 2;
+    margin: 0;
+    font: 400 0.82rem / 1.45 var(--font-text);
+    color: var(--text-muted);
+  }
+  .ex-vnote:empty {
+    display: none;
+  }
+  .ex-vnote code {
+    font: 500 0.95em var(--font-mono);
+    color: var(--text);
+  }
+  @media (max-width: 560px) {
+    .ex-variant {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ex-vnote {
+      grid-column: 1;
+    }
+  }
+  .ex-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    align-items: center;
+    margin: var(--s-3) 0 0;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    font: 400 0.85rem var(--font-mono);
+  }
+  .ex-panel :global(p) {
+    margin: 0;
+  }
+  .ex-panel :global(label) {
+    display: inline-flex;
+    gap: var(--s-2);
+    align-items: center;
+  }
+  .ex-panel :global(input) {
+    accent-color: var(--link);
+  }
+  .ex-panel :global(button) {
+    padding: var(--s-1) var(--s-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-paper);
+    background: var(--bg-raised);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .ex-panel :global(button[aria-pressed='true']) {
+    background: var(--link);
+    border-color: var(--link);
+    color: var(--bg);
+  }
+  .ex-panel :global(output) {
+    font-variant-numeric: tabular-nums;
+  }
+  .ex-control {
+    display: grid;
+    grid-template-columns: minmax(5em, auto) 1fr 3.5em;
+    gap: var(--s-3);
+    align-items: center;
+    font: 400 0.85rem var(--font-mono);
+  }
+  .ex-control input[type='range'] {
+    width: 100%;
+    accent-color: var(--link);
+  }
+  .ex-vector {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-width: 0;
+  }
+  .ex-vector input[type='range'] {
+    flex: 1;
+    min-width: 0;
+  }
+  /* A vector takes the whole row and a fixed-width readout, so nothing reflows under a drag. */
+  .ex-control:has(.ex-vector) {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(5em, auto) 1fr;
+  }
+  .ex-vector output {
+    flex: none;
+    min-width: 12ch;
+  }
+  .ex-control output {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .ex :global(.tabs) {
+    margin-top: var(--s-3);
+  }
+  .ex :global([data-param-value]) {
+    border-radius: 3px;
+    transition: background-color 250ms;
+  }
+  .ex :global([data-param-value].changed) {
+    background: rgb(134 57 59 / 0.14);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ex :global([data-param-value]) {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { ready } from 'dioramajs'
+  import { app } from '../diorama.ts'
+
+  type Value = number | boolean | string | number[]
+  interface Control {
+    readonly name: string
+    readonly type: 'number' | 'boolean' | 'color' | 'choice' | 'vector'
+    readonly value: Value
+    readonly default: Value
+    /** A choice shown as a switch: changing it rebuilds the effect. */
+    readonly variant?: boolean
+    /** The html code carries the attribute; otherwise a change inserts it while not default. */
+    readonly inMarkup?: boolean
+    readonly notes?: Readonly<Record<string, string>>
+  }
+  interface OwnFile {
+    readonly name: string
+    readonly path: string
+    readonly hash: string
+  }
+  interface Config {
+    readonly effect: string
+    readonly when?: string
+    readonly reduce?: string
+    readonly own: readonly OwnFile[]
+    readonly script?: string
+    readonly controls: readonly Control[]
+  }
+  type Mount = (example: HTMLElement) => (() => void) | undefined | void
+
+  /** The note for an example whose effect is off: no GPU, a media query that fails, reduced motion. */
+  function offReason(config: Config | undefined): string {
+    if (app.effects.status.value === 'unavailable') return 'Live preview needs WebGPU or WebGL 2.'
+    const when = config?.when
+    if (when && !matchMedia(when === 'hover' ? '(hover: hover)' : when).matches)
+      return /hover/.test(when)
+        ? 'This effect runs where a pointer can hover; on a touch screen the element stays as it is.'
+        : `This effect runs where ${when} matches; here the element stays as it is.`
+    if (config?.reduce === 'off' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+      return 'Reduced motion is on, so the effect stays off and the element shows as it is.'
+    return 'The effect is off here, so the element shows as it is.'
+  }
+  /** Detail of 'doc-example:change', fired on the doc-example element after a param changes. */
+  interface ExampleChange {
+    readonly name: string
+    readonly value: Value
+    readonly rebuild: boolean
+  }
+
+  const sources: Record<string, () => Promise<unknown>> = {
+    ...import.meta.glob(['/src/examples/**/*.ts', '!/src/examples/**/*.d.ts']),
+    ...import.meta.glob('/src/examples/**/*.frag', { query: '?effect' }),
+  }
+  // Registered names and the file each holds. Two versions of one effect on a page (step by step
+  // pages show both) take two names: the second is `<name>-v2` in the drawn markup only.
+  const held = new Map<string, { hash: string; users: number }>()
+  function claim(file: OwnFile): string {
+    for (let n = 1; ; n++) {
+      const key = n === 1 ? file.name : `${file.name}-v${n}`
+      const entry = held.get(key)
+      if (entry && entry.users > 0 && entry.hash !== file.hash) continue
+      if (entry?.hash !== file.hash) {
+        const loader = sources[file.path]
+        if (loader) app.effects.register({ [key]: loader as never })
+        held.set(key, { hash: file.hash, users: 1 })
+      } else entry.users++
+      return key
+    }
+  }
+  const kebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+  const literal = (v: Value) => (Array.isArray(v) ? `[${v.join(', ')}]` : typeof v === 'string' ? `'${v}'` : String(v))
+  const same = (a: Value, b: Value) => String(a) === String(b)
+
+  /** Text nodes of a code block with their offsets in its whole text. */
+  function textOf(pre: HTMLElement): { nodes: { node: Text; start: number }[]; text: string } {
+    const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT)
+    const nodes: { node: Text; start: number }[] = []
+    let text = ''
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if ((n.parentElement as HTMLElement).closest('.twoslash-popup-container')) continue
+      nodes.push({ node: n as Text, start: text.length })
+      text += n.textContent
+    }
+    return { nodes, text }
+  }
+
+  /** A span around text [from, from + length) of the block, when one text node holds it. */
+  function wrap(pre: HTMLElement, from: number, length: number): HTMLSpanElement | undefined {
+    const { nodes } = textOf(pre)
+    const hit = nodes.find((x) => from >= x.start && from + length <= x.start + (x.node.textContent?.length ?? 0))
+    if (!hit) return undefined
+    const value = hit.node.splitText(from - hit.start)
+    value.splitText(length)
+    const span = document.createElement('span')
+    value.replaceWith(span)
+    span.append(value)
+    return span
+  }
+
+  /**
+   * Wraps the value of each param in a code block, so a control can rewrite it in place. A switch
+   * whose attribute is not in the markup gets an empty span after data-dio="<effect>", filled with
+   * the attribute while its value is not the default.
+   */
+  function markValues(block: HTMLElement, tab: string, effect: string, controls: readonly Control[]): void {
+    const pre = block.querySelector('pre')
+    if (!pre) return
+    for (const c of controls) {
+      const { text } = textOf(pre)
+      const re =
+        tab === 'html'
+          ? new RegExp(`data-dio-(?:${effect}-)?${kebab(c.name)}="([^"]*)"`)
+          : new RegExp(`\\b${c.name}: ('[^']*'|\\[[^\\]]*\\]|[^,}\\s]+)`)
+      const m = re.exec(text)
+      if (m?.[1]) {
+        const from = m.index + m[0].length - m[1].length - (tab === 'html' ? 1 : 0)
+        const span = wrap(pre, from, m[1].length)
+        if (!span) continue
+        span.dataset.paramValue = c.name
+        span.dataset.format = tab === 'html' ? 'attr' : 'code'
+        continue
+      }
+      if (tab !== 'html' || c.inMarkup !== false) continue
+      const anchor = new RegExp(`data-dio="[^"]*\\b${effect}\\b[^"]*"`).exec(text)
+      if (!anchor) continue
+      // The closing quote of data-dio, then an empty span that takes the attribute.
+      const quote = wrap(pre, anchor.index + anchor[0].length - 1, 1)
+      if (!quote) continue
+      const slot = document.createElement('span')
+      slot.dataset.paramValue = c.name
+      slot.dataset.format = 'attr-full'
+      slot.dataset.attr = `data-dio-${kebab(c.name)}`
+      // In a tag broken one attribute per line the attribute takes a line of its own.
+      const line = quote.closest('.ec-line')?.textContent ?? ''
+      if (/^\s*data-dio=/.test(line)) slot.dataset.indent = /^\s*/.exec(line)?.[0] ?? ''
+      // After the slots of earlier params, so attributes appear in param order.
+      let at: ChildNode = quote
+      while (at.nextSibling instanceof HTMLElement && at.nextSibling.dataset.format === 'attr-full') at = at.nextSibling
+      at.after(slot)
+      quote.replaceWith(...quote.childNodes)
+    }
+  }
+
+  /**
+   * Writes an attribute into the slot after data-dio: on the same line, or on a line of its own.
+   * The indent of that line is copied but not drawn: the wrapped line already starts at it.
+   */
+  function fillSlot(slot: HTMLElement, attr: string): void {
+    const indent = slot.dataset.indent
+    if (!attr) slot.replaceChildren()
+    else if (indent === undefined) slot.textContent = ` ${attr}`
+    else {
+      const pad = document.createElement('span')
+      // Not drawn (Expressive Code resets display, so hidden alone shows it), still copied.
+      pad.style.setProperty('display', 'none', 'important')
+      pad.textContent = indent
+      slot.replaceChildren('\n', pad, attr)
+    }
+  }
+
+  /** Copy buttons copy the code as it reads now. */
+  function syncCopy(block: HTMLElement): void {
+    const button = block.querySelector<HTMLButtonElement>('button[data-code]')
+    const lines = [...block.querySelectorAll('.ec-line')].map((l) => l.textContent ?? '')
+    if (button && lines.length) button.dataset.code = lines.join('\u007f')
+  }
+
+  class DocExample extends HTMLElement {
+    #observer?: MutationObserver
+    #off: (() => void)[] = []
+    #config?: Config
+    // File names of own effects and the names they are registered under.
+    readonly #names = new Map<string, string>()
+
+    connectedCallback(): void {
+      const config = JSON.parse(this.dataset.config ?? '{}') as Config
+      this.#config = config
+      for (const block of this.querySelectorAll<HTMLElement>('[data-code]')) {
+        const tab = block.dataset.code ?? ''
+        if (tab === 'html' || tab === 'attach' || tab === 'import') markValues(block, tab, config.effect, config.controls)
+      }
+      void this.#mount(config)
+    }
+
+    disconnectedCallback(): void {
+      this.#observer?.disconnect()
+      for (const off of this.#off) off()
+      this.#off = []
+    }
+
+    /** The element the example's effect runs on. */
+    get target(): Element | null {
+      return this.querySelector('.ex-root [data-dio]')
+    }
+
+    /** Params of the example's effect as its instance resolves them, and its status. */
+    currentParams(): Record<string, unknown> {
+      const config = this.#config
+      const target = this.target
+      if (!config || !target) return {}
+      const instance = app.effects.get(target, (this.#names.get(config.effect) ?? config.effect) as never) as
+        | { params: Record<string, unknown>; status: { value: string } }
+        | undefined
+      if (!instance) return {}
+      return Object.fromEntries([
+        ...config.controls.map((c) => [c.name, instance.params[c.name]]),
+        ['~status', instance.status.value],
+      ])
+    }
+
+    /** Writes params to the instance without touching the controls: posters and tests. */
+    setParams(values: Record<string, unknown>): void {
+      const config = this.#config
+      const target = this.target
+      if (!config || !target) return
+      const instance = app.effects.get(target, (this.#names.get(config.effect) ?? config.effect) as never) as
+        | { params: Record<string, unknown> }
+        | undefined
+      if (instance) Object.assign(instance.params, values)
+    }
+
+    async #mount(config: Config): Promise<void> {
+      const root = this.querySelector<HTMLElement>('.ex-root')
+      if (!root) return
+      this.dataset.state = 'waiting'
+      await ready(app)
+      if (!this.isConnected) return
+      for (const file of config.own) {
+        const key = claim(file)
+        this.#names.set(file.name, key)
+        this.#off.push(() => {
+          const entry = held.get(key)
+          if (entry) entry.users--
+        })
+      }
+      this.#observer = new MutationObserver(() => this.#state(root))
+      this.#observer.observe(root, { subtree: true, attributes: true, attributeFilter: ['data-dio-state'] })
+      for (const element of root.querySelectorAll('[data-ex-dio]')) {
+        const tokens = (element.getAttribute('data-ex-dio') ?? '').split(/\s+/)
+        element.setAttribute('data-dio', tokens.map((t) => this.#names.get(t) ?? t).join(' '))
+        element.removeAttribute('data-ex-dio')
+      }
+      app.effects.scan(root)
+      if (config.script) {
+        const module = (await sources[config.script]?.()) as { default?: Mount } | undefined
+        if (!this.isConnected) return
+        const off = module?.default?.(this)
+        if (typeof off === 'function') this.#off.push(off)
+      }
+      this.#controls(root, config)
+    }
+
+    /** One state for the example: failed if any element failed, drawn if any is drawn. */
+    #state(root: HTMLElement): void {
+      const states = [...root.querySelectorAll('[data-dio-state]')].map((e) => e.getAttribute('data-dio-state'))
+      const state = states.includes('failed') ? 'failed' : states.includes('drawn') ? 'drawn' : (states[0] ?? 'waiting')
+      this.dataset.state = state
+      const off = this.querySelector('[data-off]')
+      if (state === 'off' && off) off.textContent = offReason(this.#config)
+      const failed = root.querySelector('[data-dio-state="failed"]')
+      const slot = this.querySelector('[data-error]')
+      if (!failed || !slot) return
+      const error = (failed.getAttribute('data-dio') ?? '')
+        .split(/\s+/)
+        .map((name) => app.effects.get(failed, name as never)?.error as { code?: string } | undefined)
+        .find((e) => e?.code)
+      if (!error?.code) return
+      const link = document.createElement('a')
+      link.href = `/docs/errors/${error.code.toLowerCase().replaceAll('_', '-')}`
+      link.textContent = error.code
+      slot.replaceChildren(': ', link)
+    }
+
+    /** Writes a param to the instance and to the code, then tells the example's script. */
+    #write(target: Element, name: string, control: Control, value: Value, digits = 2): void {
+      const shown =
+        typeof value === 'number'
+          ? Number(value.toFixed(digits))
+          : Array.isArray(value)
+            ? value.map((v) => Number(v.toFixed(digits))).join(' ')
+            : value
+      const instance = app.effects.get(target, name as never) as { params: Record<string, unknown> } | undefined
+      if (instance) instance.params[control.name] = value
+      for (const span of this.querySelectorAll<HTMLElement>(`[data-param-value="${control.name}"]`)) {
+        if (span.dataset.format === 'attr-full') fillSlot(span, same(value, control.default) ? '' : `${span.dataset.attr}="${String(shown)}"`)
+        else span.textContent = span.dataset.format === 'attr' ? String(shown) : literal(shown)
+        span.classList.add('changed')
+      }
+      for (const block of this.querySelectorAll<HTMLElement>('[data-code]')) syncCopy(block)
+      const detail: ExampleChange = { name: control.name, value, rebuild: control.variant === true }
+      this.dispatchEvent(new CustomEvent('doc-example:change', { detail }))
+    }
+
+    #controls(root: HTMLElement, config: Config): void {
+      const target = root.querySelector('[data-dio]')
+      const name = this.#names.get(config.effect) ?? config.effect
+      for (const label of this.querySelectorAll<HTMLElement>('[data-param]')) {
+        const param = label.dataset.param ?? ''
+        const control = config.controls.find((c) => c.name === param)
+        const output = label.querySelector('output')
+        const digits = Number(output?.dataset.digits ?? 2)
+        // A vector param has one range per component; they write the whole tuple.
+        const parts = [...label.querySelectorAll<HTMLInputElement>('[data-component]')]
+        if (target && control && parts.length) {
+          const onPart = () => {
+            const value = parts.map((part) => Number(part.value))
+            if (output) output.textContent = value.map((v) => v.toFixed(digits)).join(' ')
+            this.#write(target, name, control, value, digits)
+          }
+          for (const part of parts) {
+            part.addEventListener('input', onPart)
+            this.#off.push(() => part.removeEventListener('input', onPart))
+          }
+          continue
+        }
+        const input = label.querySelector<HTMLInputElement | HTMLSelectElement>('[data-input]')
+        if (!target || !control || !input) continue
+        const onInput = () => {
+          const value =
+            control.type === 'number'
+              ? Number(input.value)
+              : control.type === 'boolean'
+                ? (input as HTMLInputElement).checked
+                : input.value
+          if (output) output.textContent = typeof value === 'number' ? value.toFixed(digits) : String(value)
+          this.#write(target, name, control, value, digits)
+        }
+        input.addEventListener('input', onInput)
+        this.#off.push(() => input.removeEventListener('input', onInput))
+      }
+      for (const group of this.querySelectorAll<HTMLElement>('[data-variant]')) {
+        const control = config.controls.find((c) => c.name === group.dataset.variant)
+        const buttons = [...group.querySelectorAll<HTMLButtonElement>('[role=radio]')]
+        const note = group.querySelector('.ex-vnote')
+        if (!target || !control) continue
+        const select = (button: HTMLButtonElement, focus: boolean) => {
+          const value = button.dataset.value ?? ''
+          for (const b of buttons) {
+            b.setAttribute('aria-checked', String(b === button))
+            b.tabIndex = b === button ? 0 : -1
+          }
+          if (focus) button.focus()
+          const text = control.notes?.[value]
+          if (note) {
+            const code = document.createElement('code')
+            code.textContent = value
+            note.replaceChildren(...(text ? [code, ` ${text}`] : []))
+          }
+          this.#write(target, name, control, value)
+        }
+        const onClick = (e: MouseEvent) => {
+          const button = (e.target as Element).closest<HTMLButtonElement>('[role=radio]')
+          if (button && button.getAttribute('aria-checked') !== 'true') select(button, false)
+        }
+        // Radio group keys: arrows move and choose, Home and End jump.
+        const onKey = (e: KeyboardEvent) => {
+          const i = buttons.indexOf(document.activeElement as HTMLButtonElement)
+          if (i < 0) return
+          const step: Record<string, number> = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: buttons.length - 1 }
+          const to = step[e.key]
+          if (to === undefined) return
+          const button = buttons[(to + buttons.length) % buttons.length]
+          if (!button) return
+          e.preventDefault()
+          select(button, true)
+        }
+        group.addEventListener('click', onClick)
+        group.addEventListener('keydown', onKey)
+        this.#off.push(() => {
+          group.removeEventListener('click', onClick)
+          group.removeEventListener('keydown', onKey)
+        })
+      }
+    }
+  }
+  if (!customElements.get('doc-example')) customElements.define('doc-example', DocExample)
+</script>

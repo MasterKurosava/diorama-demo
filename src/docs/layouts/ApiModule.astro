@@ -1,0 +1,67 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { type ApiModule, isType, moduleSymbols } from '../lib/api.ts'
+import { moduleSummary } from '../lib/modules.ts'
+import Article from './Article.astro'
+
+interface Props {
+  readonly module: ApiModule
+}
+const { module: mod } = Astro.props
+const url = `/docs/api/${mod.slug}`
+const symbols = moduleSymbols(mod).sort((a, b) => a.name.localeCompare(b.name))
+const KINDS = [
+  { label: 'Functions', test: (k: string) => k === 'function' },
+  { label: 'Classes', test: (k: string) => k === 'class' },
+  { label: 'Constants', test: (k: string) => k === 'const' || k === 'namespace' || k === 'other' },
+  { label: 'Interfaces', test: (k: string) => k === 'interface' },
+  { label: 'Types', test: (k: string) => k === 'type' || k === 'enum' },
+]
+const sections = KINDS.map((k) => ({ ...k, list: symbols.filter((s) => k.test(s.kind)) })).filter(
+  (s) => s.list.length,
+)
+const values = symbols.filter((s) => !isType(s)).map((s) => s.name)
+const example = values.length
+  ? `import { ${values.slice(0, 3).join(', ')} } from '${mod.specifier}'`
+  : `import type { ${symbols
+      .slice(0, 3)
+      .map((s) => s.name)
+      .join(', ')} } from '${mod.specifier}'`
+const headings = sections.map((s) => ({ depth: 2, slug: s.label.toLowerCase(), text: s.label }))
+---
+
+<Article
+  title={mod.specifier}
+  description={moduleSummary(mod.slug, mod.specifier)}
+  url={url}
+  crumbs={[{ label: 'Docs', href: '/docs' }, { label: 'API', href: '/docs/api' }, { label: mod.specifier }]}
+  headings={headings}
+  kind="api"
+  meta={{ module: mod.specifier }}
+  wide
+>
+  {symbols.length > 0 && <Code code={example} lang="ts" />}
+  {
+    sections.map((s) => (
+      <section>
+        <h2 id={s.label.toLowerCase()}>{s.label}</h2>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              {s.list.map((sym) => (
+                <tr>
+                  <td>
+                    <a class="code-link" href={sym.url}>
+                      <code>{sym.name}</code>
+                    </a>
+                  </td>
+                  <td>{sym.summary.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ') ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))
+  }
+</Article>

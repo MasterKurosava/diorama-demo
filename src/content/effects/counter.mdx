@@ -1,0 +1,46 @@
+---
+effect: counter
+example:
+  description: A swim club's season stat whose digits turn on odometer drums from 0 up to 12,480 and fold back into the text.
+  aspect: 16 / 8
+  variants: [style, trigger]
+related:
+  - guides/reduced-motion
+  - guides/performance
+---
+
+## Recipes
+
+### A row of stats that count in turn
+
+Give each stat its own element and a growing `delay`, so the numbers land one after another instead of all at once. Each number can take its own style. Scroll down to this example to see it count.
+
+<Example id="effects/counter/stats" description="Three stats of a swim club platform that count up in turn on drums, slot reels and flip cards." aspect="16 / 6" show={['html']} controls={[]} variants={[]} />
+
+### A total on slot machine reels
+
+`style="slot"` spins every digit on a deep reel behind a window frame and lands them from right to left, each with a bounce. A longer `stagger` makes the wait for the last reel part of the show, which suits fundraising totals and prize pools.
+
+```html
+<p class="total" data-dio="counter" data-dio-style="slot" data-dio-stagger="0.25" data-dio-duration="1.6">$4,250,000</p>
+```
+
+### A year that follows the scroll
+
+With `data-dio-trigger="scroll"` the count follows the scroll position both ways, from `from` when the number enters to its value when it reaches the middle of the viewport. On a company timeline it turns the years as the visitor reads.
+
+```html
+<p class="year" data-dio="counter" data-dio-trigger="scroll" data-dio-from="1998">2026</p>
+```
+
+## Notes
+
+The element holds one number, with any text before and after it: `$4.2M`, `99.9%`, `12,480 swimmers` or `Over 1,200 teams`. Only the first number counts; put two stats in two elements. The number keeps the way it is written: its group separators, decimals and leading zeros, as in `1.204.500` or `1 024`. A lone point or comma before three digits, as in `3.142`, is read with the decimal separator of the page language, so set `lang` on the page or the element; without one, `12,480` is twelve thousand. A minus sign stays in front as text.
+
+The DOM text never changes, so screen readers, search engines and find in page always see the final value. The drums, reels and cards are drawn only while the digits turn; when they land they fold back into the page and the element is real, selectable text again. Under reduced motion the effect is off and the number shows at once.
+
+Each style draws its parts from the text color and the background behind the element: dark drums on a dark page, light ones on a light page. While they turn, the drums reach about a third of an em above and below the digits, so give the number a line height of 1.3 or some room around it. While the number counts, the element itself is hidden behind its copy, its own background too: put a card's background on a parent.
+
+`from` cannot hold more digits than the number, so `from="900"` works for `1,024` but not for `24`. A number on screen when the page opens is hidden until the effect is ready and then counts, as with `text-reveal`; with the scroll trigger it stays as it is instead.
+
+The canvas cannot draw `background-clip: text`, `text-shadow`, `-webkit-text-stroke` or vertical writing modes the way the browser does. An element with any of them keeps its number as it is, and a warning in development names the reason. `style` and `trigger` rebuild the effect when they change.
