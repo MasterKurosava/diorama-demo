@@ -1,5 +1,5 @@
-import type { EffectContext } from 'dioramajs'
-import { effect } from 'dioramajs'
+import type { EffectContext } from '@dioramajs/diorama'
+import { effect } from '@dioramajs/diorama'
 import {
   abs,
   cameraPosition,

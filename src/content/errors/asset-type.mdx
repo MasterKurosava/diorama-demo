@@ -19,7 +19,7 @@ The type of an asset comes from the `type` option or from the extension: `.glb` 
 To preload the next page, pass its parsed `Document` or a container element, not its address. `preload` then takes the images with `data-dio` or `data-dio-key` and the URLs in `data-dio-preload`:
 
 ```ts
-import type { App } from 'dioramajs'
+import type { App } from '@dioramajs/diorama'
 
 export function preloadPage(app: App, next: Document, url: string) {
   return app.assets?.preload(next, { base: url })
@@ -29,7 +29,7 @@ export function preloadPage(app: App, next: Document, url: string) {
 For an asset URL without an extension, load it with an explicit `type`:
 
 ```ts
-import type { App } from 'dioramajs'
+import type { App } from '@dioramajs/diorama'
 
 export function photo(app: App) {
   return app.assets?.load('https://images.example.com/photo?id=42', {

@@ -49,7 +49,7 @@ The exit code is 0 when the file is up to date, 1 when it is stale or the folder
 
 ## Copy a built-in effect
 
-`dioramajs add` copies the source of a built-in effect into your effects folder, so you own it and can change anything. The copy needs no edits to build: its imports point at public entries (`dioramajs`, `dioramajs/effects`, `dioramajs/kit`, `three/tsl`), and the docs of its params come along as TSDoc, so autocomplete works as before. The sources come from the installed package, with no network.
+`dioramajs add` copies the source of a built-in effect into your effects folder, so you own it and can change anything. The copy needs no edits to build: its imports point at public entries (`@dioramajs/diorama`, `@dioramajs/diorama/effects`, `@dioramajs/diorama/kit`, `three/tsl`), and the docs of its params come along as TSDoc, so autocomplete works as before. The sources come from the installed package, with no network.
 
 <Run command="dioramajs add ripple" />
 
@@ -80,7 +80,7 @@ The copy goes into the folder the build plugins read, so it registers on its own
 
 Some effects share helper modules inside their package. The command copies them next to the copy, under `_<module>/` (for example `src/effects/_media/slots.ts`), and rewrites the imports to them. The leading underscore keeps the folder out of the registry. Copies of several effects share one helper file. When a helper already exists with other text, the command keeps yours and says so; `--force` replaces it.
 
-Helpers that hold state for the whole page stay shared with the built-in effects through public entries, so a copy and a built-in can work on the same element: `dioramajs/audio/graph` (one audio graph per page) and `dioramajs/model/rig` (the scene of `model` for `explode` and `hotspots`).
+Helpers that hold state for the whole page stay shared with the built-in effects through public entries, so a copy and a built-in can work on the same element: `@dioramajs/diorama/audio/graph` (one audio graph per page) and `@dioramajs/diorama/model/rig` (the scene of `model` for `explode` and `hotspots`).
 
 ### Override and intro
 

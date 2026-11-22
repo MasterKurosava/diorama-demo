@@ -1,10 +1,12 @@
 // The one module that starts Diorama for the docs. At the merge the landing's src/diorama.ts
 // replaces it: one start() per session, with Lenis on the landing only.
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
+import { small } from '../small/small'
 
 // Text pages never ask for the engine: it loads when an example nears the viewport.
 // Its transitions plugin also lets clicks through while a page change animates.
-export const app = start({ prefetch: false })
+// Under the note for small screens the engine never boots.
+export const app = start({ prefetch: false, enabled: small() ? false : 'auto' })
 
 type Unmount = () => void
 

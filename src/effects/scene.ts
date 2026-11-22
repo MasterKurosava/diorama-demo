@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   atan,
   clamp,

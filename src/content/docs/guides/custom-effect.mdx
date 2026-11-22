@@ -14,7 +14,7 @@ This guide builds `torch`, a soft light that follows the pointer over an image a
 An effect is a file in the effects folder that exports `effect()`: `src/effects/` with Vite, Astro and Next.js, `app/effects/` with Nuxt. The file name is the effect name, so `torch.ts` is the token `torch` in `data-dio`. A file named after a built-in effect replaces the built-in, and development builds warn with `EFFECT_OVERRIDE`.
 
 ```ts title="src/effects/torch.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect(
   { radius: 0.35, strength: 0.6, tint: '#ffd27a' },
@@ -44,7 +44,7 @@ The setup function gets the effect context. Its methods are bound, so you can de
 `surface` is the element's picture as a plane on the canvas. `surface.color()` takes a function that gets the current color and returns a new one, written in TSL, the node language of three.js. `u` holds the params as uniforms (`u.radius`, `u.tint`) and the built-in inputs (`u.pointer`, `u.hover`, `u.size`).
 
 ```ts title="src/effects/torch.ts" twoslash {7-13}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec2, vec4 } from 'three/tsl'
 
 export default effect(
@@ -91,7 +91,7 @@ Diorama draws a frame only when something changed. An effect that reads no clock
 Reading a clock changes this. Read `u.time` and the effect draws every frame while it is on screen. Read `u.hoverTime`, seconds that run only while the pointer is over the element and while hover fades, and it draws only then.
 
 ```ts title="src/effects/torch.ts" twoslash {8-9}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec4 } from 'three/tsl'
 
 export default effect(
@@ -128,7 +128,7 @@ An effect never asks for frames while its element is off screen or the tab is hi
 The torch needs a pointer that hovers. `when` takes a media query, and `'hover'` is short for `'(hover: hover)'`. Where the query does not match, the instance is off, the element stays plain HTML and the engine does not start for it.
 
 ```ts title="src/effects/torch.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec2, vec4 } from 'three/tsl'
 
 export default effect(
@@ -153,7 +153,7 @@ Diorama never guesses `when`: an effect that reacts to a tap can be what you wan
 `surface.uv()` moves the point the picture is read from. It runs before every color function, so `color` in `surface.color()` already shows the bent picture. Add a `zoom` param and pull the UV toward the pointer inside the light.
 
 ```ts title="src/effects/torch.ts" twoslash {15-18}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec2, vec4 } from 'three/tsl'
 import type { Node } from 'three/webgpu'
 
@@ -184,7 +184,7 @@ The second argument of the color function also has `box`, the UV before any `uv`
 `surface.position()` moves the vertices of the plane. x and y are fractions of the box from -0.5 to 0.5, z is in CSS pixels toward the viewer. Ask for more vertices with `surface.segments()`; the largest request of all effects on the element wins.
 
 ```ts title="src/effects/lift.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { vec3 } from 'three/tsl'
 
 export default effect({ height: 40 }, ({ surface, u }) => {
@@ -223,7 +223,7 @@ The surface is one option. Any three.js object works through the context, and Di
 - `update`, the function setup returns, runs in every drawn frame while the element is on screen. It gets `input`, the inputs as numbers, and the frame time.
 
 ```ts title="src/effects/halo.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { Mesh, MeshBasicNodeMaterial, RingGeometry } from 'three/webgpu'
 
 export default effect(
@@ -259,7 +259,7 @@ Diorama disposes the geometry, materials and textures of placed objects with the
 With `media: true` the picture is ready before setup, and `map` is its texture. `coverUV(uv)` maps box UV to texture UV with the element's `object-fit`, and `mask(uv)` is the alpha of radius, clip and CSS opacity. `place(mesh, { replace: true })` makes your mesh the element's picture instead of the surface.
 
 ```ts title="src/effects/drift.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { texture, uv } from 'three/tsl'
 import {
   Mesh,
@@ -288,7 +288,7 @@ export default effect(
 `layers(selector)` returns the layers of matching descendants in document order and keeps the array up to date. `pose(layer, target, weight)` blends one of them from its layout toward a target for the current frame. Call it in `update`; a layer you stop posing returns to its layout by itself.
 
 ```ts title="src/effects/wheel.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect(
   { items: 'img', radius: 600 },
@@ -326,7 +326,7 @@ export default effect(
 Uniform params change live. A string or `oneOf` param has no uniform, so a change runs setup again: in `wheel`, a new `items` selector picks other children. Name other params in `rebuild` when setup uses their value to build something, such as the number of instances.
 
 ```ts title="src/effects/sparks.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   InstancedMesh,
   Matrix4,
@@ -373,7 +373,7 @@ A broken effect never breaks the page. Its element goes back to plain HTML, the 
 A failed instance stays failed until it gets a new start: remove the name from `data-dio` and add it back, or save the file in development and the edit replaces it. To react in code, listen to status changes.
 
 ```ts title="src/main.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 app.on('effects:status', ({ element, effect, status, error }) => {
@@ -386,7 +386,7 @@ app.on('effects:status', ({ element, effect, status, error }) => {
 ## The whole file
 
 ```ts title="src/effects/torch.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec2, vec4 } from 'three/tsl'
 import type { Node } from 'three/webgpu'
 

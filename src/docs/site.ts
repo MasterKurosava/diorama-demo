@@ -13,7 +13,7 @@ export const REPO_REF = 'main'
 export const NAME = 'Diorama'
 
 /** The package sites install and import. The rename to dioramajs changes it here. */
-export const PACKAGE = 'dioramajs'
+export const PACKAGE = '@dioramajs/diorama'
 
 export const DESCRIPTION =
   'Diorama puts three.js effects on ordinary HTML elements with a data-dio attribute. The canvas follows layout and scroll, draws only when something changes and flies keyed elements between pages.'

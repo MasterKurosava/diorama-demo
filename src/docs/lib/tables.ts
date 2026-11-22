@@ -1,7 +1,8 @@
 // Reads the generated library data from disk for build-time plugins and checks.
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import aliases from './aliases.json' with { type: 'json' }
+import { installedLibrary } from './library.ts'
 import {
   type Aliases,
   createLinker,
@@ -65,18 +66,10 @@ let packages: Set<string> | undefined
 export function libraryPackages(): ReadonlySet<string> {
   if (packages) return packages
   packages = new Set()
-  const dir = join(realpathSync(join(root, 'node_modules/dioramajs')), '..')
-  for (const name of readdirSync(dir)) {
-    const file = join(dir, name, 'package.json')
-    if (!existsSync(file)) continue
-    const pkg = JSON.parse(readFileSync(file, 'utf8')) as {
-      name: string
-      private?: boolean
-      peerDependencies?: Record<string, string>
-    }
-    if (pkg.private) continue
-    packages.add(pkg.name)
-    for (const peer of Object.keys(pkg.peerDependencies ?? {})) packages.add(peer)
+  for (const { manifest } of installedLibrary(root)) {
+    if (manifest.private) continue
+    packages.add(manifest.name)
+    for (const peer of Object.keys(manifest.peerDependencies ?? {})) packages.add(peer)
   }
   return packages
 }

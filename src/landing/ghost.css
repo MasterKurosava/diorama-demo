@@ -1,0 +1,70 @@
+/* The hand of ghost.ts: the arrow of the effect previews, or a fingertip on touch screens. It
+   sits above the canvas and never takes a click. */
+.ghost {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 97;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: translate;
+}
+.ghost[data-on] {
+  opacity: 1;
+}
+.ghost-hand {
+  position: absolute;
+  top: -3px;
+  left: -4px;
+  display: block;
+  width: 26px;
+  height: 26px;
+  transform-origin: 4px 3px;
+  filter: drop-shadow(0 2px 3px rgb(10 2 8 / 0.5));
+  transition: scale 0.12s ease-out;
+}
+.ghost-hand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ghost[data-down] .ghost-hand {
+  scale: 0.84;
+}
+.ghost-ring {
+  position: absolute;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  border-radius: 50%;
+  animation: ghost-ring 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes ghost-ring {
+  from {
+    scale: 0.3;
+    opacity: 1;
+  }
+  to {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+
+.ghost[data-touch] .ghost-hand {
+  top: -21px;
+  left: -21px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.32);
+  box-shadow:
+    0 0 0 1.5px rgb(255 255 255 / 0.85),
+    0 4px 14px rgb(10 2 8 / 0.35);
+  transform-origin: center;
+  filter: none;
+}
+.ghost[data-touch] .ghost-hand svg {
+  display: none;
+}

@@ -1,0 +1,65 @@
+---
+// 07 Out of the box. A wall of prints, each a built-in effect recorded on its example page. A
+// print plays under the pointer; while nobody points, the prints in view come alive one after
+// another (catalogue.ts), so the wall moves without every clip decoding at once.
+import { effectPages } from '../../docs/lib/effect-pages.ts'
+
+const pages = await effectPages()
+const total = pages.length
+const category = new Map(pages.map((p) => [p.info.name, p.info.categoryTitle]))
+// Rows of the wall: two large prints, three, two, then two rows of four.
+const wall: { name: string; size: 'l' | 'm' | 's' }[] = [
+  { name: 'fire', size: 'l' },
+  { name: 'explode', size: 'l' },
+  { name: 'ripple', size: 'm' },
+  { name: 'globe', size: 'm' },
+  { name: 'melt', size: 'm' },
+  { name: 'hotspots', size: 'l' },
+  { name: 'coverflow', size: 'l' },
+  { name: 'frost', size: 's' },
+  { name: 'neon', size: 's' },
+  { name: 'voxel', size: 's' },
+  { name: 'extrude', size: 's' },
+  { name: 'polaroids', size: 's' },
+  { name: 'liquid', size: 's' },
+  { name: 'confetti', size: 's' },
+  { name: 'map', size: 's' },
+]
+---
+
+      <section class="room cat" id="effects" data-sky="#160c28" aria-labelledby="cat-title">
+        <div class="cat-head">
+          <p class="ch-kicker"><b>07</b> Out of the box</p>
+          <h2 id="cat-title" class="cat-title">{total} effects, ready.</h2>
+          <p class="cat-lede">Each one is a word in <code>data-dio</code>. A few of them, recorded on their pages:</p>
+        </div>
+
+        <ul class="cat-wall" aria-label="Some of the built-in effects">
+          {
+            wall.map(({ name, size }) => (
+              <li class={`cat-print cat-${size}`}>
+                <a href={`/docs/effects/${name}`} data-cursor="Open">
+                  <video
+                    src={`/media/showcase/${name}.webm`}
+                    poster={`/media/showcase/${name}.webp`}
+                    muted
+                    loop
+                    playsinline
+                    preload="none"
+                    aria-hidden="true"
+                  />
+                  <span class="cat-label">
+                    <span class="cat-name">{name}</span>
+                    <span class="cat-kind">{category.get(name)}</span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="cat-more">
+          <a class="button solid" href="/docs/effects">All {total} effects</a>
+          <span>Text, photos, galleries, 3D objects, maps, particles, sound and page transitions.</span>
+        </p>
+      </section>

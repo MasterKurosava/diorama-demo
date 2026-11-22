@@ -13,7 +13,7 @@ In this step you write `torch`: while the pointer is over the image, the image d
 `u.pointer` is the pointer position in the element's box: 0 to 1 across, 0 to 1 from bottom to top. The color function gets the position of the pixel in the same units as `box`, so the distance between the two tells how far the pixel is from the pointer.
 
 ```ts title="src/effects/torch.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec4 } from 'three/tsl'
 
 export default effect({ radius: 0.35, dim: 0.6 }, ({ surface, u }) => {
@@ -48,7 +48,7 @@ Move the pointer over the image and the circle follows it. Move it away and the 
 `u.hover` is 0 when the pointer is away and 1 when it is over the box. It changes smoothly between the two, so whatever you multiply by it fades in and out. Multiply the dimming by it.
 
 ```ts title="src/effects/torch.ts" twoslash {8}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec4 } from 'three/tsl'
 
 export default effect({ radius: 0.35, dim: 0.6 }, ({ surface, u }) => {

@@ -1,8 +1,11 @@
 // Scripts of the chapters below the hero. Their styles come with the landing layout.
-import type { App } from 'dioramajs'
+import type { App } from '@dioramajs/diorama'
+import * as build from './build'
+import * as catalogue from './catalogue'
 import * as dawn from './dawn'
 import * as editor from './editor'
 import * as freeze from './freeze'
+import * as hints from './hints'
 import * as lantern from './lantern'
 import * as layout from './layout'
 import * as map from './map'
@@ -15,7 +18,10 @@ const scripts: { mount(app: App): () => void }[] = [
   freeze,
   lantern,
   editor,
+  catalogue,
+  build,
   dawn,
+  hints,
 ]
 
 export { currentTint, mount as mountLantern } from './lantern'

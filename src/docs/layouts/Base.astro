@@ -1,5 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions'
+import Cover from '../../cover/Cover.astro'
+import Small from '../../small/Small.astro'
 import Header from '../components/Header.astro'
 import Search from '../components/Search.astro'
 import { HEAD_SCRIPT, TABS_CSS } from '../lib/head.ts'
@@ -30,12 +32,14 @@ const full = title === NAME ? NAME : `${title} · ${NAME}`
     <link rel="canonical" href={`${SITE}${path}`} />
     {!noindex && <link rel="alternate" type="text/markdown" href={`${path}.md`} />}
     {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
     <script is:inline set:html={HEAD_SCRIPT} />
     <style is:inline set:html={TABS_CSS}></style>
     <ClientRouter />
   </head>
   <body>
+    <Small />
     <a class="skip" href="#content">Skip to content</a>
     <Header path={path} />
     <slot />
@@ -46,7 +50,9 @@ const full = title === NAME ? NAME : `${title} · ${NAME}`
       </p>
     </footer>
     <Search />
+    <Cover />
     <script>
+      import '../../cover/cover.ts'
       import '../diorama.ts'
     </script>
   </body>

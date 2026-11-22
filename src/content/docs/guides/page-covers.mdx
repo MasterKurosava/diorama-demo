@@ -16,7 +16,7 @@ A page cover closes over the page when a visitor follows a link, stays closed wh
 Name the cover in the `transitions` option of `start()`:
 
 ```ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({ transitions: { cover: 'ink' } })
 ```
@@ -24,7 +24,7 @@ export const app = start({ transitions: { cover: 'ink' } })
 An object sets its look and timing:
 
 ```ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   transitions: {
@@ -73,7 +73,7 @@ A link that opens a modal through its own click handler should carry `data-dio-c
 When your code changes the page, wait for the cover first:
 
 ```ts
-import { covered } from 'dioramajs/transitions'
+import { covered } from '@dioramajs/diorama/transitions'
 import { app } from './diorama'
 
 async function go(href: string) {

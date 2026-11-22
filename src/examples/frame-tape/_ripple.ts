@@ -1,4 +1,4 @@
-import type { EffectContext } from 'dioramajs'
+import type { EffectContext } from '@dioramajs/diorama'
 import { exp, sin, vec2 } from 'three/tsl'
 
 export const params = { strength: 1, frequency: 40, speed: 6 }

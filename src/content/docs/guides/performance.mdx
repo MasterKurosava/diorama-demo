@@ -14,7 +14,7 @@ Diorama keeps the cost of a page near zero until an effect is about to be seen, 
 | Part                                          | Size, min+gzip | When it loads                                          |
 | --------------------------------------------- | -------------- | ------------------------------------------------------ |
 | `start()` with effects, transitions and cache | about 44 KB    | with your page script                                  |
-| CDN build `dioramajs/auto`                      | about 44 KB    | with the script tag                                    |
+| CDN build `@dioramajs/diorama/auto`                      | about 44 KB    | with the script tag                                    |
 | Engine: three.js and the Diorama runtime      | about 225 KB   | when the first effect element nears the viewport       |
 | One effect module                             | under 1 KB     | with the engine, when an element with it nears view    |
 | Decoders for Draco, Meshopt, KTX2             | per decoder    | only for a model file that uses that compression       |
@@ -22,7 +22,7 @@ Diorama keeps the cost of a page near zero until an effect is about to be seen, 
 "Nears the viewport" means within one viewport height by default. After the window `load` event the engine also downloads in idle time, so it is usually cached before the first scroll. Change both in `start()`.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   load: 'near', // 'eager' boots at start, 'manual' waits for app.effects.load()
@@ -46,7 +46,7 @@ The loop draws a frame only when something asks for one: a scroll, a pointer mov
 Each effect has a frame policy. The default is derived from what the effect reads: `u.time` animates every frame while visible, `u.hoverTime` while hovered and while hover fades, and neither means input only. An update that returns `true` or `false` decides for itself. Set it yourself when you need less.
 
 ```ts title="src/effects/drift.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { sin } from 'three/tsl'
 
 export default effect(
@@ -63,7 +63,7 @@ export default effect(
 Check what the loop does from the console.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 const app = start()
 // ---cut---
@@ -85,7 +85,7 @@ The canvas covers the viewport, so its cost grows with the screen. Two limits ke
 Lower the budget for heavy effects, or cap the ratio at runtime, for example when frames get slow. The cap applies at the next frame.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({ render: { maxPixels: 2_000_000 } })
 
@@ -124,7 +124,7 @@ The browser scrolls on the compositor thread for touch, keyboard, the scrollbar 
 While a frame is late, content fixed to the viewport moves with the page too. A site with a full-screen scene and native scrolling turns it off on the stage.
 
 ```ts title="src/main.ts" twoslash
-import { stage, start } from 'dioramajs'
+import { stage, start } from '@dioramajs/diorama'
 
 export const app = start({ plugins: [stage({ followScroll: false })] })
 ```

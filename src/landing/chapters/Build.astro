@@ -1,48 +1,282 @@
+---
+// 08 For developers. A studio: on the left the files and commands of a small site are typed in,
+// on the right the page they make, with the real built-in effects switched on as each line lands
+// (build.ts). Six steps, from the install to the frame counter at rest. Every line is the public
+// API, the CLI's own output and TypeScript's own error.
+interface Block {
+  readonly name: string
+  readonly kind: 'term' | 'file'
+  /** Lines as highlighted HTML. A line starting with `+` appears when the typing reaches it. */
+  readonly lines: readonly string[]
+}
+interface Step {
+  readonly id: string
+  readonly chip: string
+  readonly say: string
+  readonly blocks: readonly Block[]
+}
+
+const esc = (s: string) =>
+  s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+const span = (cls: string) => (s: string) => `<span class="${cls}">${esc(s)}</span>`
+const k = span('k')
+const s = span('s')
+const n = span('n')
+const f = span('f')
+const c = span('c')
+const t = span('t')
+const a = span('a')
+/** Typed in when the step plays. */
+const ty = (html: string) => `<span class="ty" data-seq="type">${html}</span>`
+/** Deleted before the next typing. */
+const er = (html: string) => `<span class="er" data-seq="erase">${html}</span>`
+const act = (name: string) => `<i data-seq="act" data-act="${name}"></i>`
+const wait = (ms: number) => `<i data-seq="wait" data-ms="${ms}"></i>`
+const flag = (on: boolean) => `<i data-seq="flag" data-on="${on}"></i>`
+
+const prompt = '<span class="pr">$</span> '
+const kicker = `${t('<p')} ${a('class')}=${s('"kicker"')}${t('>')}Bonfire night${t('</p>')}`
+const h1 = (attrs: string) => `${t('<h1')}${attrs}${t('>')}Burn bright${t('</h1>')}`
+const line = `${t('<p>')}Live music and the big fire on the beach.${t('</p>')}`
+const img = (attrs: string) => `${t('<img')} ${a('src')}=${s('"steps.webp"')}${attrs}${t('>')}`
+const fire = ` ${a('data-dio')}=${s('"fire"')}`
+const ripple = ` ${a('data-dio')}=${s('"ripple"')}`
+const importLine = `${k('import')} { start } ${k('from')} ${s("'@dioramajs/diorama'")}`
+/** The whole index.html around the four lines of the poster. */
+const page = (lines: readonly string[]) => [
+  t('<!doctype html>'),
+  `${t('<link')} ${a('rel')}=${s('"stylesheet"')} ${a('href')}=${s('"/style.css"')}${t('>')}`,
+  `${t('<script')} ${a('type')}=${s('"module"')} ${a('src')}=${s('"/src/main.ts"')}${t('></script>')}`,
+  '',
+  `${t('<main')} ${a('class')}=${s('"poster"')}${t('>')}`,
+  ...lines.map((l) => `  ${l}`),
+  t('</main>'),
+]
+
+const steps: Step[] = [
+  {
+    id: 'start',
+    chip: 'Install',
+    say: 'The package and one call. Nothing else to set up.',
+    blocks: [
+      {
+        name: 'Terminal',
+        kind: 'term',
+        lines: [prompt + ty(esc('npm i @dioramajs/diorama three'))],
+      },
+      {
+        name: 'src/main.ts',
+        kind: 'file',
+        lines: [`+${ty(importLine)}`, '+', `+${ty(`${f('start')}()`)}${act('start')}`],
+      },
+    ],
+  },
+  {
+    id: 'fire',
+    chip: 'One attribute',
+    say: 'An element takes an effect by its name. The heading stays real, selectable text.',
+    blocks: [
+      {
+        name: 'index.html',
+        kind: 'file',
+        lines: page([kicker, h1(ty(fire)) + act('fire'), line, img('')]),
+      },
+    ],
+  },
+  {
+    id: 'ripple',
+    chip: 'Any element',
+    say: 'Text, photos, video, models: a hundred effects, each loaded the first time it is used.',
+    blocks: [
+      {
+        name: 'index.html',
+        kind: 'file',
+        lines: page([kicker, h1(fire), line, img(ty(ripple)) + act('ripple') + act('feel-photo')]),
+      },
+    ],
+  },
+  {
+    id: 'add',
+    chip: 'Make it yours',
+    say: 'Copy any built-in into your folder. Public imports only, so the copy builds as it is.',
+    blocks: [
+      {
+        name: 'Terminal',
+        kind: 'term',
+        lines: [
+          prompt + ty(esc('npx dioramajs add fire')),
+          `+${c('wrote src/effects/_text/fire-field.ts')}`,
+          `+${c('wrote src/effects/_text/paint.ts')}`,
+          `+${c('wrote src/effects/_text/raster.ts')}`,
+          `+${c('wrote src/effects/_text/sdf.ts')}`,
+          `+${c('wrote src/effects/_text/alias.ts')}`,
+          `+wrote src/effects/fire.ts, ${c('which replaces the built-in "fire"')}`,
+        ],
+      },
+      {
+        name: 'src/effects/fire.ts',
+        kind: 'file',
+        lines: [
+          `+${c('// The built-in `fire` effect of @dioramajs/diorama 0.1.0, copied by `dioramajs add`: yours to edit.')}`,
+          `+${k('const')} fire = ${f('defineEffect')}({`,
+          `+  name: ${s("'fire'")},`,
+          '+  params: {',
+          `+    style: ${f('oneOf')}(${s("'flame'")}, ${s("'embers'")}, ${s("'candle'")}),`,
+          `+    height: ${n('0.9')},`,
+          `+    color: ${er(s("''"))}${ty(s("'#5ab8ff'"))},${act('blue')}`,
+        ],
+      },
+    ],
+  },
+  {
+    id: 'types',
+    chip: 'Checked as you type',
+    say: 'The plugin types your folder, so a wrong effect name or param fails in the editor and in CI.',
+    blocks: [
+      {
+        name: 'src/main.ts',
+        kind: 'file',
+        lines: [
+          importLine,
+          '',
+          `${k('const')} app = ${f('start')}()`,
+          `app.${f('attach')}(${s("'h1'")}, ${s("'fire'")}, { ${ty(`<span class="sq">strenght</span>: ${n('1.6')}`)} })${flag(true)}${wait(3400)}${act('fix')}${flag(false)}<span class="st-tip" aria-hidden="true">Object literal may only specify known properties, but 'strenght' does not exist in type 'Partial&lt;ParamsOf&lt;Params&gt;&gt;'. Did you mean to write 'strength'? <b>ts(2769)</b></span>`,
+        ],
+      },
+    ],
+  },
+  {
+    id: 'rest',
+    chip: 'Free at rest',
+    say: 'When nothing moves, nothing is drawn. Hover the heading: the fire wakes, then the count falls back to 0.',
+    blocks: [
+      {
+        name: 'index.html',
+        kind: 'file',
+        lines: page([
+          kicker,
+          h1(fire + ty(` ${a('data-dio-trigger')}=${s('"hover"')}`)) +
+            act('rest') +
+            act('calm') +
+            act('feel-title') +
+            act('calm'),
+          line,
+          img(ripple),
+        ]),
+      },
+    ],
+  },
+]
+
+const numbered = (lines: readonly string[]) =>
+  lines.map((raw, i) => {
+    const late = raw.startsWith('+')
+    const html = late ? raw.slice(1) : raw
+    return { html: html || ' ', late, n: i + 1 }
+  })
+---
+
       <section class="room build" id="build" data-sky="#2a1020" aria-labelledby="build-title">
         <div class="build-head">
-          <p class="ch-kicker"><b>07</b> For developers</p>
-          <h2 id="build-title" class="build-title">The built-ins are written the way you write yours.</h2>
+          <p class="ch-kicker"><b>08</b> For developers</p>
+          <h2 id="build-title" class="build-title">Two lines to start. One file to make it&nbsp;yours.</h2>
           <p class="build-lede">
-            Every effect on this page is a short file on the public API. The library is the runtime
-            around them: layout, scroll, loading, cleanup, WebGPU and WebGL 2.
+            Every built-in is a short file on the public API, so any of them can become yours. Watch a
+            page go from plain HTML to its own effect.
           </p>
         </div>
 
-        <ul class="build-facts">
-          <li>
-            <h3>A file is an effect</h3>
-            <pre class="build-code"><code is:raw><span class="c">// src/effects/glow.ts</span>
-<span class="k">export default</span> effect({ <span class="p">strength</span>: 1 }, …)
+        <div class="studio">
+          <div class="studio-steps">
+            <div class="studio-chips" role="tablist" aria-label="Steps">
+              {
+                steps.map((step, i) => (
+                  <button
+                    class="studio-chip"
+                    type="button"
+                    role="tab"
+                    id={`studio-tab-${step.id}`}
+                    aria-controls={`studio-${step.id}`}
+                    aria-selected={i === 0 ? 'true' : 'false'}
+                    tabindex={i === 0 ? 0 : -1}
+                  >
+                    <span class="studio-n">{String(i + 1).padStart(2, '0')}</span>
+                    {step.chip}
+                    <i class="studio-time" aria-hidden="true"></i>
+                  </button>
+                ))
+              }
+            </div>
+            <button class="studio-pause" type="button" aria-pressed="false" aria-label="Pause the steps">
+              <svg class="pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9M11 3.5v9" /></svg>
+              <svg class="resume" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6L12.6 8z" /></svg>
+            </button>
+          </div>
 
-<span class="c">&lt;!-- any element --&gt;</span>
-&lt;img data-dio=<span class="s">"glow"</span>
-     data-dio-strength=<span class="s">"0.6"</span>&gt;</code></pre>
-            <p>The plugin for Vite, Astro, Nuxt or Next finds the folder, types the params from their defaults and gives each effect its own chunk.</p>
-          </li>
-          <li>
-            <h3>Start from a built-in</h3>
-            <pre class="build-code"><code is:raw><span class="k">npx</span> dioramajs add ripple
-<span class="c">// src/effects/ripple.ts, yours to change</span></code></pre>
-            <p>Copies the source of a built-in effect into your folder, with public imports only, so the copy builds as it is.</p>
-          </li>
-          <li>
-            <h3>Bring your GLSL</h3>
-            <pre class="build-code"><code is:raw><span class="c">// src/effects/aurora.frag</span>
-<span class="k">uniform float</span> uTime;   <span class="c">// → time</span>
-<span class="k">uniform vec2</span>  uPointer; <span class="c">// → pointer</span></code></pre>
-            <p>A fragment shader in the folder is an effect too. Uniforms map to inputs by name, and the converter says what it cannot translate.</p>
-          </li>
-          <li>
-            <h3>Pay for what is on screen</h3>
-            <pre class="build-code"><code is:raw>start()   <span class="c">// no three.js yet</span>
-<span class="c">// an element with data-dio scrolls in:</span>
-<span class="c">// three.js, then that effect's chunk</span></code></pre>
-            <p>Three.js and each effect load when an element needs them. WebGPU where it runs, WebGL 2 everywhere else, plain HTML without either.</p>
-          </li>
-        </ul>
+          <div class="studio-desk">
+            <div class="studio-code">
+              {
+                steps.map((step, i) => (
+                  <div
+                    class="studio-panel"
+                    role="tabpanel"
+                    id={`studio-${step.id}`}
+                    aria-labelledby={`studio-tab-${step.id}`}
+                    hidden={i !== 0}
+                  >
+                    {step.blocks.map((block, b) => (
+                      <div class={`studio-block is-${block.kind}`} data-seq={b > 0 ? 'show' : undefined}>
+                        <p class="studio-file">
+                          {block.kind === 'term' ? (
+                            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5 6.5 8 3 11.5M8.5 11.5H13" /></svg>
+                          ) : (
+                            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.8h5.2L12.5 5v9.2H4zM9 2v3.3h3.3" /></svg>
+                          )}
+                          {block.name}
+                        </p>
+                        <pre class="studio-lines"><code>{numbered(block.lines).map((ln) => (
+                          <span class:list={['ln', { late: ln.late }]} data-n={block.kind === 'file' ? ln.n : undefined} data-seq={ln.late ? 'show' : undefined} set:html={ln.html} />
+                        ))}</code></pre>
+                      </div>
+                    ))}
+                    <p class="studio-say">{step.say}</p>
+                  </div>
+                ))
+              }
+            </div>
 
+            <figure class="studio-view" aria-label="The page the files make">
+              <p class="studio-url" aria-hidden="true"><span>localhost:5173</span></p>
+              <div class="studio-page">
+                <div class="sp-copy">
+                  <p class="sp-kicker">Bonfire night</p>
+                  <p class="sp-title">Burn bright</p>
+                  <p class="sp-line">Live music and the big fire on the beach.</p>
+                </div>
+                <img
+                  class="sp-photo"
+                  src="/media/portfolio/sea-steps.webp"
+                  width="1600"
+                  height="1067"
+                  alt="A wave breaking over concrete steps into the sea"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="studio-status">
+                <span class="st-gpu"><i aria-hidden="true"></i><span class="st-gpu-name">plain HTML</span></span>
+                <span class="st-fx"></span>
+                <span class="st-fps"><b>0</b> frames/s</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <p class="build-with">
+          Vite, Astro, Nuxt, Next or one <code>&lt;script&gt;</code> tag. WebGPU where it runs, WebGL&nbsp;2
+          elsewhere, the plain HTML without either. GLSL from Shadertoy drops into the same folder.
+        </p>
         <p class="build-actions">
-          <a class="button solid" href="/docs/learn/write-an-effect">Write your first effect</a>
+          <a class="button solid" href="/docs/learn/effect-in-10-minutes">Your own effect in 10 minutes</a>
           <a class="button" href="/docs/effects">Browse the effects</a>
           <a class="button" href="/docs/api">API reference</a>
         </p>

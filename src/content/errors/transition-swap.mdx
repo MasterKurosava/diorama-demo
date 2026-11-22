@@ -20,7 +20,7 @@ A swap that throws synchronously is not reported with this code. The error is th
 Find the router error in the `cause` and handle failed navigations in the router. When the router cannot recover, fall back to a full page load:
 
 ```ts
-import { type App, transition } from 'dioramajs'
+import { type App, transition } from '@dioramajs/diorama'
 
 export async function go(
   app: App,

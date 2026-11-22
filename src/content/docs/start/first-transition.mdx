@@ -40,7 +40,7 @@ A flight needs the app to survive navigation, so the page must change without a 
 Wrap your own swap of the page in `transition()`. It takes a snapshot of the keyed elements, runs the swap and flies them to their partners.
 
 ```ts title="src/main.ts" twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 export const app = start()
 
@@ -106,7 +106,7 @@ The CDN build exports `transition()` too. Wrap your own swap of the page in it, 
 A flight takes 0.8 seconds with a cubic in-out ease. Change the defaults for every transition in `start()`.
 
 ```ts title="src/main.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({ transitions: { duration: 0.9 } })
 ```

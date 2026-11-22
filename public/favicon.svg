@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Diorama</title>
+  <rect width="64" height="64" rx="14" fill="#4b1519"/>
+  <circle cx="42" cy="24" r="9" fill="#ffe2bd"/>
+  <path fill="#a85c58" d="M0 42c9-4 17-6 26-4s15 5 24 3 10-3 14-4v27H0z"/>
+  <path fill="#f3e9d8" d="M0 52c8-3 15-3 23-1s14 3 22 1 13-4 19-5v17H0z"/>
+</svg>

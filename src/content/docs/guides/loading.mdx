@@ -16,7 +16,7 @@ Every image an effect shows, every model and every preload goes through one cach
 Inside an effect, load through the context: `ctx.texture(url)` for a texture and `ctx.model(url)` for a glTF. Their leases end with the effect, so nothing leaks when the element leaves.
 
 ```ts title="src/effects/paper.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { texture as sample, uv } from 'three/tsl'
 
 export default effect(
@@ -35,7 +35,7 @@ export default effect(
 Outside effects, `app.assets.load(url)` returns a lease at once. The type comes from the extension, or from `type`: `image`, `texture`, `gltf`, `ktx2`, `buffer` or `json`.
 
 ```ts twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const app = await ready(start())
 // ---cut---
@@ -45,7 +45,7 @@ const stations = await data.ready
 data.release()
 ```
 
-`ready` rejects with `ASSET_LOAD`, `ASSET_PARSE`, `ASSET_TYPE` or `ASSET_DECODER`; the same failure is reported once through the app. `ready(app)` from `dioramajs` resolves when the app runs, so `app.assets` exists.
+`ready` rejects with `ASSET_LOAD`, `ASSET_PARSE`, `ASSET_TYPE` or `ASSET_DECODER`; the same failure is reported once through the app. `ready(app)` from `@dioramajs/diorama` resolves when the app runs, so `app.assets` exists.
 
 ## Preload the next page on intent
 
@@ -81,7 +81,7 @@ Under Save-Data and on 2G connections nothing preloads.
 When the router has already fetched the next page, pass its document to `app.assets.preload()`. It takes the images with `data-dio` or `data-dio-key` and the URLs in `data-dio-preload`. An image inside `<picture>` picks the same source and size the new page picks.
 
 ```ts twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const app = await ready(start())
 const url = '/work/aurora'
@@ -106,7 +106,7 @@ The [routers guide](/docs/guides/routers#recipes) has the preload line for Astro
 Add your own work to the wave with `track()`, for example web fonts. `weight` is in bytes, 100 000 by default.
 
 ```ts twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const app = await ready(start())
 // ---cut---
@@ -146,7 +146,7 @@ html.is-loading {
 ```
 
 ```ts title="src/main.ts" twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const root = document.documentElement
 root.classList.add('is-loading')
@@ -187,7 +187,7 @@ Without WebGPU or WebGL 2, or under Save-Data, the engine does not load and the 
 With Lenis, `overflow: hidden` on the root does not stop wheel scrolling. Stop Lenis instead and start it in the same `finally`.
 
 ```ts twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 import Lenis from 'lenis'
 
 const lenis = new Lenis()

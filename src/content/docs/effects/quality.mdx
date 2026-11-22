@@ -60,7 +60,7 @@ While the page draws, the plugin watches how often the browser paints, not how o
 Pin a tier for every device, for example on a page whose scene is too heavy for the high tier anywhere.
 
 ```ts title="src/diorama.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({ quality: 'medium' })
 ```
@@ -68,7 +68,7 @@ export const app = start({ quality: 'medium' })
 Keep detection and change how it behaves with an object. This one keeps the detected tier for the whole page and lets the medium tier draw at a pixel ratio of 1.25.
 
 ```ts title="src/diorama.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   quality: {
@@ -85,7 +85,7 @@ export const app = start({
 `app.quality` exists once the engine runs, so wait for `app.effects.load()`, which resolves `false` when 3D is unavailable. This battery saver switch in a site's settings pins the low tier and hands the choice back to detection when it is turned off.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 const app = start()
 // ---cut---
 const saver = document.querySelector<HTMLInputElement>('#battery-saver')
@@ -99,7 +99,7 @@ if (saver)
 `app.quality.tier` and `app.quality.reason` are signals: the tier now, and why it is what it is, `'detected'`, `'pinned'`, `'slow'` or `'remembered'`. The `quality:tier` event fires when the tier changes, which lets your CSS follow it too.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 const app = start()
 // ---cut---
 app.on('quality:tier', ({ tier }) => {
@@ -120,7 +120,7 @@ html[data-quality='low'] .panel {
 Give your own effect a `quality` option with caps per tier, and `min` for the lowest tier it should run at. Below `min` the instance is off and the element stays plain HTML. A param that setup reads, such as a mesh's detail, belongs in `rebuild`, so the effect is set up again when its cap changes.
 
 ```ts title="src/effects/lift.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { vec3 } from 'three/tsl'
 
 export default effect(

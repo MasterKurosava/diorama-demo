@@ -13,7 +13,7 @@ GSAP and Lenis stay yours: Diorama never imports or creates them, it joins their
 Register ScrollTrigger as usual, create Lenis yourself and hand all three to `start()`.
 
 ```ts title="src/main.ts"
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -57,7 +57,7 @@ Params on a handle or an instance are accessor properties, so GSAP tweens them l
 Services such as `app.effects` and `app.gsap` exist once the app runs. `app.attach()` works at once; for the rest, wait with `ready()` in code that runs at start.
 
 ```ts
-import { ready } from 'dioramajs'
+import { ready } from '@dioramajs/diorama'
 
 // Markup: <img class="hero" src="/cover.jpg" data-dio="ripple" />
 await ready(app)
@@ -205,13 +205,13 @@ Keep your Lenis instance in a module and call its methods yourself: `lenis.scrol
 
 ```ts title="src/diorama.ts"
 import { lenisPlugin } from '@dioramajs/lenis'
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({ plugins: [lenisPlugin()] })
 ```
 
 ```tsx title="src/Layout.tsx"
-import { ready } from 'dioramajs'
+import { ready } from '@dioramajs/diorama'
 import { ReactLenis, useLenis } from 'lenis/react'
 import { type ReactNode, useEffect } from 'react'
 import { app } from './diorama'
@@ -254,7 +254,7 @@ With one Lenis for the whole site, call `lenis.resize()` after the new page is i
 Astro's `ClientRouter` removes the Lenis classes from `<html>` on every swap, and without them `lenis.css` and the site's `scroll-behavior` break instant scroll writes. Stop Lenis during the swap, so an unfinished smooth scroll does not land on the new page, and put the classes back after it. Astro sets the scroll position itself, top on a new page and the old position on Back, and Lenis follows.
 
 ```ts title="src/diorama.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 import Lenis from 'lenis'
 
 export const lenis = new Lenis()

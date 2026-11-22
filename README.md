@@ -20,7 +20,7 @@ Search runs on Pagefind with its own interface, code samples are type-checked at
 
 ## Run
 
-Node.js 22.23+ or 24+ and pnpm. The library is linked from `../diorama` (the release repository, built with `pnpm build`) until it is published to npm.
+Node.js 22.23+ or 24+ and pnpm. The library comes from npm.
 
 ```bash
 pnpm install
@@ -30,7 +30,7 @@ pnpm preview
 pnpm check      # astro check and tsc
 ```
 
-`pnpm build` reads the library first: `scripts/api.mjs` writes the API reference from its TypeScript sources and `scripts/meta.mjs` collects the effect metadata, both into `src/generated/`. A build fails on a broken link, a code sample that does not type-check, or an effect attribute the library does not know.
+`src/generated/` holds what the build needs from the library sources: the API reference and the effect metadata. A build fails on a broken link, a code sample that does not type-check, or an effect attribute the library does not know.
 
 ## Layout
 

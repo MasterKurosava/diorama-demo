@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { mix, smoothstep, vec4 } from 'three/tsl'
 import { wet, wetPaper } from './_ink'
 

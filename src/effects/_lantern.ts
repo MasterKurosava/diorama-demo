@@ -1,7 +1,7 @@
 // State shared across lantern instances: the paper fibre texture and the motion that copies
 // with the same `data-dio-key` share.
 
-import type { EffectContext } from 'dioramajs'
+import type { EffectContext } from '@dioramajs/diorama'
 import { CanvasTexture, Color, NoColorSpace, RepeatWrapping, Vector3 } from 'three/webgpu'
 
 function random(seed: number): () => number {

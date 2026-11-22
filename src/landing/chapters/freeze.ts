@@ -2,7 +2,7 @@
 // grows in from the edges of the window, and when the lantern arrives the ice melts outwards from
 // it and the meltwater runs down the glass. Both are library effects on one fixed pane; this
 // script only writes their live params and keeps the lantern's warm glow on it.
-import type { App } from 'dioramajs'
+import type { App } from '@dioramajs/diorama'
 
 /** Night counts as on screen once its top passes this share of the viewport. */
 const NIGHT = 0.3

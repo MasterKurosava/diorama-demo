@@ -11,7 +11,7 @@ The Nuxt module adds the Vite plugin with the effects folder under `srcDir`, whi
 
 ## Install the packages
 
-<Install packages="dioramajs three" />
+<Install packages="@dioramajs/diorama three" />
 
 ## Add the module
 
@@ -20,7 +20,7 @@ declare function defineNuxtConfig(config: {
   modules: string[]
 }): unknown
 // ---cut---
-export default defineNuxtConfig({ modules: ['dioramajs/nuxt'] })
+export default defineNuxtConfig({ modules: ['@dioramajs/diorama/nuxt'] })
 ```
 
 ## Start the app in a client plugin
@@ -30,7 +30,7 @@ A plugin whose name ends in `.client.ts` runs in the browser only.
 ```ts title="app/plugins/diorama.client.ts" fixture="nuxt" twoslash
 declare function defineNuxtPlugin(setup: () => void): unknown
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export default defineNuxtPlugin(() => {
   start()

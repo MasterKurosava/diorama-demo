@@ -22,7 +22,7 @@ summary: An effect definition breaks a rule, such as a reserved param name, so t
 Rename the param. Built-in inputs stay readable on `ctx.u`, so the effect does not need a param for them:
 
 ```ts
-import { defineEffect } from 'dioramajs'
+import { defineEffect } from '@dioramajs/diorama'
 
 export default defineEffect({
   name: 'brighten',
@@ -40,7 +40,7 @@ export default defineEffect({
 To replace an effect under a name that is already taken, pass it to `start()` instead of `app.attach()`. A matching name replaces the built-in or folder effect:
 
 ```ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 import ripple from './my-ripple'
 
 export const app = start({ effects: { ripple } })

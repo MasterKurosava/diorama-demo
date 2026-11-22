@@ -20,7 +20,7 @@ Install the package and add its Vite plugin next to the Diorama plugin. With bot
 
 ```ts title="vite.config.ts" twoslash
 import { glsl } from '@dioramajs/glsl/vite'
-import { diorama } from 'dioramajs/vite'
+import { diorama } from '@dioramajs/diorama/vite'
 
 export default { plugins: [diorama(), glsl()] }
 ```
@@ -30,7 +30,7 @@ export default { plugins: [diorama(), glsl()] }
 
 ```js title="astro.config.mjs"
 import { glsl } from '@dioramajs/glsl/vite'
-import diorama from 'dioramajs/astro'
+import diorama from '@dioramajs/diorama/astro'
 
 export default {
   integrations: [diorama()],
@@ -45,7 +45,7 @@ export default {
 import { glsl } from '@dioramajs/glsl/vite'
 
 export default defineNuxtConfig({
-  modules: ['dioramajs/nuxt'],
+  modules: ['@dioramajs/diorama/nuxt'],
   vite: { plugins: [glsl()] },
 })
 ```
@@ -286,7 +286,7 @@ A hand port is an ordinary effect file, and it is the way to go when you want to
 `sample()` returns linear color, while `ShaderMaterial` math usually runs on raw sRGB values. For a pixel-exact match, convert around the math with `sRGBTransferOETF` and `sRGBTransferEOTF`, as the port below does.
 
 ```ts title="src/effects/rgb-shift.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   abs,
   clamp,
@@ -400,7 +400,7 @@ The converter sorts each shader into a stage, and the stage decides how it stack
 Next.js reads `.frag` imports through the webpack loader `@dioramajs/glsl/loader`. With webpack the mode goes in the import query, as in Vite; Turbopack matches rules by path, so the mode goes in the file name. `withDiorama` does not pick up shaders from the effects folder, so give each shader a glue file there.
 
 ```js title="next.config.mjs"
-import { withDiorama } from 'dioramajs/next'
+import { withDiorama } from '@dioramajs/diorama/next'
 
 export default withDiorama({
   webpack(config) {
@@ -445,7 +445,7 @@ Other flags: `--out-dir` writes elsewhere and keeps the folder layout, `--watch`
 /// <reference types="@dioramajs/glsl/client" />
 // ---cut---
 import { applyShader, shaderNode } from '@dioramajs/glsl'
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   Mesh,
   MeshBasicNodeMaterial,
@@ -482,7 +482,7 @@ export default glslEffect(shader, {
 
 ```ts title="vite.config.ts" twoslash
 import { glsl } from '@dioramajs/glsl/vite'
-import { diorama } from 'dioramajs/vite'
+import { diorama } from '@dioramajs/diorama/vite'
 
 export default { plugins: [diorama(), glsl()] }
 ```

@@ -1,6 +1,9 @@
-# Three weeks. three and @types/three 0.187.0 are younger, but the library needs r187.
+# Three weeks. three and @types/three 0.187.0 are younger, but the library needs r187, and
+# Diorama itself comes out on its own schedule.
 minimumReleaseAge: 30240
 minimumReleaseAgeExclude:
+  - dioramajs
+  - "@dioramajs/*"
   - three
   - "@types/three"
 overrides:

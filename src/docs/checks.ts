@@ -168,11 +168,11 @@ export function checkMessage(message: string, sources: string): string[] {
     .map((p) => `"${p}" is not in the library sources`)
 }
 
-export function librarySources(library: string): string {
+/** The TypeScript sources of the given package folders (npm packages ship their src too). */
+export function librarySources(dirs: readonly string[]): string {
   const chunks: string[] = []
-  const packages = join(library, 'packages')
-  for (const pkg of readdirSync(packages)) {
-    const src = join(packages, pkg, 'src')
+  for (const dir of dirs) {
+    const src = join(dir, 'src')
     if (!existsSync(src)) continue
     for (const file of list(src))
       if (file.endsWith('.ts')) chunks.push(readFileSync(join(src, file), 'utf8'))

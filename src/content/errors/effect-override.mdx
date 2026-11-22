@@ -21,7 +21,7 @@ A patch never raises it. `start({ effects: { ripple: { when: 'all' } } })` chang
 If you did not mean to replace the built-in, rename your effect. Rename the file, or the key in `start()`:
 
 ```ts title="src/effects/soft-glow.ts"
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {
   surface.color((c) => c.mul(u.strength.add(1)))
@@ -37,7 +37,7 @@ and the token in your markup:
 If you meant it, mark the replacement as intended. In a file of the effects folder, export `override`:
 
 ```ts title="src/effects/glow.ts"
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export const override = true
 
@@ -49,7 +49,7 @@ export default effect({ strength: 1 }, ({ surface, u }) => {
 In `start()`, add `override: true` to the entry:
 
 ```ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   effects: {

@@ -32,7 +32,7 @@ The setting can change while the page is open. Diorama reads it live: inputs are
 `reducedMotion: 'off'` removes the effect for these visitors. The instance is off, the element stays plain HTML with `data-dio-state="off"`, and the device does not start the engine for it.
 
 ```ts title="src/effects/sway.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { vec2 } from 'three/tsl'
 
 export default effect(
@@ -53,7 +53,7 @@ The default, `'static'`, keeps the effect with motion inputs at zero. Choose `'o
 `pointer`, `progress` and `pin` keep moving, because they follow what the visitor does. When an effect turns them into large motion, scale that part by `u.motion`, which is 1 normally and 0 under reduced motion.
 
 ```ts title="src/effects/slide.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { vec2 } from 'three/tsl'
 
 export default effect({ depth: 0.08 }, ({ surface, u }) => {
@@ -80,7 +80,7 @@ Under reduced motion page transitions do not fly. A keyed copy fades out in plac
 An effect that moves only under the pointer shows nothing new on a phone, while the engine costs about 225 KB to download. Set `when: 'hover'` on such effects. It is short for the media query `'(hover: hover)'`; on a device where it does not match, the instance is off, the element stays plain HTML with `data-dio-state="off"` and the engine does not start for it.
 
 ```ts title="src/effects/brighten.ts" twoslash {5}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect(
   { strength: 1 },
@@ -97,7 +97,7 @@ The built-in `ripple` declares `when: 'hover'` in its registry entry as well, so
 
 ```ts title="src/main.ts" twoslash
 // @filename: src/effects/brighten.ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 export default effect(
   { strength: 1 },
   { when: 'hover' },
@@ -107,7 +107,7 @@ export default effect(
 )
 // @filename: src/main.ts
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   effects: {
@@ -119,7 +119,7 @@ export const app = start({
 To keep the engine off every device without hover, pass the query to `enabled`.
 
 ```ts title="src/main.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   enabled: matchMedia('(hover: hover)').matches,
@@ -156,7 +156,7 @@ figure:has([data-dio-state="off"]) .hover-hint {
 To react in code, wait until the app runs and watch the status.
 
 ```ts title="src/main.ts" twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 export const app = start()
 

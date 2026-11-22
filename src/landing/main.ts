@@ -1,6 +1,6 @@
 import { prefetch } from 'astro:prefetch'
 import { navigate } from 'astro:transitions/client'
-import { ready } from 'dioramajs'
+import { ready } from '@dioramajs/diorama'
 import { type Arrival, app, onPage, smoothScroll } from '../diorama'
 import {
   aimAt,
@@ -14,6 +14,7 @@ import {
   smooth,
 } from '../effects/_hero'
 import { currentTint, mountChapters, mountLantern, skyAt } from './chapters'
+import { mountCursor } from './cursor'
 import { warmAhead } from './warm'
 
 const root = document.documentElement
@@ -24,6 +25,7 @@ reduced.addEventListener('change', () => {
 })
 
 const loader = document.querySelector<HTMLElement>('.loader')
+mountCursor()
 
 const look = (e: PointerEvent): void => {
   hero.pointer.x = e.clientX / window.innerWidth - 0.5

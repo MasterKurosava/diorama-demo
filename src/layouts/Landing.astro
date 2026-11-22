@@ -2,8 +2,12 @@
 // The landscape and its work pages. One script for all of them, so it runs once per visit and
 // the canvas, Lenis and the page state live across navigations.
 import { ClientRouter } from 'astro:transitions'
+import Cover from '../cover/Cover.astro'
+import Small from '../small/Small.astro'
 import 'lenis/dist/lenis.css'
 import '../landing/style.css'
+import '../landing/cursor.css'
+import '../landing/ghost.css'
 import '../landing/chapters/chapters.css'
 import '../landing/chapters/why.css'
 import '../landing/chapters/map.css'
@@ -12,6 +16,7 @@ import '../landing/chapters/night.css'
 import '../landing/chapters/lantern.css'
 import '../landing/chapters/editor.css'
 import '../landing/chapters/dawn.css'
+import '../landing/chapters/catalogue.css'
 import '../landing/chapters/build.css'
 
 interface Props {
@@ -34,7 +39,7 @@ const { title, work = false, night = false } = Astro.props
       name="description"
       content="Diorama puts three.js effects on ordinary HTML: one attribute on any element."
     />
-    <link rel="icon" href="data:," />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
     <style is:inline>
       /* Critical CSS for the first paint. */
@@ -87,6 +92,7 @@ const { title, work = false, night = false } = Astro.props
     <ClientRouter />
   </head>
   <body>
+    <Small />
     <slot name="before" />
     <div class="sheet" aria-hidden="true"></div>
     <div id="page">
@@ -96,8 +102,14 @@ const { title, work = false, night = false } = Astro.props
         <p>Diorama is MIT.</p>
       </footer>
     </div>
+    <Cover />
+    <div class="cursor" aria-hidden="true" transition:persist="cursor">
+      <i class="cursor-ring"></i><i class="cursor-dot"></i>
+      <span class="cursor-disc"><span class="cursor-text"></span></span>
+    </div>
 
     <script>
+      import '../cover/cover'
       import '../landing/main'
     </script>
   </body>

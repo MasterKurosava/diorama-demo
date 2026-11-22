@@ -13,7 +13,7 @@ In this step you write `mono`, an effect that turns an image monochrome and tint
 An effect is a file in `src/effects/` whose default export is `effect()`. The file name is the effect name, so `src/effects/mono.ts` is `mono`. Start with one param, `strength`, which defaults to 1.
 
 ```ts title="src/effects/mono.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {
@@ -53,7 +53,7 @@ The image shows in gray. Set `data-dio-strength="0.6"` and some of the color com
 A string default that reads as a CSS color makes a color param. Add `ink` and mix the gray between it and white, so the shadows take the ink and the highlights stay light.
 
 ```ts title="src/effects/mono.ts" twoslash {5,9-10} 
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 
 export default effect(
@@ -94,7 +94,7 @@ The param types come from the defaults: a number, a boolean, a tuple of 2 to 4 n
 
 ## Related
 
-- [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes): a pointer light for a product photo, with `dioramajs/kit` helpers.
+- [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes): a pointer light for a product photo, with `@dioramajs/diorama/kit` helpers.
 - [Write an effect](/docs/guides/custom-effect): the full walkthrough, with update functions and own objects.
 - [Port a GLSL shader](/docs/guides/glsl), if you already have a fragment shader.
 - [Inputs](/docs/api/inputs): every value in `u`.

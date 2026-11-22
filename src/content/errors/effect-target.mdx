@@ -40,7 +40,7 @@ Put media effects on the image or video itself, not on its wrapper:
 In your own effect, declare `media: true` before reading `ctx.map`:
 
 ```ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect({}, { media: true }, ({ map }) => {
   map.anisotropy = 4

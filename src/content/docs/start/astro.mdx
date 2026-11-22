@@ -11,12 +11,12 @@ Astro builds with Vite, so the integration adds the same plugin as the Vite setu
 
 ## Install the packages
 
-<Install packages="dioramajs three" />
+<Install packages="@dioramajs/diorama three" />
 
 ## Add the integration
 
 ```js title="astro.config.mjs" fixture="astro"
-import diorama from 'dioramajs/astro'
+import diorama from '@dioramajs/diorama/astro'
 
 export default { integrations: [diorama()] }
 ```
@@ -39,7 +39,7 @@ import { ClientRouter } from 'astro:transitions'
   <body>
     <slot />
     <script>
-      import { start } from 'dioramajs'
+      import { start } from '@dioramajs/diorama'
       start()
     </script>
   </body>

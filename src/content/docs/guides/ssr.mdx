@@ -40,7 +40,7 @@ Start the app in code that runs only in the browser, after hydration.
 | SvelteKit | `onMount` in the root `+layout.svelte`                        |
 | Astro     | A `<script>` in the shared layout                             |
 
-Importing `dioramajs` on the server is safe: it reads no `window` or `document` at import and starts no timers, and effect modules load in the browser only. Calling `start()` is what to keep out of server code. In Node the app is inert, but the module keeps it for the life of the server process, and server code has nothing to draw.
+Importing `@dioramajs/diorama` on the server is safe: it reads no `window` or `document` at import and starts no timers, and effect modules load in the browser only. Calling `start()` is what to keep out of server code. In Node the app is inert, but the module keeps it for the life of the server process, and server code has nothing to draw.
 
 Starting before hydration has a visible cost in React: the runtime may write `data-dio-state` on a server-rendered element first, and React 19 prints a hydration mismatch warning in development. The node is kept, but `useEffect` runs after hydration and avoids the warning.
 
@@ -49,7 +49,7 @@ Starting before hydration has a visible cost in React: the runtime may write `da
 A module that calls `start()` at its top level runs on the server as soon as a server-rendered component imports it. Export a function instead, and call it from browser code only: effects, event handlers, client plugins. `start()` returns the same app on every call, so every caller gets one app with the same options.
 
 ```ts title="src/lib/diorama.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 /** The page's app. Call it from browser code only. */
 export const getApp = () => start({ background: '#08080b' })
@@ -142,7 +142,7 @@ A handle from `attach()` works at once. Until the app runs, it records params wr
 | Code                                   | On the server                                      | In the browser                                 |
 | -------------------------------------- | -------------------------------------------------- | ---------------------------------------------- |
 | `data-dio` and `data-dio-*` attributes | Rendered as HTML                                   | Read when the app starts and on every change   |
-| `import { start } from 'dioramajs'`      | No side effects                                    | No side effects                                |
+| `import { start } from '@dioramajs/diorama'`      | No side effects                                    | No side effects                                |
 | `start()`                              | Keep it out: an inert app the process holds on to   | Starts the app; later calls return it          |
 | `transition(app, swap)`                | Calls `swap` and returns a skipped transition      | Flies keyed elements to their partners         |
 | Effect files                           | Never imported                                     | Imported when an element with the effect nears the viewport |

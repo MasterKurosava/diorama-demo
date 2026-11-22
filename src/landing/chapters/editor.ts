@@ -2,8 +2,8 @@
 // goes through redefine (what the Vite plugin's HMR calls), in a build through effects.register,
 // which rebuilds the instances the same way. The meter counts frames actually drawn.
 
-import type { Effect } from 'dioramajs'
-import { type App, color, effect, oneOf, ready, redefine } from 'dioramajs'
+import type { Effect } from '@dioramajs/diorama'
+import { type App, color, effect, oneOf, ready, redefine } from '@dioramajs/diorama'
 import source from '../../effects/ink.ts?raw'
 
 export function mount(app: App): () => void {

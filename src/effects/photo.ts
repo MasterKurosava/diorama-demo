@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { color, mix, smoothstep, uniform, vec4 } from 'three/tsl'
 import { D, DEPTH, hero, inScene, LANDED, smooth, touchable } from './_hero'
 import { arch, glare, glareAt, paperSurface, WARM } from './_look'
@@ -69,7 +69,8 @@ export default effect({ rings: 1 }, { media: true, animate: 'visible' }, (ctx) =
         width: mix(from.width, to.width),
         height: mix(from.height, to.height),
       },
-      1,
+      // Posed layers count as on screen: once the card has taken over, no pose, no frames.
+      shown.value ? 1 : 0,
     )
   }
 })

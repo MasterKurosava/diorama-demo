@@ -1,5 +1,5 @@
-// 08 Dawn. Scroll drives the closing scene's hour from midnight to sunrise through a live param.
-import type { App } from 'dioramajs'
+// 09 Dawn. Scroll drives the closing scene's hour from midnight to sunrise through a live param.
+import type { App } from '@dioramajs/diorama'
 
 const smooth = (x: number): number => {
   const t = Math.min(1, Math.max(0, x))

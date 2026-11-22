@@ -24,7 +24,7 @@ The copies and veils of the transition are released, and the transition resolves
 </Steps>
 
 ```ts
-import { type App, transition } from 'dioramajs'
+import { type App, transition } from '@dioramajs/diorama'
 
 export function go(app: App, swap: () => Promise<void>) {
   return transition(app, swap, { timeout: 20 })

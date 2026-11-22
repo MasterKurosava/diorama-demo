@@ -1,4 +1,4 @@
-import type { QualityTier } from 'dioramajs/quality'
+import type { QualityTier } from '@dioramajs/diorama/quality'
 import { app } from '../../../docs/diorama.ts'
 import { running } from '../replay.ts'
 

@@ -16,7 +16,7 @@ Paste the tag into the code that every page gets.
 ```html
 <script
   type="module"
-  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+  src="https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js"
 ></script>
 ```
 
@@ -43,7 +43,7 @@ Where you cannot add attributes, attach effects from code with a selector. Impor
 
 ```html
 <script type="module">
-  import { start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+  import { start } from 'https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js'
 
   start().attach('#rec123456789 img', 'ripple', { strength: 2 })
 </script>
@@ -61,7 +61,7 @@ An image without the `crossorigin` attribute still works when the CDN sends the 
 
 ```html
 <script type="module">
-  import { start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+  import { start } from 'https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js'
 
   for (const img of document.querySelectorAll('#rec123456789 img')) {
     img.setAttribute('crossorigin', 'anonymous')
@@ -82,7 +82,7 @@ Options of `start()` go in `window.diorama`, set in a plain script before the ta
 </script>
 <script
   type="module"
-  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+  src="https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js"
 ></script>
 ```
 
@@ -105,7 +105,7 @@ Lenis does not publish its instance, so create it in the options.
 </script>
 <script
   type="module"
-  src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+  src="https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js"
 ></script>
 ```
 
@@ -120,7 +120,7 @@ An effect can live in the page code, with no file to host. Start the app yoursel
   window.diorama = { manual: true }
 </script>
 <script type="module">
-  import { effect, start } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+  import { effect, start } from 'https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js'
 
   const brighten = effect({ strength: 1 }, ({ surface, u }) => {
     surface.color((color) => color.mul(u.strength.add(1)))
@@ -133,7 +133,7 @@ An effect can live in the page code, with no file to host. Start the app yoursel
 Several effects are easier to keep as files on any static host. Each file imports `effect` from the same CDN address, so the page has one copy of Diorama, and `start()` loads a file only when its effect is first needed.
 
 ```js title="fx/brighten.js"
-import { effect } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+import { effect } from 'https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {
   surface.color((color) => color.mul(u.strength.add(1)))

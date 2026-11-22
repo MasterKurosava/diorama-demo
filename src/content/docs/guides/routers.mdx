@@ -38,7 +38,7 @@ Diorama looks for the target among elements that came in with the swap and takes
 A target without effects, such as `<img data-dio-key="aurora">` with no `data-dio`, still receives the flight: the flying copy lands on it and fades into its DOM. A source without effects has no copy to fly. To let every keyed image fly, attach `image` to them once.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 const app = start()
 app.attach(
@@ -70,7 +70,7 @@ figure:has([data-dio-state="entering"]) figcaption {
 `transition(app, swap, options)` gives you an exact snapshot, the right URL for the new page and control over timing. Call it with a function that changes the DOM.
 
 ```ts twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 const app = start()
 const next = new DOMParser().parseFromString(
@@ -101,7 +101,7 @@ Use the free function in router code rather than `app.transition()`. The service
 Defaults apply to every transition; pass them to `start()`. The same fields work for one call in the options of `transition()`.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start({
   transitions: {
@@ -121,7 +121,7 @@ The default ease is cubic in-out. Any function from 0 to 1 works, GSAP eases inc
 Copies without a partner leave with their DOM, and new copies appear with theirs. Set `leave` or `enter` above 0 to give them time on the canvas: removed copies outlive their elements while `u.presence` goes from 1 to 0, and new copies in view go from 0 to 1.
 
 ```ts twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 const app = start()
 declare function swap(): void
@@ -177,7 +177,7 @@ Under reduced motion nothing flies: the old copy fades in place over 0.2 seconds
 `app.transition.page` is the scope of the current page. Its cleanups run right after the next swap, before effects reconcile the new page, so rules of the old page never mount on elements of the new one. Handles from `attach()` work as cleanups.
 
 ```ts twoslash
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const app = start()
 // ---cut---
@@ -220,7 +220,7 @@ declare global {
   }
 }
 // ---cut---
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 export const app = start()
 
@@ -261,7 +261,7 @@ An element with `transition:persist` is the same node on both pages: its instanc
 Back and Forward restore the scroll position. A link opens its page at the top, as in any browser, even a link back to the page the reader has left a moment ago, such as the logo back to the home page. The `restoreScroll` option of the integration changes that:
 
 ```js title="astro.config.mjs"
-import diorama from 'dioramajs/astro'
+import diorama from '@dioramajs/diorama/astro'
 
 export default { integrations: [diorama({ restoreScroll: 'parents' })] }
 ```
@@ -270,7 +270,7 @@ export default { integrations: [diorama({ restoreScroll: 'parents' })] }
 - `'visited'`: a link to any page seen earlier in the tab lands where the reader left it.
 - `'history'`, the default: only Back and Forward, as browsers do.
 
-A link with a `#hash` still goes to its anchor, and a link to the page on screen or a form's answer opens at the top. Positions live in `sessionStorage`. The page moves before other `astro:after-swap` listeners run, so flights land on targets where the page ends up and Lenis goes on from there. Without the integration, call `restoreScroll('parents')` from `dioramajs/astro/client` in a layout script.
+A link with a `#hash` still goes to its anchor, and a link to the page on screen or a form's answer opens at the top. Positions live in `sessionStorage`. The page moves before other `astro:after-swap` listeners run, so flights land on targets where the page ends up and Lenis goes on from there. Without the integration, call `restoreScroll('parents')` from `@dioramajs/diorama/astro/client` in a layout script.
 
 <Callout kind="warning" title="Lenis and Back">
 Stop Lenis for the swap and start it again in `astro:after-swap`, but never call `lenis.scrollTo(0)` there. Astro restores the scroll position on Back before `astro:after-swap`, and a reset to the top undoes it. New pages open at the top without help.
@@ -295,7 +295,7 @@ declare global {
   }
 }
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 import Lenis from 'lenis'
 
 const lenis = new Lenis()
@@ -343,7 +343,7 @@ export function Commit(): null {
 
 ```tsx title="src/app/fly-link.tsx"
 'use client'
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ComponentProps, useRef } from 'react'
@@ -387,7 +387,7 @@ declare function defineNuxtPlugin<T>(
   }) => T,
 ): T
 // ---cut---
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const app = start()
@@ -431,7 +431,7 @@ While the old page fades out, the thumbnails hold where they were; once removed 
 Barba keeps a wrapper and swaps a container inside it. The recipe snapshots in `before` and settles the swap in `after`, when the old container is gone.
 
 ```ts twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 interface Data {
   readonly current: { readonly container: HTMLElement }
@@ -494,7 +494,7 @@ With `sync: true` both containers sit in the document at once. Put them in one g
 Without code Swup replaces the container in place and the flights work, but the snapshot is taken after the out animation, when the old page has already faded. The recipe snapshots before it.
 
 ```ts twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 declare const swup: {
   hooks: {
@@ -547,7 +547,7 @@ Turbo replaces `<body>` in one task, so the flights work without code. Elements 
 With your own router, fetch the next page, then swap inside `transition()`. Handle Back with `popstate` and restore the scroll position inside the swap.
 
 ```ts title="src/main.ts" twoslash
-import { start, transition } from 'dioramajs'
+import { start, transition } from '@dioramajs/diorama'
 
 export const app = start()
 history.scrollRestoration = 'manual'

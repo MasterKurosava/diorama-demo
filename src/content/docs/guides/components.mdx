@@ -14,7 +14,7 @@ Diorama watches the DOM, not the framework. An effect is an attribute, and every
 The app belongs to the site, not to a component: the canvas and the effects outlive every page. Create it in one module and import that module where you need the app.
 
 ```ts title="src/diorama.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 ```

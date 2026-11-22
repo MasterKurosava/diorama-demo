@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {

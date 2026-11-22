@@ -1,4 +1,4 @@
-import { transition } from 'dioramajs'
+import { transition } from '@dioramajs/diorama'
 import { app } from '../../docs/diorama.ts'
 
 // The swap of the plain history recipe below, without fetch and history: pages are templates.

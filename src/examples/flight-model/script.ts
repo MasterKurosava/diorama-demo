@@ -1,4 +1,4 @@
-import { transition } from 'dioramajs'
+import { transition } from '@dioramajs/diorama'
 import { app } from '../../docs/diorama.ts'
 
 const SVG = 'http://www.w3.org/2000/svg'

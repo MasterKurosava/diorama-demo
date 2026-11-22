@@ -1,4 +1,4 @@
-import { ready } from 'dioramajs'
+import { ready } from '@dioramajs/diorama'
 import { app } from '../../docs/diorama.ts'
 
 const IMAGES = [

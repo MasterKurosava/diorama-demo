@@ -11,12 +11,12 @@ Next.js builds with webpack or Turbopack, not Vite. `withDiorama` writes the eff
 
 ## Install the packages
 
-<Install packages="dioramajs three" />
+<Install packages="@dioramajs/diorama three" />
 
 ## Wrap the config
 
 ```ts title="next.config.ts" fixture="next" twoslash
-import { withDiorama } from 'dioramajs/next'
+import { withDiorama } from '@dioramajs/diorama/next'
 
 export default withDiorama({})
 ```
@@ -25,7 +25,7 @@ export default withDiorama({})
 
 ```tsx title="src/app/diorama.tsx" fixture="next"
 'use client'
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 import { useEffect } from 'react'
 
 export function Diorama() {

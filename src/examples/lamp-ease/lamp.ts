@@ -1,5 +1,5 @@
-import { effect } from 'dioramajs'
-import { approach, chase } from 'dioramajs/kit'
+import { effect } from '@dioramajs/diorama'
+import { approach, chase } from '@dioramajs/diorama/kit'
 import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
 import { Vector2 } from 'three/webgpu'
 

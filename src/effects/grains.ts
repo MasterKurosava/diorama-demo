@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   clamp,
   float,
@@ -80,7 +80,8 @@ export default effect(
       touch.value = touchable(hero.flight)
       // Hide before the camera reaches it. Sprites crossing the camera plane streak.
       grains.visible = nearFade(DEPTH.portrait, hero.flight) > 0
-      pose(layer, inScene(input, DEPTH.portrait, hero.flight), 1)
+      // Posed layers count as on screen: no pose once it is hidden, so it stops drawing.
+      pose(layer, inScene(input, DEPTH.portrait, hero.flight), grains.visible ? 1 : 0)
     }
   },
 )

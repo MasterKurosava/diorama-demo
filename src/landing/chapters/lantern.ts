@@ -1,6 +1,6 @@
 // 05 Lantern. The swatches write data-dio-tint, a live param, and the dye travels with the lantern
 // to its page. The loading readout follows app.assets.progress.
-import { type App, ready } from 'dioramajs'
+import { type App, ready } from '@dioramajs/diorama'
 
 // Site palette plus an indigo for the night page.
 const TINTS = [

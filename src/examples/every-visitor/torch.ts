@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec4 } from 'three/tsl'
 
 export default effect(

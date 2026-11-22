@@ -28,7 +28,7 @@ This is the default, `reducedMotion: 'static'`: the effect still runs, with moti
 A still frame is not always a good picture. If the setting changes while the page is open, `u.time` stops where it is, and the shimmer band can stop in the middle of the image. Pass `reducedMotion: 'off'` and the image stays plain HTML with reduced motion.
 
 ```ts title="src/effects/shimmer.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { fract, smoothstep, vec4 } from 'three/tsl'
 
 export default effect(
@@ -54,7 +54,7 @@ To keep an effect but drop only its motion, multiply the moving part by `u.motio
 A touch screen has no pointer that hovers, so `torch` has nothing to follow. Pass `when: 'hover'`: the effect runs only where the page matches the media query `(hover: hover)`.
 
 ```ts title="src/effects/torch.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { smoothstep, vec4 } from 'three/tsl'
 
 export default effect(

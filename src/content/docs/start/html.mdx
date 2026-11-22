@@ -19,7 +19,7 @@ The CDN build starts the app on its own with the image effects and page transiti
     <title>Diorama</title>
     <script
       type="module"
-      src="https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js"
+      src="https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js"
     ></script>
   </head>
   <body>
@@ -52,7 +52,7 @@ Set `window.diorama = { manual: true }` to call `start()` yourself.
 Your effect is a module that imports `effect` from the same address, so the page has one copy of Diorama.
 
 ```js title="fx/brighten.js"
-import { effect } from 'https://cdn.jsdelivr.net/npm/dioramajs/dist/cdn/auto.js'
+import { effect } from 'https://cdn.jsdelivr.net/npm/@dioramajs/diorama/dist/cdn/auto.js'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {
   surface.color((color) => color.mul(u.strength.add(1)))

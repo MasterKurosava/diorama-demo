@@ -154,8 +154,11 @@ export function mount(): () => void {
   handle.addEventListener(
     'pointerdown',
     (e) => {
-      touched = true
-      handle.setPointerCapture(e.pointerId)
+      if (e.isTrusted) touched = true
+      // The hint's hand is not a live pointer on every device, so capture may refuse it.
+      try {
+        handle.setPointerCapture(e.pointerId)
+      } catch {}
       drag = { x: e.clientX, width }
       root.classList.add('resizing')
     },
@@ -165,7 +168,7 @@ export function mount(): () => void {
     'pointermove',
     (e) => {
       if (!drag) return
-      sized = true
+      if (e.isTrusted) sized = true
       setWidth(drag.width + (e.clientX - drag.x) * 2)
     },
     on,

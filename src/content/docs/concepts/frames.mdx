@@ -63,7 +63,7 @@ Without the option the policy comes from what the effect reads: `u.time` means `
 The update function can answer for itself. Returning `true` asks for the next frame and `false` for none, so an effect draws until state kept in JavaScript settles, such as a damped position or a fade. Without `animate` the answer decides alone, whatever clocks the update reads; with `animate`, `true` adds frames to the policy and `false` takes none away. An update that returns nothing leaves the decision to the policy.
 
 ```ts title="src/effects/shimmer.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { sin } from 'three/tsl'
 
 // Reads u.hoverTime: draws while hovered and while hover fades.
@@ -110,7 +110,7 @@ With GSAP the frames come from `gsap.ticker` instead of `requestAnimationFrame`,
 Code outside effects uses the app's loop controls.
 
 ```ts twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 const app = start()
 declare function playIntro(): Promise<void>

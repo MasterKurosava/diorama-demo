@@ -1,6 +1,6 @@
 // Astro integration of the docs: checks the built site and writes the Pagefind index.
-import { readdirSync, readFileSync, realpathSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   checkErrorPages,
@@ -14,6 +14,7 @@ import {
   readSite,
 } from './checks.ts'
 import pending from './errors-pending.json' with { type: 'json' }
+import { installedLibrary } from './lib/library.ts'
 import { setStrict } from './lib/strict.ts'
 import { load } from './lib/tables.ts'
 import { devPagefind } from './search/dev-index.ts'
@@ -96,8 +97,7 @@ export function docs() {
             pending.codes,
           ),
         )
-        const library = resolve(realpathSync(join(root, 'node_modules/dioramajs')), '../..')
-        const sources = librarySources(library)
+        const sources = librarySources(installedLibrary(root).map((p) => p.dir))
         fail(
           'Error messages',
           pages.flatMap((p) => checkMessage(p.message, sources).map((m) => `${p.code}: ${m}`)),

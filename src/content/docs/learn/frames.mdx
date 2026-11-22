@@ -17,7 +17,7 @@ Diorama draws a frame only when something on the canvas changes. To watch that, 
 ```
 
 ```ts title="src/main.ts" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 
@@ -34,7 +34,7 @@ Leave the pointer still and the counter stops. Scroll, or move the pointer, and 
 `u.time` is the number of seconds the element has been on screen. Use it to move a light band across the image once every four seconds.
 
 ```ts title="src/effects/shimmer.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { fract, smoothstep, vec4 } from 'three/tsl'
 
 export default effect(
@@ -69,7 +69,7 @@ The band sweeps diagonally across the image, and the counter grows by about 60 a
 An image that shimmers all the time costs a frame on every refresh while it is visible. Replace `u.time` with `u.hoverTime`, which runs only while the pointer is over the box, and multiply the band by `u.hover` so it fades out when the pointer leaves.
 
 ```ts title="src/effects/shimmer.ts" twoslash {8,10-12}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { fract, smoothstep, vec4 } from 'three/tsl'
 
 export default effect(
@@ -96,7 +96,7 @@ Now the counter stands still while the pointer rests outside the image. Over the
 Diorama picks the frame policy from the inputs the effect reads: `u.time` means `'visible'`, `u.hoverTime` means `'hover'`, and neither means `'input'`. An update function that returns `true` or `false` decides instead, as in [Your own effect in 10 minutes](/docs/learn/effect-in-10-minutes). To set it yourself, pass the `animate` option between the params and the setup function. A shimmer does not need 60 frames a second; 30 is enough.
 
 ```ts title="src/effects/shimmer.ts" twoslash {6}
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { fract, smoothstep, vec4 } from 'three/tsl'
 
 export default effect(

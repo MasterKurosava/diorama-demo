@@ -11,14 +11,14 @@ The Vite plugin turns every file in `src/effects/` into an effect that loads on 
 
 ## Install the packages
 
-<Install packages="dioramajs three" />
+<Install packages="@dioramajs/diorama three" />
 
 ## Add the plugin
 
 Add `diorama()` to the plugins in `vite.config.ts`.
 
 ```ts title="vite.config.ts" fixture="vite" twoslash
-import { diorama } from 'dioramajs/vite'
+import { diorama } from '@dioramajs/diorama/vite'
 
 export default { plugins: [diorama()] }
 ```
@@ -28,7 +28,7 @@ export default { plugins: [diorama()] }
 Call `start()` once in the module every page loads.
 
 ```ts title="src/main.ts" fixture="vite" twoslash
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 ```

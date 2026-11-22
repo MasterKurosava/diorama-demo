@@ -1,4 +1,4 @@
-import { transition } from 'dioramajs'
+import { transition } from '@dioramajs/diorama'
 import { app } from '../../docs/diorama.ts'
 
 // src/main.ts of this step, with the box and templates looked up inside the example.

@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { Mesh, MeshBasicNodeMaterial, RingGeometry } from 'three/webgpu'
 
 export default effect(

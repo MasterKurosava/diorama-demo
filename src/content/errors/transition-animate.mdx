@@ -22,7 +22,7 @@ Read the `cause` and fix the choreography. Return a value that settles: a GSAP t
 
 ```ts
 import { gsap } from 'gsap'
-import { type App, transition } from 'dioramajs'
+import { type App, transition } from '@dioramajs/diorama'
 
 export function go(app: App, swap: () => Promise<void>) {
   return transition(app, swap, {

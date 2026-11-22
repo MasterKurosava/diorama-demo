@@ -30,7 +30,7 @@ When setup fails, its scope closes, its surface transforms are removed and the i
 An optional model can fail without failing the effect. The asset error still prints under `asset:<url>`:
 
 ```ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect(async ({ model, place }) => {
   const lamp = await model('/models/lamp.glb').catch(() => undefined)

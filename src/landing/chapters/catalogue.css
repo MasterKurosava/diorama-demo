@@ -1,0 +1,135 @@
+/* 07 Out of the box. A wall of prints: recorded clips of built-in effects in paper mats, hung in
+   rows of two large, three, two and four. A print lifts and plays under the pointer; the wall
+   brings one print to life at a time on its own. */
+.cat {
+  padding: clamp(110px, 16vh, 180px) var(--edge) clamp(90px, 13vh, 150px);
+}
+.cat-head {
+  display: grid;
+  gap: 20px;
+  max-width: 52rem;
+}
+.cat-title {
+  margin: 0;
+  font-size: clamp(2.8rem, 6.4vw, 6rem);
+  font-weight: 800;
+  font-stretch: 118%;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+.cat-lede {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: rgb(243 233 216 / 0.76);
+}
+.cat-lede code {
+  font:
+    500 0.92em "JetBrains Mono",
+    monospace;
+  color: #ffcf98;
+}
+
+.cat-wall {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 22px);
+  margin: clamp(44px, 7vh, 80px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cat-l {
+  grid-column: span 6;
+}
+.cat-m {
+  grid-column: span 4;
+}
+.cat-s {
+  grid-column: span 3;
+}
+.cat-print a {
+  position: relative;
+  display: block;
+  padding: 7px;
+  border-radius: 16px;
+  background: #f3e9d8;
+  color: #2a1020;
+  text-decoration: none;
+  box-shadow:
+    0 30px 50px -30px rgb(4 1 10 / 0.9),
+    0 2px 6px rgb(4 1 10 / 0.35);
+  transition:
+    translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cat-print video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #1b1022;
+}
+.cat-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 6px 4px;
+}
+.cat-name {
+  font:
+    600 13px / 1 "JetBrains Mono",
+    monospace;
+}
+.cat-kind {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(42 16 32 / 0.55);
+}
+.cat-l .cat-name {
+  font-size: 15px;
+}
+.cat-print a:hover,
+.cat-print a:focus-visible,
+.cat-print.live a {
+  translate: 0 -6px;
+  box-shadow:
+    0 44px 70px -34px rgb(4 1 10 / 0.95),
+    0 0 0 1px rgb(255 207 152 / 0.5);
+}
+.cat-print a:focus-visible {
+  outline: 2px solid #ffcf98;
+  outline-offset: 4px;
+}
+
+.cat-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin: clamp(36px, 5vh, 56px) 0 0;
+  color: rgb(243 233 216 / 0.7);
+}
+
+@media (max-width: 999px) {
+  .cat-l,
+  .cat-m {
+    grid-column: span 12;
+  }
+  .cat-s {
+    grid-column: span 6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat-print a {
+    transition: none;
+  }
+  .cat-print a:hover,
+  .cat-print.live a {
+    translate: none;
+  }
+}

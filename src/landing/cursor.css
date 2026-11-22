@@ -1,0 +1,92 @@
+/* The landscape's pointer over what can be clicked (cursor.ts). The dot and the ring invert what
+   is under them, so they read on the dusk and on the paper alike; the disc is a piece of paper. */
+html[data-pointer],
+html[data-pointer] * {
+  cursor: none !important;
+}
+.cursor {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 96;
+  pointer-events: none;
+}
+.cursor > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: translate;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.cursor-ring {
+  border: 1.5px solid #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity 0.25s,
+    scale 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.35s;
+}
+.cursor-disc {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin: -44px 0 0 -44px;
+  border-radius: 50%;
+  background: #f3e9d8;
+  color: #4b1519;
+  box-shadow:
+    0 14px 30px -10px rgb(20 4 5 / 0.55),
+    0 2px 6px rgb(20 4 5 / 0.25);
+  opacity: 0;
+  scale: 0.2;
+  transition:
+    opacity 0.25s,
+    scale 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cursor-text {
+  font:
+    700 11px / 1 Archivo,
+    system-ui,
+    sans-serif;
+  font-stretch: 115%;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cursor[data-kind="label"] .cursor-disc {
+  opacity: 1;
+  scale: 1;
+}
+.cursor[data-kind="wrap"] .cursor-ring {
+  opacity: 1;
+  scale: 1;
+}
+.cursor[data-kind="wrap"] .cursor-dot,
+.cursor[data-kind="dot"] .cursor-dot {
+  opacity: 1;
+}
+.cursor.pressed .cursor-disc {
+  scale: 0.88;
+}
+.cursor.pressed .cursor-ring {
+  scale: 0.94;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-disc,
+  .cursor-ring {
+    transition: opacity 0.2s;
+    scale: 1;
+  }
+}

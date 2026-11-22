@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import {
   cameraPosition,
   equirectUV,
@@ -113,8 +113,9 @@ export default effect({}, { animate: 'visible' }, ({ place, mask, u, layer, pose
     const k = Math.min(1, input.delta * 4)
     pull.value += (input.hover * 0.12 * touchable(hero.flight) - pull.value) * k
     towards.value.set((input.pointer.x - 0.5) * 2, (input.pointer.y - 0.5) * 2, 0.6).normalize()
-    // Hidden once the camera has flown past it.
+    // Hidden once the camera has flown past it. A posed layer counts as on screen, so the pose
+    // goes with it: the page below the hero draws nothing for the drop.
     drop.visible = nearFade(DEPTH.metal, hero.flight) > 0
-    pose(layer, inScene(input, DEPTH.metal, hero.flight), 1)
+    pose(layer, inScene(input, DEPTH.metal, hero.flight), drop.visible ? 1 : 0)
   }
 })

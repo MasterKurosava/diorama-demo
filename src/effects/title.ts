@@ -1,4 +1,4 @@
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { texture, uniform, uv, vec3, vec4 } from 'three/tsl'
 import type { Node, Texture } from 'three/webgpu'
 import {
@@ -109,7 +109,8 @@ export default effect(
       for (const [i, mesh] of behind.entries()) mesh.position.z = -GAP * (i + 1) * open
       // Hidden once the camera has flown past it.
       heading.visible = nearFade(DEPTH.title, hero.flight) > 0
-      pose(layer, inScene(input, DEPTH.title, hero.flight), 1)
+      // Posed layers count as on screen: no pose once it is hidden, so it stops drawing.
+      pose(layer, inScene(input, DEPTH.title, hero.flight), heading.visible ? 1 : 0)
     }
   },
 )

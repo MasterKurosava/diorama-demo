@@ -1,8 +1,9 @@
 // The one Diorama app of the site and the page lifecycle under Astro's ClientRouter. Page scripts
 // import from here and never call start() themselves: Astro runs component scripts in document
 // order, and whichever called start() first would decide the options.
-import { ready, start, transition } from 'dioramajs'
+import { ready, start, transition } from '@dioramajs/diorama'
 import Lenis from 'lenis'
+import { small } from './small/small'
 
 /** How the current page was reached. */
 export interface Arrival {
@@ -29,7 +30,8 @@ if (document.querySelector('.loader') && !matchMedia('(prefers-reduced-motion: r
 let markup = attributes(root)
 
 let lenis: Lenis | undefined = new Lenis(LENIS)
-export const app = start({ lenis })
+// Under the note for small screens the engine never boots.
+export const app = start({ lenis, enabled: small() ? false : 'auto' })
 
 /**
  * The smooth scroll of the current page. Pages ask for it with `data-lenis` on <html>; on the

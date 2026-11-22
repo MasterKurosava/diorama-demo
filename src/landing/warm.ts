@@ -1,7 +1,7 @@
 // Loads and compiles the chapters below while the reader is idle. Effects normally load as they
 // near the screen and compile on first draw, which on some machines stalls for about 100 ms in
 // the middle of a scroll.
-import type { App } from 'dioramajs'
+import type { App } from '@dioramajs/diorama'
 import type { Object3D } from 'three/webgpu'
 
 const SETTLED = new Set(['drawn', 'live', 'failed', 'off'])

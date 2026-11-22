@@ -13,7 +13,7 @@ An effect is a file in the effects folder that exports `effect()`. Its name is t
 The first argument of `effect()` holds the params with their defaults. The setup function gets the effect context: `surface` changes the picture of the element, and `u` holds params and inputs as shader nodes.
 
 ```ts title="src/effects/brighten.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect({ strength: 1 }, ({ surface, u }) => {
   surface.color((color) => color.mul(u.strength.add(1)))
@@ -53,12 +53,12 @@ Here is the same effect running on this page. The slider writes `strength` the w
 
 ```ts title="src/main.ts" twoslash
 // @filename: src/effects/brighten.ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 export default effect({ strength: 1 }, ({ surface, u }) => {
   surface.color((color) => color.mul(u.strength.add(1)))
 })
 // @filename: src/diorama.gen.d.ts
-declare module 'dioramajs' {
+declare module '@dioramajs/diorama' {
   interface SiteEffects {
     brighten: typeof import('./effects/brighten').default
   }
@@ -66,7 +66,7 @@ declare module 'dioramajs' {
 export {}
 // @filename: src/main.ts
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 const brighten = app.attach('.hero', 'brighten', { strength: 2 })
@@ -80,7 +80,7 @@ The name `'brighten'` and the type of `strength` are checked against the effect 
 This effect reads no time input, so it draws only when the page scrolls, the pointer moves over it or a param changes. An effect that reads `u.time` draws every frame while it is on screen; one that reads `u.hoverTime` draws while the pointer is over it and while hover fades. To choose yourself, pass options before the setup function.
 
 ```ts title="src/effects/brighten.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 
 export default effect(
   { strength: 1 },

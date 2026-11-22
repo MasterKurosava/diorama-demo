@@ -43,7 +43,7 @@ Without `data-dio-src` the picture is the current source of the first `<img>` in
 To put the names on top of the picture, draw the canvas under the page with `canvas: 'behind'` and give the names `mix-blend-mode: difference`, so they stay readable over light and dark pictures alike. The page has to be transparent where the picture shows: move its color from `body` to the `background` option.
 
 ```ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 const app = start({ canvas: 'behind', background: '#f3e9d8' })
 ```

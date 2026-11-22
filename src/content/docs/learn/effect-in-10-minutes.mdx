@@ -16,7 +16,7 @@ You need a site with Diorama and an effects folder; [Install with Vite](/docs/st
 An effect is a file in the effects folder whose default export is `effect()`. The file name is the effect name: `src/effects/lamp.ts` is `lamp`. The first argument of `effect()` holds the params and their defaults. The second is the setup function, which runs once per element and describes how its picture changes.
 
 ```ts title="src/effects/lamp.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { mix, smoothstep, vec3, vec4 } from 'three/tsl'
 
 export default effect(
@@ -63,8 +63,8 @@ Move the pointer over the photo. The light works, but it is glued to the pointer
 Smoothing needs a value that carries over from one frame to the next, which is a job for JavaScript. Setup can return an update function: it runs in every frame Diorama draws while the photo is on screen, gets the inputs as numbers and writes uniforms, the values the shader reads.
 
 ```ts title="src/effects/lamp.ts" twoslash {2-4,6-8,13-15,17,21,24-35}
-import { effect } from 'dioramajs'
-import { approach, chase } from 'dioramajs/kit'
+import { effect } from '@dioramajs/diorama'
+import { approach, chase } from '@dioramajs/diorama/kit'
 import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
 import { Vector2 } from 'three/webgpu'
 
@@ -107,7 +107,7 @@ export default effect(
 - `chase()` moves `at.value` toward `aim` and covers most of the way in `LAG` seconds at any frame rate. Within 0.5 px it lands on `aim` and returns `false`. The 0.5 is optional, as in `damp()`, but without it the lamp lands only on the exact spot, after seconds of frames that change nothing you can see. With 0 seconds it jumps, which the lamp does while it is off, so it lights up at the pointer instead of sliding in from where it went out.
 - `approach()` moves `on` toward its target by `input.delta / FADE` per frame, so a fade takes 0.3 seconds at any frame rate.
 
-`chase()` and `approach()` come from `dioramajs/kit`, the helpers the built-in effects are written with.
+`chase()` and `approach()` come from `@dioramajs/diorama/kit`, the helpers the built-in effects are written with.
 
 The update returns whether the lamp still moves. Diorama draws a frame only when something asks for one, and `true` from the update asks for the next frame. While the lamp moves or fades, each frame asks for the next; once it settles, the update returns `false` and the frames stop. The answer also takes the place of the clocks: reading `input.delta` counts as reading a clock, and an update that reads it and returns nothing draws every frame while the photo is on screen. Return `true` or `false` on every path of the update.
 
@@ -117,14 +117,14 @@ The light trails the pointer a little and catches up when the pointer stops. It 
 
 ## 3. Follow a finger with `follow`
 
-`input.pointer` and `input.over` describe one pointer for the whole page. `follow()` from `dioramajs/kit` listens to this photo only, the way a light wants it:
+`input.pointer` and `input.over` describe one pointer for the whole page. `follow()` from `@dioramajs/diorama/kit` listens to this photo only, the way a light wants it:
 
 - a mouse or a pen while it is over the photo;
 - the first finger while it is pressed on the photo. When the finger starts a scroll, the browser takes it with `pointercancel`, the lamp goes out and the page scrolls as usual.
 
 ```ts title="src/effects/lamp.ts" twoslash {2,12-13,25-26,28,31}
-import { effect } from 'dioramajs'
-import { approach, chase, follow } from 'dioramajs/kit'
+import { effect } from '@dioramajs/diorama'
+import { approach, chase, follow } from '@dioramajs/diorama/kit'
 import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
 import { Vector2 } from 'three/webgpu'
 
@@ -174,8 +174,8 @@ A pressed finger lights the photo where it touches, and a drag scrolls the page.
 `input.reducedMotion` is true when the visitor asked the system for less motion. The light is not motion, but the trail and the fade are. With the setting on, the lamp jumps to the pointer and turns on and off at once.
 
 ```ts title="src/effects/lamp.ts" twoslash {29-31,34-35}
-import { effect } from 'dioramajs'
-import { approach, chase, follow } from 'dioramajs/kit'
+import { effect } from '@dioramajs/diorama'
+import { approach, chase, follow } from '@dioramajs/diorama/kit'
 import { mix, smoothstep, uniform, vec3, vec4 } from 'three/tsl'
 import { Vector2 } from 'three/webgpu'
 
@@ -241,7 +241,7 @@ A color param also takes a custom property of the site, such as `data-dio-color=
 
 ## What it costs
 
-- The file is its own chunk. It loads with the engine, and only when an element with `lamp` nears the viewport. The helpers from `dioramajs/kit` load with it, never with the script every page runs.
+- The file is its own chunk. It loads with the engine, and only when an element with `lamp` nears the viewport. The helpers from `@dioramajs/diorama/kit` load with it, never with the script every page runs.
 - For each pixel the GPU reads the photo once, as it does without the effect, and does a few multiplications.
 - At rest the effect draws nothing. A pointer moving over the photo draws one frame per move, the trail and the fade draw for a fraction of a second after it, and then the frames stop. [Frames and time](/docs/learn/frames) shows how to count them.
 - Where the engine does not run, such as a browser without WebGPU and WebGL 2, the visitor sees the plain photo.
@@ -265,4 +265,4 @@ It follows the pointer with `follow()`, `chase()` and `approach()` as `lamp` doe
 - [Write an effect](/docs/guides/custom-effect): the rest of the effect API, from `surface.uv()` to your own three.js objects.
 - [How a frame is decided](/docs/concepts/frames): what asks for a frame and when the loop sleeps.
 - [Inputs](/docs/api/inputs): every value in `u` and `input`.
-- [`dioramajs/kit`](/docs/api/diorama-kit): the other helpers, such as `damp()`, `palette()` and `inView()`.
+- [`@dioramajs/diorama/kit`](/docs/api/diorama-kit): the other helpers, such as `damp()`, `palette()` and `inView()`.

@@ -28,7 +28,7 @@ On your own machine, turn hardware acceleration on in the browser settings. In a
 To style the page without 3D, use `data-dio-state="off"` in CSS, or follow the status in code:
 
 ```ts
-import { ready, start } from 'dioramajs'
+import { ready, start } from '@dioramajs/diorama'
 
 const app = await ready(start())
 app.effects?.status.subscribe((status) => {

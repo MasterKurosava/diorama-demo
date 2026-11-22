@@ -11,7 +11,7 @@ In this step you put `mono` from [step 2](/docs/learn/write-an-effect) on a gall
 This is the effect, unchanged.
 
 ```ts title="src/effects/mono.ts" twoslash
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 
 export default effect(
@@ -50,7 +50,7 @@ The gallery has no `data-dio` attributes. A slider below it sets how monochrome 
 
 ```ts title="src/main.ts" twoslash
 // @filename: src/effects/mono.ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 export default effect(
   { strength: 1, ink: '#1d2b53' },
@@ -62,7 +62,7 @@ export default effect(
   },
 )
 // @filename: src/diorama.gen.d.ts
-declare module 'dioramajs' {
+declare module '@dioramajs/diorama' {
   interface SiteEffects {
     mono: typeof import('./effects/mono').default
   }
@@ -70,7 +70,7 @@ declare module 'dioramajs' {
 export {}
 // @filename: src/main.ts
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 
@@ -96,7 +96,7 @@ The selector is a live rule, like a CSS rule. An image added to `.gallery` later
 
 ```ts title="src/main.ts" twoslash
 // @filename: src/effects/mono.ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 export default effect(
   { strength: 1, ink: '#1d2b53' },
@@ -108,14 +108,14 @@ export default effect(
   },
 )
 // @filename: src/diorama.gen.d.ts
-declare module 'dioramajs' {
+declare module '@dioramajs/diorama' {
   interface SiteEffects {
     mono: typeof import('./effects/mono').default
   }
 }
 export {}
 // @filename: src/main.ts
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 export const app = start()
 const mono = app.attach('.gallery img', 'mono', { strength: 1 })
 // ---cut---
@@ -141,7 +141,7 @@ An image with `data-dio="mono"` has its own instance, created by the markup. `ap
 
 ```ts title="src/main.ts" twoslash
 // @filename: src/effects/mono.ts
-import { effect } from 'dioramajs'
+import { effect } from '@dioramajs/diorama'
 import { luminance, mix, vec3, vec4 } from 'three/tsl'
 export default effect(
   { strength: 1, ink: '#1d2b53' },
@@ -153,7 +153,7 @@ export default effect(
   },
 )
 // @filename: src/diorama.gen.d.ts
-declare module 'dioramajs' {
+declare module '@dioramajs/diorama' {
   interface SiteEffects {
     mono: typeof import('./effects/mono').default
   }
@@ -161,7 +161,7 @@ declare module 'dioramajs' {
 export {}
 // @filename: src/main.ts
 // ---cut---
-import { start } from 'dioramajs'
+import { start } from '@dioramajs/diorama'
 
 export const app = start()
 

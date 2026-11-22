@@ -29,8 +29,8 @@ If the hint names the Content Security Policy, add `blob:` to `worker-src` and `
 `start()` uses the default decoder paths. To serve the decoder files from your own directories, set `decoders` on the `assets` plugin in an app made with `createApp`:
 
 ```ts
-import { assets, createApp, effects, transitions } from 'dioramajs'
-import { media } from 'dioramajs/media'
+import { assets, createApp, effects, transitions } from '@dioramajs/diorama'
+import { media } from '@dioramajs/diorama/media'
 
 export const app = createApp({
   plugins: [
